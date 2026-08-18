@@ -1,0 +1,20 @@
+{
+  "name": "nine_press",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "판면 규칙 기반 문서 조판 · content(JSON) + rules(CSS) → HTML → PDF",
+  "scripts": {
+    "dev": "next dev -p 4400",
+    "build:doc": "node scripts/build.js",
+    "pdf": "node scripts/pdf.js"
+  },
+  "dependencies": {
+    "next": "^15.4.6",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "playwright": "^1.54.0"
+  }
+}

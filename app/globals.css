@@ -1,0 +1,181 @@
+/* 도구 껍데기 전용. 판면 규칙(rules/page.css)과 섞이지 않는다 —
+   판본은 iframe 안에서만 그려지므로 이 파일이 판면에 닿을 일이 없다. */
+
+:root {
+  --nv: #192949;
+  --nv2: #2d4d6e;
+  --or: #e68100;
+  --ln: #e4e8ec;
+  --bg: #eef0f3;
+  --tx: #3d4854;
+  --mu: #7a8695;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0 }
+
+body {
+  font: 14px/1.6 Pretendard, -apple-system, 'Apple SD Gothic Neo', sans-serif;
+  color: var(--tx);
+  word-break: keep-all;
+  overflow: hidden;
+}
+
+.shell { display: flex; height: 100vh }
+
+/* ── 사이드패널 ── */
+.side {
+  flex: 0 0 260px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-right: 1px solid var(--ln);
+  min-height: 0;
+}
+
+.brand {
+  padding: 16px 18px 12px;
+  font-size: 15px; font-weight: 800; letter-spacing: -.02em;
+  color: var(--nv);
+}
+
+.pick {
+  margin: 0 14px 12px;
+  padding: 7px 9px;
+  font: inherit; font-size: 13px;
+  border: 1px solid var(--ln); border-radius: 6px;
+  background: #fff; color: var(--tx);
+}
+
+.lbl {
+  padding: 0 18px 8px;
+  font-size: 10.5px; font-weight: 800; letter-spacing: .12em;
+  color: var(--mu);
+}
+
+.list { flex: 1; overflow-y: auto; padding: 0 8px 8px; min-height: 0 }
+
+.row {
+  display: flex; align-items: baseline; gap: 9px; width: 100%;
+  padding: 7px 10px; border: 0; border-radius: 6px;
+  background: transparent; text-align: left; cursor: pointer;
+  font: inherit; color: var(--tx);
+}
+.row:hover { background: #f4f6f8 }
+.row.on { background: var(--nv); color: #fff }
+.row.blk { cursor: default }
+.row.blk:hover { background: #f4f6f8 }
+
+.no {
+  flex: 0 0 22px; font-size: 11.5px; font-weight: 800;
+  color: var(--mu); font-variant-numeric: tabular-nums;
+}
+.row.on .no { color: #f1b03c }
+
+.col {
+  flex: 0 0 34px; font-size: 10px; font-weight: 800;
+  color: var(--mu); letter-spacing: .04em;
+}
+
+.tt { font-size: 13px; letter-spacing: -.01em; line-height: 1.4 }
+
+.drill, .back {
+  margin: 0 14px 10px; padding: 7px;
+  font: inherit; font-size: 12px;
+  border: 1px solid var(--ln); border-radius: 6px;
+  background: #fff; color: var(--mu); cursor: pointer;
+}
+.drill:hover, .back:hover { border-color: var(--nv2); color: var(--nv) }
+.drill:disabled { opacity: .4; cursor: default }
+
+.note {
+  margin: 0 18px 12px; font-size: 11.5px; line-height: 1.65;
+  color: var(--mu);
+  padding: 9px 11px; background: #f7f9fb; border-radius: 6px;
+}
+
+/* ── 하단 ── */
+.foot { border-top: 1px solid var(--ln); padding: 12px 14px 14px }
+.btns { display: flex; gap: 8px }
+.foot button {
+  flex: 1; padding: 8px; font: inherit; font-size: 13px; font-weight: 700;
+  border: 0; border-radius: 6px; background: var(--nv); color: #fff; cursor: pointer;
+}
+.foot button:hover { background: var(--nv2) }
+.foot button:disabled { background: #c3ccd6; cursor: default }
+.foot .thin {
+  margin-top: 8px; width: 100%; font-weight: 400; font-size: 12px;
+  background: #f4f6f8; color: var(--mu);
+}
+.foot .thin:hover { background: #e9edf1; color: var(--nv) }
+
+.log {
+  margin-top: 10px; max-height: 120px; overflow: auto;
+  font: 11px/1.55 ui-monospace, SFMono-Regular, monospace;
+  color: var(--mu); white-space: pre-wrap; word-break: break-all;
+}
+
+/* ── 판본 ── */
+.view {
+  flex: 1; position: relative; min-width: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg);
+}
+
+.frame { box-shadow: 0 2px 14px rgba(25, 41, 73, .13); background: #fff }
+.frame iframe { border: 0; display: block }
+
+.scale {
+  position: absolute; right: 14px; bottom: 12px;
+  font-size: 11px; font-weight: 700; color: var(--mu);
+  background: #fff; border: 1px solid var(--ln);
+  border-radius: 5px; padding: 3px 8px;
+}
+
+.empty { color: var(--mu) }
+
+/* ── 블록 폼 — 글만 고친다. 구조는 JSON ── */
+.form { padding: 0 14px 8px }
+
+.fld { display: block; margin-bottom: 9px }
+.fn {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; font-weight: 800; letter-spacing: .08em;
+  color: var(--mu); margin-bottom: 3px;
+}
+.fld textarea {
+  width: 100%; padding: 6px 8px;
+  font: inherit; font-size: 12.5px; line-height: 1.5;
+  color: var(--tx); background: #fff;
+  border: 1px solid var(--ln); border-radius: 5px;
+  resize: vertical;
+}
+.fld textarea:focus { outline: 0; border-color: var(--nv2); background: #fbfcfd }
+
+.delln {
+  border: 0; background: transparent; cursor: pointer;
+  color: #c3ccd6; font-size: 14px; line-height: 1; padding: 0 2px;
+}
+.delln:hover { color: var(--or) }
+
+.addln {
+  display: block; width: 100%; margin: 2px 0 12px; padding: 6px;
+  font: inherit; font-size: 11.5px;
+  border: 1px dashed #c3ccd6; border-radius: 5px;
+  background: #fff; color: var(--mu); cursor: pointer;
+}
+.addln:hover { border-color: var(--nv2); color: var(--nv) }
+
+.save {
+  margin: 0 14px 10px; padding: 9px;
+  font: inherit; font-size: 13px; font-weight: 700;
+  border: 0; border-radius: 6px; background: var(--or); color: #fff; cursor: pointer;
+}
+.save:disabled { background: #e9edf1; color: var(--mu); cursor: default }
+
+/* 넘침 표시 */
+.chk {
+  margin-bottom: 10px; padding: 7px 9px; border-radius: 5px;
+  font-size: 11.5px; line-height: 1.5;
+  background: #f2f7f4; color: #3f6f6a;
+}
+.chk.bad { background: #fdf0e6; color: #b45309; font-weight: 700 }
