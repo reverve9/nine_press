@@ -427,7 +427,7 @@ export default function Shell({ docs, first }) {
         // iframe 요소에 걸린 scale 은 내부 문서 좌표계를 바꾸지 않는다.
         // preview/route.js 가 .sheet .page{transform:none} 으로 --view 를 껐으므로
         // 여기서 잡히는 clientX 는 이미 판면 px 이다. 나누지 않는다.
-        const 칸너비 = (92.73975 + 14.879) * uu;   // 한 칸 + 거터 = 판면 209.76px
+        const 칸너비 = 92.73975 * uu;   // 한 칸 걸음 = 판면 180.75px · 축척 30% 에서 화면 약 54px
 
         // 도구 모드에서만. 산출 HTML 에는 [data-b] 가 없다
         if (d.querySelector('.page [data-b]')) {
@@ -452,8 +452,8 @@ export default function Shell({ docs, first }) {
           ov.className = 'gridov';
           for (let k = 0; k < 12; k++) {
             const c = d.createElement('i');
-            c.style.left  = (k * (92.73975 + 14.879) * uu) + 'px';
-            c.style.width = (92.73975 * uu) + 'px';
+            c.style.left  = (k * 92.73975 * uu) + 'px';
+            c.style.width = ((92.73975 - 14.879) * uu) + 'px';
             ov.appendChild(c);
           }
           bd.appendChild(ov);
