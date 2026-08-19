@@ -127,12 +127,14 @@ export default function Shell({ docs, first }) {
   const [검사, set검사] = useState(null);
   const [되돌림, set되돌림] = useState(0);
   const [충돌, set충돌] = useState(false);
+  const [격자, set격자] = useState(false);
 
   const 판 = useRef(null);
   const 틀 = useRef(null);
   const 문서ref = useRef(null);
   const 면ref = useRef(0);
   const 시각ref = useRef(0);
+  const 격자ref = useRef(false);
   const 스택 = useRef([]);        // 되돌리기 — 문서 스냅샷
   const 앞스택 = useRef([]);      // 다시 하기
 
@@ -140,6 +142,7 @@ export default function Shell({ docs, first }) {
     const r = await 문안불러오기(s);
     if (!r.ok) return set로그(r.사유);
     스택.current = []; 앞스택.current = []; set되돌림(0);
+    문서ref.current = r.doc;   // 판본 useMemo 가 이 렌더에서 바로 읽는다
     setDoc(r.doc); setMtime(r.mtime); setI(0); set표적(null);
     set더러움(false); set판본키((n) => n + 1);
   }, []);
@@ -148,6 +151,13 @@ export default function Shell({ docs, first }) {
   useEffect(() => { 문서ref.current = doc; }, [doc]);
   useEffect(() => { 면ref.current = i; }, [i]);
   useEffect(() => { 시각ref.current = mtime; }, [mtime]);
+  useEffect(() => { 격자ref.current = 격자; }, [격자]);
+
+  /* 켜고 끌 때 iframe 문서에 바로 입힌다 */
+  useEffect(() => {
+    const d = 틀.current?.contentDocument;
+    if (d) d.documentElement.classList.toggle('gridon', 격자);
+  }, [격자]);
 
   useEffect(() => {
     const el = 판.current;
@@ -317,6 +327,7 @@ export default function Shell({ docs, first }) {
       if (!(e.metaKey || e.ctrlKey)) return;
       if (e.key === 'z') { e.preventDefault(); e.shiftKey ? 다시하기() : 되돌리기(); }
       if (e.key === 's') { e.preventDefault(); 저장(); }
+      if (e.key === '\\') { e.preventDefault(); set격자((v) => !v); }
     };
     window.addEventListener('keydown', on);
     return () => window.removeEventListener('keydown', on);
@@ -343,7 +354,14 @@ export default function Shell({ docs, first }) {
           '.row{position:relative}' +
           '.rz{position:absolute;top:0;bottom:0;width:calc(14.879*var(--u));' +
             'margin-left:calc(-7.44*var(--u));cursor:col-resize;z-index:50}' +
-          '.rz:hover,.rz.on{background:rgba(230,129,0,.22)}';
+          '.rz:hover,.rz.on{background:rgba(230,129,0,.22)}' +
+          // 12칸 격자 — 자홍. 판면이 안 쓰는 색이라 판면 요소로 오인되지 않는다
+          '.gridov{position:absolute;left:0;right:0;top:0;bottom:0;pointer-events:none;z-index:40;display:none}' +
+          'html.gridon .gridov{display:block}' +
+          '.gridov i{position:absolute;top:0;bottom:0;' +
+            'background:rgba(200,0,120,.07);' +
+            'border-left:1px solid rgba(200,0,120,.24);' +
+            'border-right:1px solid rgba(200,0,120,.24)}';
         d.head.appendChild(st);
         d.execCommand?.('defaultParagraphSeparator', false, 'br');
 
@@ -380,6 +398,8 @@ export default function Shell({ docs, first }) {
             if (e.key === 'z' && !t?.isContentEditable) {
               e.preventDefault(); e.shiftKey ? 다시하기() : 되돌리기();
             }
+            // 제자리 편집 중에도 듣는다 — \ 는 글자 입력과 겹치지 않는다
+            if (e.key === '\\') { e.preventDefault(); set격자((v) => !v); }
           }
         });
 
@@ -424,6 +444,22 @@ export default function Shell({ docs, first }) {
             }
           });
         }
+
+        // 12칸 격자 — 도구 전용. 판면에는 아무 영향이 없다
+        const bd = d.querySelector('.page .bd');
+        if (bd && !bd.querySelector('.gridov')) {
+          const ov = d.createElement('div');
+          ov.className = 'gridov';
+          for (let k = 0; k < 12; k++) {
+            const c = d.createElement('i');
+            c.style.left  = (k * (92.73975 + 14.879) * uu) + 'px';
+            c.style.width = (92.73975 * uu) + 'px';
+            ov.appendChild(c);
+          }
+          bd.appendChild(ov);
+        }
+        // srcdoc 이 갈리면 문서가 새로 만들어져 클래스가 날아간다. 다시 입힌다
+        d.documentElement.classList.toggle('gridon', 격자ref.current);
 
         let 끌 = null;
         const 끝내기 = () => {
@@ -549,6 +585,15 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
             <option key={d.slug} value={d.slug}>{d.사업} / {d.이름}</option>
           ))}
         </select>
+
+        <div className="ctl">
+          <div className="ctlrow">
+            <span className="ck">격자</span>
+            <button className={'chip' + (격자 ? ' on' : '')} onClick={() => set격자((v) => !v)}>
+              {격자 ? '켬' : '끔'}
+            </button>
+          </div>
+        </div>
 
         {표적 ? (
           <>
