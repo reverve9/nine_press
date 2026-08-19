@@ -241,14 +241,18 @@ function renderCol(col, ci = 0, ri = 0) {
 }
 
 function renderRow(row, { 채움, ri = 0 }) {
-  const g = 채움 ? ' g' : '';
-  return `<div class="row${g}">\n` +
+  // 세로 칸을 준 행은 그 높이로 고정한다. 고정 행에는 채움(.g)을 주지 않는다
+  const 높이 = Number.isInteger(row.높이) ? row.높이 : null;
+  const g = (채움 && !높이) ? ' g' : '';
+  const h = 높이 ? ` data-h="${높이}" style="--h:${높이}"` : '';
+  return `<div class="row${g}"${h}>\n` +
     (row.열 ?? []).map((c, ci) => renderCol(c, ci, ri)).join('\n') + '\n</div>';
 }
 
-function renderFoot(항목) {
+function renderFoot(항목, 높이) {
   if (!항목?.length) return '';
-  return `<div class="foot"${db('head')}>
+  const h = Number.isInteger(높이) ? ` data-h="${높이}" style="--h:${높이}"` : '';
+  return `<div class="foot"${db('head')}${h}>
   <div class="pt">
     <div class="pl">실무 확인</div>
     <ul>${항목.map((li, k) => `<li${dp(['실무확인', k])}>${inline(li)}</li>`).join('')}</ul>
@@ -296,7 +300,7 @@ export function renderPage(page, doc = {}) {
 </div>
 <div class="bd">
 ${행.map((r, i) => renderRow(r, { 채움: i === 행.length - 1, ri: i })).join('\n')}
-${renderFoot(page.실무확인)}
+${renderFoot(page.실무확인, page.실무확인높이)}
 </div>
 <div class="pgno">${inline(하단)}</div>
 </div></div>`;
