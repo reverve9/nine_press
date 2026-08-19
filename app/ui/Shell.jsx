@@ -233,20 +233,30 @@ export default function Shell({ docs, first }) {
     d.면[i].행.splice(P.ri, 1); set표적(null);
   }, { 그리기: true });
 
+  // 합 12 는 언제나 지킨다. 열을 넣고 빼고 폭을 바꿀 때 이웃이 그만큼 받는다
+  const 이웃 = (행, ci) => (ci + 1 < 행.열.length ? ci + 1 : ci - 1);
+
   const 열넣기 = () => 바꾸기((d) => {
     const 행 = d.면[i].행[P.ri];
-    if (폭합(행) >= 12) { set로그('한 행의 칸 합은 12를 넘지 않는다'); return false; }
+    const 칸 = 행.열[P.ci].폭 ?? 4;
+    if (칸 < 8) { set로그('열을 넣으려면 지금 열이 8칸 이상이어야 한다'); return false; }
+    행.열[P.ci].폭 = 칸 - 4;
     행.열.splice(P.ci + 1, 0, { 폭: 4, 블록: [새블록()] });
   }, { 그리기: true });
   const 열빼기 = () => 바꾸기((d) => {
     const 행 = d.면[i].행[P.ri];
     if (행.열.length <= 1) { set로그('마지막 열은 지우지 않는다'); return false; }
+    const j = 이웃(행, P.ci);
+    행.열[j].폭 = (행.열[j].폭 ?? 4) + (행.열[P.ci].폭 ?? 4);
     행.열.splice(P.ci, 1); set표적(null);
   }, { 그리기: true });
   const 폭바꾸기 = (w) => 바꾸기((d) => {
     const 행 = d.면[i].행[P.ri];
-    const 나머지 = 폭합(행) - (행.열[P.ci].폭 ?? 4);
-    if (나머지 + w > 12) { set로그('한 행의 칸 합은 12를 넘지 않는다'); return false; }
+    const 차 = w - (행.열[P.ci].폭 ?? 4);
+    if (!차) return false;
+    const j = 이웃(행, P.ci);
+    if (j < 0 || (행.열[j].폭 ?? 4) - 차 < 4) { set로그('칸 합은 12 를 지킨다'); return false; }
+    행.열[j].폭 = (행.열[j].폭 ?? 4) - 차;
     행.열[P.ci].폭 = w;
   }, { 그리기: true });
 
@@ -327,7 +337,12 @@ export default function Shell({ docs, first }) {
           '[data-p][contenteditable="true"]{background:#fff;' +
             'outline:calc(2*var(--u)) solid #E68100;outline-offset:calc(1.5*var(--u))}' +
           // TBD 배지와 면 연결 표기는 글자가 아니라 표기다. 통째로 다룬다
-          '[data-p] .tbd, [data-p] .ar{user-select:all}';
+          '[data-p] .tbd, [data-p] .ar{user-select:all}' +
+          // 열 경계 손잡이 (P2) — 거터 위에 얹는다. 산출 HTML 에는 없다
+          '.row{position:relative}' +
+          '.rz{position:absolute;top:0;bottom:0;width:calc(14.879*var(--u));' +
+            'margin-left:calc(-7.44*var(--u));cursor:col-resize;z-index:50}' +
+          '.rz:hover,.rz.on{background:rgba(230,129,0,.22)}';
         d.head.appendChild(st);
         d.execCommand?.('defaultParagraphSeparator', false, 'br');
 
@@ -382,6 +397,86 @@ export default function Shell({ docs, first }) {
           const [ri, ci, bi] = v.split('-').map(Number);
           set표적({ ri, ci, bi });
         });
+
+        /* ── 열 경계 끌기 ──
+           끄는 동안은 인라인 --w 만 바꿔 미리 보인다. 데이터는 놓을 때 한 번 쓴다.
+           그래야 되돌리기 스택에 한 칸만 쌓인다. */
+        const cs = d.defaultView.getComputedStyle(d.documentElement);
+        const uu = parseFloat(cs.getPropertyValue('--u')) || 1.949;
+        const view = parseFloat(cs.getPropertyValue('--view')) || 1;
+        const 칸너비 = (92.73975 + 14.879) * uu;   // 한 칸 + 거터 = 판면 209.76px
+
+        // 도구 모드에서만. 산출 HTML 에는 [data-b] 가 없다
+        if (d.querySelector('.page [data-b]')) {
+          d.querySelectorAll('.page .row').forEach((row) => {
+            const 칸 = [...row.children].filter((x) => !x.classList.contains('rz'));
+            if (칸.length < 2) return;
+            for (let k = 0; k < 칸.length - 1; k++) {
+              const 거터 = 칸[k + 1].offsetLeft - (칸[k].offsetLeft + 칸[k].offsetWidth);
+              const h = d.createElement('div');
+              h.className = 'rz';
+              h.dataset.rz = String(k);
+              h.style.left = (칸[k].offsetLeft + 칸[k].offsetWidth + 거터 / 2) + 'px';
+              row.appendChild(h);
+            }
+          });
+        }
+
+        let 끌 = null;
+        const 끝내기 = () => {
+          끌.h.classList.remove('on');
+          d.body.style.userSelect = '';
+          끌 = null;
+        };
+
+        d.addEventListener('mousedown', (e) => {
+          const h = e.target.closest?.('.rz');
+          if (!h) return;
+          const row = h.closest('.row');
+          const 칸 = [...row.children].filter((x) => !x.classList.contains('rz'));
+          const ci = Number(h.dataset.rz);
+          const 왼 = 칸[ci], 오 = 칸[ci + 1];
+          const b = row.querySelector('[data-b]')?.getAttribute('data-b');
+          if (!왼 || !오 || !b) return;
+          끌 = {
+            h, 왼, 오, ci, ri: Number(b.split('-')[0]),
+            시작: e.clientX, 이동: 0,
+            왼칸: Number(왼.style.getPropertyValue('--w')) || 4,
+            오칸: Number(오.style.getPropertyValue('--w')) || 4,
+          };
+          h.classList.add('on');
+          d.body.style.userSelect = 'none';
+        });
+
+        d.addEventListener('mousemove', (e) => {
+          if (!끌) return;
+          let 이동 = Math.round((e.clientX - 끌.시작) / (칸너비 * view));
+          // 두 열 모두 하한 4칸. 어기는 값은 조용히 자른다
+          이동 = Math.max(4 - 끌.왼칸, Math.min(끌.오칸 - 4, 이동));
+          if (이동 === 끌.이동) return;
+          끌.이동 = 이동;
+          끌.왼.style.setProperty('--w', String(끌.왼칸 + 이동));
+          끌.오.style.setProperty('--w', String(끌.오칸 - 이동));
+        });
+
+        d.addEventListener('mouseup', () => {
+          if (!끌) return;
+          const { ri, ci, 이동, 왼칸, 오칸 } = 끌;
+          끝내기();
+          if (!이동) return;
+          바꾸기((dd) => {
+            const 행 = dd.면[면ref.current].행[ri];
+            행.열[ci].폭 = 왼칸 + 이동;
+            행.열[ci + 1].폭 = 오칸 - 이동;
+          }, { 그리기: true });
+        });
+
+        d.addEventListener('keydown', (e) => {
+          if (e.key !== 'Escape' || !끌) return;
+          끌.왼.style.setProperty('--w', String(끌.왼칸));
+          끌.오.style.setProperty('--w', String(끌.오칸));
+          끝내기();
+        });
       }
     } catch { /* 다른 출처면 못 붙인다 */ }
 
@@ -415,6 +510,7 @@ export default function Shell({ docs, first }) {
   const 구조 = useMemo(() => (현재 && 표적 ? 구조칸들(현재, 표적) : []), [현재, 표적]);
   const 블록 = P ? 현재?.행?.[P.ri]?.열?.[P.ci]?.블록?.[P.bi] : null;
   const 열폭 = P ? (현재?.행?.[P.ri]?.열?.[P.ci]?.폭 ?? 4) : 4;
+  const 칸합 = P ? 폭합(현재?.행?.[P.ri]) : 0;
 
   return (
     <div className="shell">
@@ -441,8 +537,8 @@ export default function Shell({ docs, first }) {
             {P && (
               <div className="ctl">
                 <div className="ctlrow">
-                  <span className="ck">칸 수</span>
-                  {[3, 4, 6, 8, 9, 12].map((w) => (
+                  <span className="ck">칸 수 {열폭} / {칸합}</span>
+                  {[4, 5, 6, 7, 8, 12].map((w) => (
                     <button key={w} className={'chip' + (열폭 === w ? ' on' : '')}
                             onClick={() => 폭바꾸기(w)}>{w}</button>
                   ))}
