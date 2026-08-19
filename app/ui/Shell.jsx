@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { 빌드, PDF, 문안저장, 문안불러오기 } from '../actions.js';
+import { render } from '../../render/index.js';
 
 const W = 2340;
 const H = 1654;
@@ -514,6 +515,24 @@ export default function Shell({ docs, first }) {
   const 열폭 = P ? (현재?.행?.[P.ri]?.열?.[P.ci]?.폭 ?? 4) : 4;
   const 칸합 = P ? 폭합(현재?.행?.[P.ri]) : 0;
 
+  // 판본키가 오를 때만 다시 만든다.
+  // doc 에 직접 묶으면 글자 한 자 고칠 때마다 iframe 이 새로 로드되어
+  // 제자리 편집의 커서가 날아간다.
+  const 판본 = useMemo(() => {
+    const d = 문서ref.current;
+    if (!d?.면?.[i]) return '';
+    return render({ ...d, 면: [d.면[i]] }, { cssBase: '/api/css', 도구: true }).replace(
+      '</head>',
+      `<style>
+body{padding:0;margin:0;background:transparent;overflow:hidden}
+.wrap{width:2340px;margin:0}
+.sheet{width:2340px;height:1654px;margin:0;overflow:hidden}
+.sheet .page{transform:none;box-shadow:none}
+</style></head>`,
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [판본키, i, slug]);
+
   return (
     <div className="shell">
       <aside className="side">
@@ -672,7 +691,7 @@ export default function Shell({ docs, first }) {
             <iframe
               ref={틀}
               key={`${slug}-${i}-${판본키}`}
-              src={`/api/preview?doc=${encodeURIComponent(slug)}&i=${i}`}
+              srcDoc={판본}
               onLoad={재기}
               style={{ width: W, height: H, transform: `scale(${축척})`, transformOrigin: 'top left' }}
             />
