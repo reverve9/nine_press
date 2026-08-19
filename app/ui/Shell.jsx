@@ -250,9 +250,9 @@ export default function Shell({ docs, first }) {
   const 열넣기 = () => 바꾸기((d) => {
     const 행 = d.면[i].행[P.ri];
     const 칸 = 행.열[P.ci].폭 ?? 4;
-    if (칸 < 8) { set로그('열을 넣으려면 지금 열이 8칸 이상이어야 한다'); return false; }
-    행.열[P.ci].폭 = 칸 - 4;
-    행.열.splice(P.ci + 1, 0, { 폭: 4, 블록: [새블록()] });
+    if (칸 < 6) { set로그('열을 넣으려면 지금 열이 6칸 이상이어야 한다'); return false; }
+    행.열[P.ci].폭 = 칸 - 3;
+    행.열.splice(P.ci + 1, 0, { 폭: 3, 블록: [새블록()] });
   }, { 그리기: true });
   const 열빼기 = () => 바꾸기((d) => {
     const 행 = d.면[i].행[P.ri];
@@ -266,7 +266,7 @@ export default function Shell({ docs, first }) {
     const 차 = w - (행.열[P.ci].폭 ?? 4);
     if (!차) return false;
     const j = 이웃(행, P.ci);
-    if (j < 0 || (행.열[j].폭 ?? 4) - 차 < 4) { set로그('칸 합은 12 를 지킨다'); return false; }
+    if (j < 0 || (행.열[j].폭 ?? 4) - 차 < 3) { set로그('칸 합은 12 를 지킨다'); return false; }
     행.열[j].폭 = (행.열[j].폭 ?? 4) - 차;
     행.열[P.ci].폭 = w;
   }, { 그리기: true });
@@ -531,8 +531,8 @@ export default function Shell({ docs, first }) {
         d.addEventListener('mousemove', (e) => {
           if (!끌) return;
           let 이동 = Math.round((e.clientX - 끌.시작) / 칸너비);
-          // 두 열 모두 하한 4칸. 어기는 값은 조용히 자른다
-          이동 = Math.max(4 - 끌.왼칸, Math.min(끌.오칸 - 4, 이동));
+          // 두 열 모두 하한 3칸. 어기는 값은 조용히 자른다
+          이동 = Math.max(3 - 끌.왼칸, Math.min(끌.오칸 - 3, 이동));
           if (이동 === 끌.이동) return;
           끌.이동 = 이동;
           끌.왼.style.setProperty('--w', String(끌.왼칸 + 이동));
@@ -645,7 +645,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
               <div className="ctl">
                 <div className="ctlrow">
                   <span className="ck">칸 수 {열폭} / {칸합}</span>
-                  {[4, 5, 6, 7, 8, 12].map((w) => (
+                  {[3, 4, 5, 6, 7, 8, 12].map((w) => (
                     <button key={w} className={'chip' + (열폭 === w ? ' on' : '')}
                             onClick={() => 폭바꾸기(w)}>{w}</button>
                   ))}
