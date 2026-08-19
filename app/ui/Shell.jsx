@@ -403,7 +403,9 @@ export default function Shell({ docs, first }) {
            그래야 되돌리기 스택에 한 칸만 쌓인다. */
         const cs = d.defaultView.getComputedStyle(d.documentElement);
         const uu = parseFloat(cs.getPropertyValue('--u')) || 1.949;
-        const view = parseFloat(cs.getPropertyValue('--view')) || 1;
+        // iframe 요소에 걸린 scale 은 내부 문서 좌표계를 바꾸지 않는다.
+        // preview/route.js 가 .sheet .page{transform:none} 으로 --view 를 껐으므로
+        // 여기서 잡히는 clientX 는 이미 판면 px 이다. 나누지 않는다.
         const 칸너비 = (92.73975 + 14.879) * uu;   // 한 칸 + 거터 = 판면 209.76px
 
         // 도구 모드에서만. 산출 HTML 에는 [data-b] 가 없다
@@ -450,7 +452,7 @@ export default function Shell({ docs, first }) {
 
         d.addEventListener('mousemove', (e) => {
           if (!끌) return;
-          let 이동 = Math.round((e.clientX - 끌.시작) / (칸너비 * view));
+          let 이동 = Math.round((e.clientX - 끌.시작) / 칸너비);
           // 두 열 모두 하한 4칸. 어기는 값은 조용히 자른다
           이동 = Math.max(4 - 끌.왼칸, Math.min(끌.오칸 - 4, 이동));
           if (이동 === 끌.이동) return;
