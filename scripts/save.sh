@@ -14,9 +14,8 @@ rm -f .git/*.lock .git/refs/heads/*.lock .git/objects/*/tmp_obj_* 2>/dev/null ||
 
 MSG=${1:-"작업 저장 $(date '+%Y-%m-%d %H:%M')"}
 
-[ $# -gt 0 ] && shift
-
-if [ $# -gt 0 ]; then
+if [ $# -gt 1 ]; then
+  shift
   git add -- "$@"
 else
   git add -A

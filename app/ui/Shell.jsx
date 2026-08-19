@@ -245,7 +245,7 @@ export default function Shell({ docs, first }) {
   }, { 그리기: true });
   const 폭바꾸기 = (w) => 바꾸기((d) => {
     const 행 = d.면[i].행[P.ri];
-    const 나머지 = 폭합(행) - (행.열[P.ci].폭 ?? 1);
+    const 나머지 = 폭합(행) - (행.열[P.ci].폭 ?? 4);
     if (나머지 + w > 12) { set로그('한 행의 칸 합은 12를 넘지 않는다'); return false; }
     행.열[P.ci].폭 = w;
   }, { 그리기: true });
