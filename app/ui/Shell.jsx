@@ -42,7 +42,7 @@ const 줄여 = (s, n = 30) => {
 
 const 새면 = (번호) => ({
   번호, 제목: '새 면', 메타: '',
-  행: [{ 열: [{ 폭: 1, 블록: [{ 라벨: '새 블록', 내용: [{ 목록: ['내용'] }] }] }] }],
+  행: [{ 열: [{ 폭: 4, 블록: [{ 라벨: '새 블록', 내용: [{ 목록: ['내용'] }] }] }] }],
   실무확인: ['실무 확인'],
 });
 const 새블록 = () => ({ 라벨: '새 블록', 내용: [{ 목록: ['내용'] }] });
@@ -222,11 +222,11 @@ export default function Shell({ docs, first }) {
 
   /* ── 행 · 열 · 블록 · 덩이 ── */
   const P = 표적 && 표적 !== 'head' ? 표적 : null;
-  const 폭합 = (행) => (행?.열 ?? []).reduce((a, c) => a + (c.폭 ?? 1), 0);
+  const 폭합 = (행) => (행?.열 ?? []).reduce((a, c) => a + (c.폭 ?? 4), 0);
 
   const 행넣기 = () => 바꾸기((d) => {
     d.면[i].행.splice((P?.ri ?? d.면[i].행.length - 1) + 1, 0,
-      { 열: [{ 폭: 3, 블록: [새블록()] }] });
+      { 열: [{ 폭: 12, 블록: [새블록()] }] });
   }, { 그리기: true });
   const 행빼기 = () => 바꾸기((d) => {
     if (!P || d.면[i].행.length <= 1) { set로그('마지막 행은 지우지 않는다'); return false; }
@@ -235,8 +235,8 @@ export default function Shell({ docs, first }) {
 
   const 열넣기 = () => 바꾸기((d) => {
     const 행 = d.면[i].행[P.ri];
-    if (폭합(행) >= 3) { set로그('한 행의 폭 합은 3을 넘지 않는다'); return false; }
-    행.열.splice(P.ci + 1, 0, { 폭: 1, 블록: [새블록()] });
+    if (폭합(행) >= 12) { set로그('한 행의 칸 합은 12를 넘지 않는다'); return false; }
+    행.열.splice(P.ci + 1, 0, { 폭: 4, 블록: [새블록()] });
   }, { 그리기: true });
   const 열빼기 = () => 바꾸기((d) => {
     const 행 = d.면[i].행[P.ri];
@@ -246,7 +246,7 @@ export default function Shell({ docs, first }) {
   const 폭바꾸기 = (w) => 바꾸기((d) => {
     const 행 = d.면[i].행[P.ri];
     const 나머지 = 폭합(행) - (행.열[P.ci].폭 ?? 1);
-    if (나머지 + w > 3) { set로그('한 행의 폭 합은 3을 넘지 않는다'); return false; }
+    if (나머지 + w > 12) { set로그('한 행의 칸 합은 12를 넘지 않는다'); return false; }
     행.열[P.ci].폭 = w;
   }, { 그리기: true });
 
@@ -414,7 +414,7 @@ export default function Shell({ docs, first }) {
 
   const 구조 = useMemo(() => (현재 && 표적 ? 구조칸들(현재, 표적) : []), [현재, 표적]);
   const 블록 = P ? 현재?.행?.[P.ri]?.열?.[P.ci]?.블록?.[P.bi] : null;
-  const 열폭 = P ? (현재?.행?.[P.ri]?.열?.[P.ci]?.폭 ?? 1) : 1;
+  const 열폭 = P ? (현재?.행?.[P.ri]?.열?.[P.ci]?.폭 ?? 4) : 4;
 
   return (
     <div className="shell">
@@ -441,8 +441,8 @@ export default function Shell({ docs, first }) {
             {P && (
               <div className="ctl">
                 <div className="ctlrow">
-                  <span className="ck">열 폭</span>
-                  {[1, 2, 3].map((w) => (
+                  <span className="ck">칸 수</span>
+                  {[3, 4, 6, 8, 9, 12].map((w) => (
                     <button key={w} className={'chip' + (열폭 === w ? ' on' : '')}
                             onClick={() => 폭바꾸기(w)}>{w}</button>
                   ))}

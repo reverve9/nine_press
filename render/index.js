@@ -204,7 +204,7 @@ function renderItem(it, P) {
 
 /* ───────────────────────── 블록 ───────────────────────── */
 
-function renderBlock(b, { 채움, 폭 = 1, 좌표, P }) {
+function renderBlock(b, { 채움, 폭 = 4, 좌표, P }) {
   const 배경 = b.배경 ? ` ${b.배경}` : '';
   // --w 는 3열 균등 고정 규칙(.row.g)이 폭을 읽는 통로다. flex 만으로는 폭이 지워진다.
   const flex = (b.채움 ?? 채움) ? ` style="flex:${폭};--w:${폭}"` : ` style="--w:${폭}"`;
@@ -224,7 +224,7 @@ function renderBlock(b, { 채움, 폭 = 1, 좌표, P }) {
 
 function renderCol(col, ci = 0, ri = 0) {
   const blocks = col.블록 ?? [];
-  const 폭 = col.폭 ?? 1;
+  const 폭 = col.폭 ?? 4;
   const P = (bi) => ['행', ri, '열', ci, '블록', bi];
 
   // 블록이 하나면 열 껍데기를 두지 않는다.
