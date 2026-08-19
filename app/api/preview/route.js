@@ -16,7 +16,7 @@ export async function GET(req) {
     const doc = loadDoc(slug);
     if (!doc.면?.[i]) return new Response('면 없음', { status: 404 });
 
-    const html = render(onePage(doc, i), { css: previewCss() }).replace(
+    const html = render(onePage(doc, i), { css: previewCss(), 도구: true }).replace(
       '</head>',
       // 판본은 창에 맞춰 축소한다. 축척은 바깥(Shell)이 정한다
       `<style>

@@ -1,0 +1,384 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><title>04 사전분석과 기초 현황 조사</title><style>
+:root{--u:1.949px;--view:.42}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard Variable',Pretendard,'Noto Sans KR','Malgun Gothic',sans-serif;
+ background:#eef0f3;padding:34px 20px 60px;color:#2a333d;line-height:1.7;
+ word-break:keep-all;overflow-wrap:break-word}
+.goal,.num,.stp,.pgno,.bt,.cv h1,.tct,.big,.kn,.mt,.sn{font-family:'Paperlogy',sans-serif}
+.wrap{width:calc(2339px * var(--view));margin:0 auto}
+.cap{color:#5b6773;font-size:12.5px;margin:0 0 7px 2px;letter-spacing:-.01em}
+.cap b{color:#192949}
+.sheet{width:calc(2339px * var(--view));height:calc(1654px * var(--view));overflow:hidden;
+ margin-bottom:calc(30px * var(--view))}
+.sheet .page{transform:scale(var(--view));transform-origin:top left}
+.page{position:relative;width:2339px;height:1654px;background:#fff;overflow:hidden;
+ box-shadow:0 1px 3px rgba(25,41,73,.07)}
+
+/* ── 헤더 ── */
+.hd{display:flex;align-items:center;gap:calc(18*var(--u));
+ padding:calc(17*var(--u)) calc(30*var(--u));background:#F7F9FB;border-bottom:1px solid #E6EAEE}
+.num{flex:0 0 auto;width:calc(38*var(--u));height:calc(38*var(--u));border-radius:50%;
+ background:#192949;color:#fff;font-size:calc(15*var(--u));font-weight:800;
+ display:flex;align-items:center;justify-content:center}
+.hi{flex:1;min-width:0}
+.goal{font-size:calc(20*var(--u));font-weight:800;color:#192949;letter-spacing:-.015em;line-height:1.4}
+.meta{font-size:calc(12.4*var(--u));color:#8b96a2;margin-top:calc(3*var(--u));letter-spacing:-.01em}
+.meta b{color:#5b6773;font-weight:700}
+.stp{flex:0 0 auto;text-align:right;line-height:1.15}
+.stp .sn{font-size:calc(23*var(--u));font-weight:800;color:#E68100;letter-spacing:-.02em;display:block}
+.stp .sl{font-size:calc(11*var(--u));color:#8b96a2;letter-spacing:.02em}
+
+/* ── 본문 ── */
+.bd{position:absolute;left:calc(30*var(--u));right:calc(30*var(--u));
+ top:calc(100*var(--u));bottom:calc(28*var(--u));display:flex;flex-direction:column;
+ gap:calc(12*var(--u))}
+.row{display:flex;gap:calc(12*var(--u));min-height:0}
+.row.g{flex:1}
+.col{display:flex;flex-direction:column;gap:calc(12*var(--u));min-width:0}
+.b{border:1px solid #E4E8EC;border-radius:calc(6*var(--u));
+ padding:calc(15*var(--u)) calc(19*var(--u)) calc(16*var(--u));min-width:0}
+.b.fill{background:#F7F9FB;border-color:#EAEEF2}
+.b.nv{background:#192949;border-color:#192949;color:#dfe6ee}
+.b.or{background:#FDF6EC;border-color:#EFD9B8}
+.b.gr{background:#F4F9F8;border-color:#CFE0DD}
+.bl{font-size:calc(10.8*var(--u));font-weight:800;color:#8b96a2;letter-spacing:.16em;
+ margin-bottom:calc(10*var(--u))}
+.b.nv .bl{color:#8fa6b8}
+.bt{font-size:calc(14.8*var(--u));font-weight:800;color:#192949;letter-spacing:-.015em;
+ margin-bottom:calc(9*var(--u))}
+.b.nv .bt{color:#fff}
+.tx{font-size:calc(13*var(--u));color:#46515e;line-height:1.8;letter-spacing:-.012em}
+.b.nv .tx{color:#c6d2e0}
+.tx + .tx{margin-top:calc(6*var(--u))}
+ul.li + .tx,table.tb + .tx{margin-top:calc(9*var(--u))}
+.tx + ul.li{margin-top:calc(7*var(--u))}
+.tx b{color:#12233f;font-weight:700}
+.b.nv .tx b{color:#F1B03C}
+.b.nv ul.li li{color:#c6d2e0}
+.b.nv ul.li li b{color:#F1B03C}
+.b.nv ul.li li:before{color:#F1B03C}
+.b.nv table.tb td{color:#c6d2e0;border-bottom-color:#2b4066}
+.b.nv table.tb td b{color:#fff}
+.hl{background:linear-gradient(transparent 62%,#ffe6bf 62%);font-weight:700;color:#12233f}
+
+/* 목록 */
+ul.li{list-style:none}
+ul.li li{font-size:calc(13*var(--u));color:#46515e;line-height:1.74;padding-left:calc(16*var(--u));
+ position:relative;margin-bottom:calc(6*var(--u));letter-spacing:-.012em}
+ul.li li:last-child{margin-bottom:0}
+ul.li li:before{content:"·";position:absolute;left:calc(4*var(--u));color:#E68100;font-weight:800}
+ul.li li b{color:#12233f;font-weight:700}
+ul.nb li:before{content:counter(x);counter-increment:x;font-size:calc(9.5*var(--u));
+ font-weight:800;color:#fff;background:#2D4D6E;border-radius:50%;width:calc(14*var(--u));
+ height:calc(14*var(--u));display:flex;align-items:center;justify-content:center;
+ left:0;top:calc(3*var(--u))}
+ul.nb{counter-reset:x}
+ul.nb li{padding-left:calc(21*var(--u))}
+
+/* 표 */
+table.tb{width:100%;border-collapse:collapse;table-layout:fixed}
+table.tb th{font-size:calc(11*var(--u));font-weight:800;color:#8b96a2;background:transparent;
+ padding:0 calc(9*var(--u)) calc(8*var(--u));text-align:left;letter-spacing:.06em;
+ border-bottom:1px solid #DDE3E9;white-space:nowrap}
+table.tb td{font-size:calc(12.4*var(--u));color:#46515e;padding:calc(7*var(--u)) calc(9*var(--u));
+ border-bottom:1px solid #EEF1F4;letter-spacing:-.012em;line-height:1.58;vertical-align:top}
+table.tb td b{color:#12233f;font-weight:700}
+table.tb tr:last-child td{border-bottom:none}
+table.tb.cp td{padding:calc(5*var(--u)) calc(9*var(--u));font-size:calc(12*var(--u))}
+table.tb.cp th{padding:0 calc(9*var(--u)) calc(7*var(--u))}
+table.tb.xs td{padding:calc(2.4*var(--u)) calc(9*var(--u));font-size:calc(11.4*var(--u));line-height:1.5}
+table.tb.xs th{padding:calc(4*var(--u)) calc(8*var(--u))}
+table.tb td.c,table.tb th.c{text-align:center}
+table.tb td.c,table.tb td.n{white-space:nowrap}
+table.tb td.r,table.tb th.r{text-align:right}
+table.tb td.n{font-family:'Paperlogy',sans-serif;font-weight:800;color:#192949}
+table.tb tr.sum td{background:#192949;color:#fff;font-weight:800;border:none}
+table.tb tr.sum td b,table.tb tr.sum td.n{color:#F1B03C}
+.tg{display:inline-block;font-size:calc(9.6*var(--u));font-weight:800;border-radius:calc(3*var(--u));
+ padding:calc(1.5*var(--u)) calc(6*var(--u));letter-spacing:.02em;white-space:nowrap}
+.tg.im{background:#E68100;color:#fff}
+.tg.nx{background:#E4E8EC;color:#5b6773}
+.tg.ok{background:#2C8F4A;color:#fff}
+.tg.hi{background:#B03A72;color:#fff}
+.tg.lo{background:#8792a0;color:#fff}
+
+/* 점수 막대 */
+.sc{display:flex;align-items:center;gap:calc(9*var(--u));margin-bottom:calc(7*var(--u))}
+.sc:last-child{margin-bottom:0}
+.sc .k{flex:0 0 calc(56*var(--u));font-size:calc(13*var(--u));font-weight:700;color:#39434f}
+.sc .g{flex:1;height:calc(13*var(--u));background:#EDF0F4;border-radius:calc(2*var(--u));
+ position:relative;overflow:hidden}
+.sc .g i{position:absolute;left:0;top:0;bottom:0;border-radius:calc(2*var(--u));background:#2D4D6E}
+.sc .g i.up{background:#E68100}
+.sc .g i.b0{background:#AAB5C1}
+.sc .v{flex:0 0 calc(58*var(--u));text-align:right;font-family:'Paperlogy',sans-serif;
+ font-size:calc(12*var(--u));font-weight:800;color:#192949}
+.sc .v span{font-size:calc(10*var(--u));color:#8b96a2;font-weight:700}
+.sc .d{flex:0 0 calc(38*var(--u));text-align:right;font-family:'Paperlogy',sans-serif;
+ font-size:calc(11.5*var(--u));font-weight:800;color:#E68100}
+
+/* 단계 띠 */
+.fl{display:flex;align-items:stretch;gap:calc(4*var(--u))}
+.fl .st{flex:1;background:#F7F9FB;border:1px solid #E4E8EC;border-radius:calc(5*var(--u));
+ padding:calc(10*var(--u)) calc(11*var(--u));position:relative}
+.fl .st.on{background:#192949;border-color:#192949}
+.fl .st .sd{font-size:calc(10.2*var(--u));font-weight:800;color:#8b96a2;letter-spacing:.06em}
+.fl .st.on .sd{color:#F1B03C}
+.fl .st .sm{font-size:calc(12.6*var(--u));font-weight:700;color:#39434f;margin-top:calc(2*var(--u));
+ letter-spacing:-.015em;line-height:1.35}
+.fl .st.on .sm{color:#fff}
+
+/* 키·값 격자 */
+.kv{display:flex;flex-wrap:wrap;gap:calc(7*var(--u))}
+.kv .it{flex:1 1 calc(30%);min-width:calc(90*var(--u));background:#F7F9FB;border-radius:calc(5*var(--u));
+ padding:calc(9*var(--u)) calc(12*var(--u))}
+.kv .it .kn{font-size:calc(10.6*var(--u));font-weight:800;color:#8b96a2;letter-spacing:.08em}
+.kv .it .kx{font-size:calc(13.4*var(--u));color:#39434f;margin-top:calc(2*var(--u));
+ letter-spacing:-.015em;line-height:1.5}
+.kv .it .kx b{color:#12233f;font-weight:700}
+
+/* 큰 수치 */
+.mt{display:flex;gap:calc(10*var(--u))}
+.mt .m{flex:1;background:#F7F9FB;border-radius:calc(6*var(--u));padding:calc(12*var(--u)) calc(14*var(--u))}
+.mt .m .big{font-size:calc(24*var(--u));font-weight:800;color:#192949;letter-spacing:-.03em;line-height:1.1}
+.mt .m .big span{font-size:calc(13*var(--u));color:#5b6773}
+.mt .m .lb{font-size:calc(11.4*var(--u));color:#8b96a2;margin-top:calc(3*var(--u));letter-spacing:-.01em}
+.mt .m.or{background:#FDF6EC}
+.mt .m.or .big{color:#C06A00}
+
+/* 하단 */
+.foot{display:flex;gap:calc(12*var(--u));align-items:stretch;margin-top:auto;flex:0 0 auto}
+.foot .pt{flex:1;background:#F7F9FB;border-radius:calc(6*var(--u));
+ padding:calc(11*var(--u)) calc(16*var(--u)) calc(12*var(--u))}
+.foot .pl{font-size:calc(10.6*var(--u));font-weight:800;color:#8b96a2;letter-spacing:.16em;
+ margin-bottom:calc(5*var(--u))}
+.foot .pt ul{list-style:none}
+.foot .pt li{font-size:calc(11.9*var(--u));color:#55616e;line-height:1.62;padding-left:calc(14*var(--u));
+ position:relative;margin-bottom:calc(3*var(--u))}
+.foot .pt li:last-child{margin-bottom:0}
+.foot .pt li:before{content:"·";position:absolute;left:calc(3*var(--u));color:#E68100;font-weight:800}
+.foot .pt li b{color:#12233f;font-weight:700}
+.foot .pt.q{background:#FDF6EC}
+.foot .pt.q .pl{color:#C09A62}
+.foot .pt.q li:before{content:"?";font-size:calc(9.5*var(--u));color:#C06A00}
+/* 프로세스 지도 */
+.pmap{display:flex;gap:calc(7*var(--u));align-items:stretch;flex:0 0 auto}
+.pmap .pc{flex:1;border:1px solid #E4E8EC;border-radius:calc(6*var(--u));
+ padding:calc(15*var(--u)) calc(13*var(--u));display:flex;flex-direction:column;min-width:0}
+.pmap .pc .pd{font-family:'Paperlogy',sans-serif;font-size:calc(10.6*var(--u));font-weight:800;
+ color:#E68100;letter-spacing:.05em}
+.pmap .pc .pn{font-family:'Paperlogy',sans-serif;font-size:calc(15.5*var(--u));font-weight:800;
+ color:#192949;margin-top:calc(5*var(--u));letter-spacing:-.025em;line-height:1.3}
+.pmap .pc .px{font-size:calc(12*var(--u));color:#5b6773;line-height:1.75;margin-top:calc(11*var(--u));flex:1;
+ letter-spacing:-.015em}
+.pmap .pc .px b{color:#12233f;font-weight:700}
+.pmap .pc .pf{font-size:calc(10.6*var(--u));color:#aeb6c0;margin-top:calc(11*var(--u));
+ padding-top:calc(9*var(--u));border-top:1px solid #EEF1F4;letter-spacing:.02em}
+.pmap .pc.on{background:#192949;border-color:#192949}
+.pmap .pc.on .pn{color:#fff}
+.pmap .pc.on .px{color:#c6d2e0}
+.pmap .pc.on .px b{color:#F1B03C}
+.pmap .pc.on .pf{color:#7d94ab;border-top-color:#2b4066}
+.band{display:flex;align-items:center;gap:calc(16*var(--u));background:#F4F9F8;border:1px dashed #B6CFCA;
+ border-radius:calc(6*var(--u));padding:calc(14*var(--u)) calc(22*var(--u))}
+.band .bn{font-family:'Paperlogy',sans-serif;font-size:calc(13.5*var(--u));font-weight:800;color:#3f6f6a;
+ letter-spacing:-.02em;white-space:nowrap}
+.band .bx2{font-size:calc(12.4*var(--u));color:#4d6f6b;line-height:1.7;letter-spacing:-.015em}
+.band .bx2 b{color:#2c5450}
+.pgno{position:absolute;left:0;right:0;bottom:calc(9*var(--u));text-align:center;
+ font-size:calc(10*var(--u));color:#b9c2cc;letter-spacing:.08em}
+
+/* 표지 */
+.cv{background:#fff;color:#2a333d;padding:calc(52*var(--u)) calc(72*var(--u)) calc(34*var(--u));
+ border-top:calc(7*var(--u)) solid #192949;display:flex;flex-direction:column}
+.cv h1{font-size:calc(38*var(--u));font-weight:800;letter-spacing:-.025em;line-height:1.32;color:#192949}
+.cv .cs{color:#5b6773;font-size:calc(14.5*var(--u));margin-top:calc(13*var(--u));line-height:1.7}
+.cv .bar{display:flex;gap:calc(10*var(--u));margin-top:calc(24*var(--u))}
+.cv .bx{background:#F7F9FB;border:1px solid #EAEEF2;border-radius:calc(5*var(--u));
+ padding:calc(12*var(--u)) calc(16*var(--u));flex:1}
+.cv .bx b{display:block;font-family:'Paperlogy',sans-serif;color:#192949;font-size:calc(20*var(--u));
+ font-weight:800;letter-spacing:-.025em}
+.cv .bx span{font-size:calc(11.4*var(--u));color:#8b96a2}
+.cv .bx.k{background:#FDF6EC;border-color:#EFD9B8}
+.cv .bx.k b{color:#C06A00}
+.cv .gd{margin-top:calc(24*var(--u));border-top:1px solid #E4E8EC;padding-top:calc(18*var(--u))}
+.cv .gd h2{font-family:'Paperlogy',sans-serif;font-size:calc(13.4*var(--u));font-weight:800;
+ color:#E68100;letter-spacing:.03em;margin-bottom:calc(9*var(--u))}
+.cv .gd ul{list-style:none;column-count:2;column-gap:calc(36*var(--u))}
+.cv .gd li{font-size:calc(13*var(--u));color:#46515e;line-height:1.72;padding-left:calc(14*var(--u));
+ position:relative;break-inside:avoid;margin-bottom:calc(2*var(--u))}
+.cv .gd li:before{content:"—";position:absolute;left:0;color:#c3ccd6}
+.cv .gd li b{color:#12233f;font-weight:700}
+.toc{margin-top:calc(18*var(--u));flex:0 0 auto;border-top:1px solid #E4E8EC;padding-top:calc(15*var(--u))}
+.tct{font-size:calc(13.4*var(--u));font-weight:800;color:#E68100;letter-spacing:.03em;
+ margin-bottom:calc(8*var(--u))}
+.toc table{width:100%;border-collapse:collapse;table-layout:fixed}
+.toc td{padding:calc(3.6*var(--u)) 0;font-size:calc(12.4*var(--u));color:#46515e;
+ border-bottom:1px solid #EEF1F4;letter-spacing:-.012em;white-space:nowrap;overflow:hidden;
+ text-overflow:ellipsis}
+.toc td.n{width:calc(28*var(--u));font-family:'Paperlogy',sans-serif;font-weight:800;color:#aeb6c0}
+.toc td.p{width:calc(74*var(--u));color:#8b96a2;font-size:calc(11.2*var(--u))}
+.toc td.g{color:#192949;padding-right:calc(14*var(--u))}
+.tl{display:flex;gap:calc(4*var(--u))}
+.tl .t{flex:1;background:#F7F9FB;border:1px solid #EAEEF2;border-radius:calc(4*var(--u));
+ padding:calc(8*var(--u)) calc(7*var(--u))}
+.tl .t.k{background:#192949;border-color:#192949}
+.tl .t .d{font-family:'Paperlogy',sans-serif;font-size:calc(10.6*var(--u));font-weight:800;color:#8b96a2;
+ letter-spacing:.02em}
+.tl .t.k .d{color:#F1B03C}
+.tl .t .n{font-size:calc(11.4*var(--u));color:#39434f;margin-top:calc(2*var(--u));letter-spacing:-.02em;
+ line-height:1.3}
+.tl .t.k .n{color:#fff;font-weight:700}
+.tlt{margin-top:auto;padding-top:calc(20*var(--u));margin-bottom:calc(8*var(--u));
+ font-family:'Paperlogy',sans-serif;font-size:calc(13.4*var(--u));font-weight:800;color:#E68100;
+ letter-spacing:.03em}
+
+/* 인쇄 — A4 가로. 2339px × 0.47991 = 297mm(1122.5px @96dpi) */
+@page{size:297mm 210mm;margin:0}
+@media print{
+ html,body{background:#fff!important;padding:0!important;margin:0!important;
+  -webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+ .wrap{width:auto!important;margin:0!important}
+ .cap{display:none!important}
+ .sheet{width:calc(2339px * .47991)!important;height:calc(1654px * .47991)!important;
+  margin:0!important;overflow:hidden!important;page-break-after:always;break-after:page}
+ .sheet:last-child{page-break-after:auto;break-after:auto}
+ .sheet .page{transform:scale(.47991)!important;transform-origin:top left!important;
+  box-shadow:none!important}
+ /* 안전 인쇄 — 여백을 0으로 못 맞출 때. 사방 12mm까지 잘리지 않는다 */
+ html.psafe .sheet{width:calc(2339px * .425)!important;height:calc(1654px * .425)!important;
+  margin:0 auto!important}
+ html.psafe .sheet .page{transform:scale(.425)!important}
+}
+.page,.sheet{width:2340px!important}
+.wrap{width:calc(2340px*var(--view))!important}
+
+/* ── 판면 여백 (확정 v2) ── */
+.bd{left:calc(51.31*var(--u));right:calc(51.31*var(--u));bottom:calc(52*var(--u));gap:calc(14.879*var(--u))}
+.pgno{bottom:calc(17*var(--u))}
+.hd{padding-left:calc(51.31*var(--u));padding-right:calc(51.31*var(--u))}
+.row{gap:calc(14.879*var(--u))}
+.col{gap:calc(14.879*var(--u))}
+.b{padding:calc(17*var(--u)) calc(21*var(--u)) calc(18*var(--u))}
+
+/* ── 활자 (확정 v2) ── */
+.bl,.foot .pl{font-family:'Paperlogy',sans-serif}
+.bl{font-size:calc(11.2*var(--u));letter-spacing:.09em;color:#7a8695;margin-bottom:calc(11*var(--u))}
+.foot .pl{font-size:calc(11*var(--u));letter-spacing:.09em;color:#7a8695}
+.tx{font-size:calc(13.2*var(--u));line-height:1.86;letter-spacing:-.006em;color:#3d4854}
+ul.li li{font-size:calc(13.2*var(--u));line-height:1.85;letter-spacing:-.006em;color:#3d4854;
+ margin-bottom:calc(7*var(--u))}
+table.tb th{font-size:calc(11.4*var(--u));color:#7a8695;letter-spacing:.02em}
+table.tb td{font-size:calc(12.8*var(--u));line-height:1.66;letter-spacing:-.006em;color:#3d4854;
+ padding:calc(8*var(--u)) calc(10*var(--u))}
+table.tb.cp td{font-size:calc(12.4*var(--u));padding:calc(5*var(--u)) calc(10*var(--u))}
+table.tb.xs td{font-size:calc(11.8*var(--u));line-height:1.55;padding:calc(2.4*var(--u)) calc(9*var(--u))}
+.foot .pt li{font-size:calc(12.3*var(--u));line-height:1.72;letter-spacing:-.006em;color:#4b5764;
+ margin-bottom:calc(5*var(--u))}
+
+/* ── TBD 표기 ── */
+.tbd{display:inline-block;font-family:'Paperlogy',sans-serif;font-size:calc(10*var(--u));
+ font-weight:800;letter-spacing:.08em;color:#8792a0;background:#F4F6F8;
+ border:calc(1*var(--u)) dashed #B9C2CC;border-radius:calc(3*var(--u));
+ padding:calc(1*var(--u)) calc(8*var(--u));vertical-align:middle;white-space:nowrap}
+.tbd.co{color:#B06A00;background:#FFF6E8;border-color:#E4B673}
+
+/* ── 면 연결 표기 ── */
+.ar{font-family:'Paperlogy',sans-serif;font-size:calc(10.4*var(--u));font-weight:800;
+ color:#E68100;letter-spacing:.02em;white-space:nowrap}
+
+/* 3열 균등 고정 — 694pt */
+.row.g>.col,.row.g>.b{flex:0 0 calc(356.08*var(--u))!important;min-width:0}
+</style></head><body><div class="wrap"><div class="sheet"><div class="page"><div class="hd">  <div class="num" data-k="H1 번호">04</div>  <div class="hi">    <div class="goal" data-k="H2 제목">사전분석과 기초 현황 조사</div>    <div class="meta" data-k="H3 메타">선정 · 협약 직후 1주 · <b>10개소 전수</b> · 1회차 이전 완료</div>  </div>  <div class="stp" data-k="H4 우측"><span class="sn">15</span><span class="sl">조사 항목</span></div></div><div class="bd">
+<div class="row g">
+  <div class="col" style="flex:1">
+    <div class="b" data-k="B1 사전분석">
+      <div class="bl" data-k="T1 라벨">사전분석 · 점주 없이 선행</div>
+      <table class="tb cp" data-k="T2 표">
+        <colgroup><col style="width:40%"><col></colgroup>
+        <tr><th>항목</th><th>확인 경로</th></tr>
+        <tr><td><b>상권과 입지</b></td><td>현장 답사 · 지도</td></tr>
+        <tr><td><b>온라인 노출</b></td><td>포털 · 배달앱 등록 정보</td></tr>
+        <tr><td><b>리뷰</b></td><td>건수 · 평점 · 언급 빈도</td></tr>
+        <tr><td><b>메뉴와 가격</b></td><td>메뉴판 · 온라인 게시</td></tr>
+        <tr><td><b>계절 편차</b></td><td>점주 진술 · 매출 추이</td></tr>
+      </table>
+    </div>
+    <div class="b" style="flex:1" data-k="B2 수행 방식">
+      <div class="bl" data-k="T3 라벨">수행 방식</div>
+      <ul class="li" data-k="T4 목록">
+        <li><b>시점</b> — 선정 · 협약 직후 <b>1주 이내</b></li>
+        <li><b>주체</b> — PM과 담당 컨설턴트</li>
+        <li><b>방식</b> — 현장 방문 1회 · 60분 내외</li>
+        <li><b>기입</b> — 관리자 앱 사업장 카드 개요 탭</li>
+        <li><b>소요</b> — 10개소 전수 <b>2주 이내</b> 완료</li>
+        <li><b>선행 조건</b> — 협약 체결과 점주 계정 발급 <span class="ar">→ 03</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="b" style="flex:1" data-k="B3 기초 현황 조사">
+    <div class="bl" data-k="T5 라벨">기초 현황 조사 · 점주 면담</div>
+    <table class="tb xs" data-k="T6 표">
+      <colgroup><col style="width:20%"><col></colgroup>
+      <tr><th>구분</th><th>조사 항목</th></tr>
+      <tr><td rowspan="4" class="n">운영</td><td>개업 연도와 운영 형태</td></tr>
+      <tr><td>좌석 수와 운영 인력</td></tr>
+      <tr><td>영업시간과 휴무</td></tr>
+      <tr><td>주방 설비 현황</td></tr>
+      <tr><td rowspan="3" class="n">메뉴</td><td>대표 메뉴와 객단가</td></tr>
+      <tr><td>계절 메뉴 운영 여부</td></tr>
+      <tr><td>최근 메뉴 변경 이력</td></tr>
+      <tr><td rowspan="2" class="n">원물</td><td>조달처와 입고 주기</td></tr>
+      <tr><td>선도 확인 방법</td></tr>
+      <tr><td rowspan="3" class="n">매출</td><td>성수기 · 비수기 편차</td></tr>
+      <tr><td>배달 운영 여부와 비중</td></tr>
+      <tr><td>원가 계산 여부</td></tr>
+      <tr><td rowspan="3" class="n">개선</td><td><b>가장 고치고 싶은 것</b></td></tr>
+      <tr><td><b>점주 실행 여력</b></td></tr>
+      <tr><td><b>투자 가능 범위</b></td></tr>
+    </table>
+    <p class="tx" style="margin-top:calc(10*var(--u))" data-k="T7 주">
+      <b>개선</b> 세 항목이 심사 「개선 여지」의 근거이자 2회차 개선 방안서의 입력값.</p>
+  </div>
+
+  <div class="col" style="flex:1">
+    <div class="b" data-k="B4 3층 구조">
+      <div class="bl" data-k="T8 라벨">신청 3층 구조에서의 위치</div>
+      <table class="tb cp" data-k="T9 표">
+        <colgroup><col style="width:42%"><col></colgroup>
+        <tr><th>층</th><th>시점</th></tr>
+        <tr><td>① 신청서</td><td>접수 · 03면</td></tr>
+        <tr class="sum"><td><b>② 기초현황</b></td><td><b>선정 직후 · 이 면</b></td></tr>
+        <tr><td>③ 사전진단</td><td>1회차 이전 · 05면</td></tr>
+      </table>
+      <p class="tx" style="margin-top:calc(10*var(--u))" data-k="T10 주">
+        ②가 <b>무엇을 고칠 여지가 있는가</b>, ③이 <b>어떻게 고칠 것인가</b>.</p>
+    </div>
+    <div class="b" style="flex:1" data-k="B5 산출과 연결">
+      <div class="bl" data-k="T11 라벨">산출과 연결</div>
+      <ul class="li" data-k="T12 목록">
+        <li><b>전문가 배정</b> — 유형별 투입 분야 <span class="ar">→ 09</span></li>
+        <li><b>진단 기준값</b> — 20문항의 확인 대상 <span class="ar">→ 05</span></li>
+        <li><b>개선 방안서</b> — 즉시 · 후속을 가름 <span class="ar">→ 07</span></li>
+      </ul>
+      <table class="tb cp" data-k="T13 표" style="margin-top:calc(11*var(--u))">
+        <colgroup><col style="width:58%"><col></colgroup>
+        <tr><th>서식</th><th>상태</th></tr>
+        <tr><td>기초 현황 조사서</td><td><span class="tbd">TBD</span></td></tr>
+        <tr><td>사전진단표</td><td><span class="tbd">TBD</span></td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+<div class="foot" data-k="B6 실무 확인">
+  <div class="pt">
+    <div class="pl" data-k="T14 라벨">실무 확인</div>
+    <ul data-k="T15 목록">
+      <li>사전분석은 <b>점주를 만나기 전에</b> 끝낸다 — 면담 시간을 현황 파악이 아니라 <b>개선 의향 확인</b>에 쓴다</li>
+      <li>신청서에는 재무 항목을 넣지 않았다 — <b>선정된 10개소에 대해서만</b> 이 단계에서 수집한다</li>
+      <li>조사 결과는 별도 문서가 아니라 <b>관리자 앱에 입력</b> — 결과보고서에서 그대로 산출된다</li>
+    </ul>
+  </div>
+</div>
+</div><div class="pgno" data-k="H5 하단">프로그램 기획안 및 사업실행계획서 · 04</div></div></div></div></body></html>

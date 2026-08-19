@@ -133,32 +133,45 @@ body {
 
 .empty { color: var(--mu) }
 
-/* ── 블록 폼 — 글만 고친다. 구조는 JSON ── */
-.form { padding: 0 14px 8px }
+/* ── 구조 폼 — 줄과 행만 더하고 뺀다. 글자는 판면에서 ── */
+.form { padding: 0 12px 8px }
 
-.fld { display: block; margin-bottom: 9px }
-.fn {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 10px; font-weight: 800; letter-spacing: .08em;
-  color: var(--mu); margin-bottom: 3px;
+.grp {
+  margin: 12px 2px 5px;
+  font-size: 10px; font-weight: 800; letter-spacing: .12em;
+  color: var(--mu);
 }
-.fld textarea {
-  width: 100%; padding: 6px 8px;
-  font: inherit; font-size: 12.5px; line-height: 1.5;
-  color: var(--tx); background: #fff;
-  border: 1px solid var(--ln); border-radius: 5px;
-  resize: vertical;
-}
-.fld textarea:focus { outline: 0; border-color: var(--nv2); background: #fbfcfd }
+.grp:first-child { margin-top: 2px }
 
+.hint {
+  margin: 0 2px 4px; padding: 6px 8px;
+  font-size: 11.5px; line-height: 1.45; color: var(--mu);
+  background: #f7f9fb; border-radius: 5px;
+}
+
+.ln {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 6px 5px 8px; border-radius: 5px;
+}
+.ln:hover { background: #f4f6f8 }
+.lnno {
+  flex: 0 0 auto; min-width: 22px;
+  font-size: 10.5px; font-weight: 800; color: var(--mu);
+  font-variant-numeric: tabular-nums;
+}
+.lntx {
+  flex: 1; min-width: 0; font-size: 12px; line-height: 1.4;
+  color: var(--tx); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .delln {
-  border: 0; background: transparent; cursor: pointer;
-  color: #c3ccd6; font-size: 14px; line-height: 1; padding: 0 2px;
+  flex: 0 0 auto; border: 0; background: transparent; cursor: pointer;
+  color: #c3ccd6; font-size: 15px; line-height: 1; padding: 0 3px;
 }
+.ln:hover .delln { color: #8b96a2 }
 .delln:hover { color: var(--or) }
 
 .addln {
-  display: block; width: 100%; margin: 2px 0 12px; padding: 6px;
+  display: block; width: 100%; margin: 4px 0 2px; padding: 6px;
   font: inherit; font-size: 11.5px;
   border: 1px dashed #c3ccd6; border-radius: 5px;
   background: #fff; color: var(--mu); cursor: pointer;
@@ -166,10 +179,11 @@ body {
 .addln:hover { border-color: var(--nv2); color: var(--nv) }
 
 .save {
-  margin: 0 14px 10px; padding: 9px;
+  width: 100%; margin-bottom: 10px; padding: 9px;
   font: inherit; font-size: 13px; font-weight: 700;
   border: 0; border-radius: 6px; background: var(--or); color: #fff; cursor: pointer;
 }
+.save:hover { background: #cf7400 }
 .save:disabled { background: #e9edf1; color: var(--mu); cursor: default }
 
 /* 넘침 표시 */
@@ -179,3 +193,31 @@ body {
   background: #f2f7f4; color: #3f6f6a;
 }
 .chk.bad { background: #fdf0e6; color: #b45309; font-weight: 700 }
+
+/* ── 구조 조작 ── */
+.brand { display: flex; align-items: center; justify-content: space-between }
+.undo { display: flex; gap: 2px }
+.undo button {
+  border: 0; background: transparent; cursor: pointer;
+  font-size: 15px; line-height: 1; color: var(--mu); padding: 2px 4px; border-radius: 4px;
+}
+.undo button:hover:not(:disabled) { background: #f4f6f8; color: var(--nv) }
+.undo button:disabled { opacity: .3; cursor: default }
+
+.ctl { padding: 0 14px 6px }
+.ctlrow { display: flex; align-items: center; gap: 5px; margin-bottom: 6px }
+.ctlrow.wrap { flex-wrap: wrap }
+.ctlrow.pg { padding: 0 12px 8px }
+.ck { font-size: 10px; font-weight: 800; letter-spacing: .1em; color: var(--mu); flex: 0 0 34px }
+
+.chip {
+  padding: 4px 9px; font: inherit; font-size: 11.5px;
+  border: 1px solid var(--ln); border-radius: 5px;
+  background: #fff; color: var(--tx); cursor: pointer; white-space: nowrap;
+}
+.chip:hover:not(:disabled) { border-color: var(--nv2); color: var(--nv) }
+.chip.on { background: var(--nv); border-color: var(--nv); color: #fff }
+.chip.warn:hover:not(:disabled) { border-color: var(--or); color: var(--or) }
+.chip:disabled { opacity: .35; cursor: default }
+
+.grp { display: flex; align-items: center; justify-content: space-between }

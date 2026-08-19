@@ -1,0 +1,383 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><title>판면 견본</title><style>
+:root{--u:1.949px;--view:.42}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard Variable',Pretendard,'Noto Sans KR','Malgun Gothic',sans-serif;
+ background:#eef0f3;padding:34px 20px 60px;color:#2a333d;line-height:1.7;
+ word-break:keep-all;overflow-wrap:break-word}
+.goal,.num,.stp,.pgno,.bt,.cv h1,.tct,.big,.kn,.mt,.sn{font-family:'Paperlogy',sans-serif}
+.wrap{width:calc(2339px * var(--view));margin:0 auto}
+.cap{color:#5b6773;font-size:12.5px;margin:0 0 7px 2px;letter-spacing:-.01em}
+.cap b{color:#192949}
+.sheet{width:calc(2339px * var(--view));height:calc(1654px * var(--view));overflow:hidden;
+ margin-bottom:calc(30px * var(--view))}
+.sheet .page{transform:scale(var(--view));transform-origin:top left}
+.page{position:relative;width:2339px;height:1654px;background:#fff;overflow:hidden;
+ box-shadow:0 1px 3px rgba(25,41,73,.07)}
+
+/* ── 헤더 ── */
+.hd{display:flex;align-items:center;gap:calc(18*var(--u));
+ padding:calc(17*var(--u)) calc(30*var(--u));background:#F7F9FB;border-bottom:1px solid #E6EAEE}
+.num{flex:0 0 auto;width:calc(38*var(--u));height:calc(38*var(--u));border-radius:50%;
+ background:#192949;color:#fff;font-size:calc(15*var(--u));font-weight:800;
+ display:flex;align-items:center;justify-content:center}
+.hi{flex:1;min-width:0}
+.goal{font-size:calc(20*var(--u));font-weight:800;color:#192949;letter-spacing:-.015em;line-height:1.4}
+.meta{font-size:calc(12.4*var(--u));color:#8b96a2;margin-top:calc(3*var(--u));letter-spacing:-.01em}
+.meta b{color:#5b6773;font-weight:700}
+.stp{flex:0 0 auto;text-align:right;line-height:1.15}
+.stp .sn{font-size:calc(23*var(--u));font-weight:800;color:#E68100;letter-spacing:-.02em;display:block}
+.stp .sl{font-size:calc(11*var(--u));color:#8b96a2;letter-spacing:.02em}
+
+/* ── 본문 ── */
+.bd{position:absolute;left:calc(30*var(--u));right:calc(30*var(--u));
+ top:calc(100*var(--u));bottom:calc(28*var(--u));display:flex;flex-direction:column;
+ gap:calc(12*var(--u))}
+.row{display:flex;gap:calc(12*var(--u));min-height:0}
+.row.g{flex:1}
+.col{display:flex;flex-direction:column;gap:calc(12*var(--u));min-width:0}
+.b{border:1px solid #E4E8EC;border-radius:calc(6*var(--u));
+ padding:calc(15*var(--u)) calc(19*var(--u)) calc(16*var(--u));min-width:0}
+.b.fill{background:#F7F9FB;border-color:#EAEEF2}
+.b.nv{background:#192949;border-color:#192949;color:#dfe6ee}
+.b.or{background:#FDF6EC;border-color:#EFD9B8}
+.b.gr{background:#F4F9F8;border-color:#CFE0DD}
+.bl{font-size:calc(10.8*var(--u));font-weight:800;color:#8b96a2;letter-spacing:.16em;
+ margin-bottom:calc(10*var(--u))}
+.b.nv .bl{color:#8fa6b8}
+.bt{font-size:calc(14.8*var(--u));font-weight:800;color:#192949;letter-spacing:-.015em;
+ margin-bottom:calc(9*var(--u))}
+.b.nv .bt{color:#fff}
+.tx{font-size:calc(13*var(--u));color:#46515e;line-height:1.8;letter-spacing:-.012em}
+.b.nv .tx{color:#c6d2e0}
+.tx + .tx{margin-top:calc(6*var(--u))}
+ul.li + .tx,table.tb + .tx{margin-top:calc(9*var(--u))}
+.tx + ul.li{margin-top:calc(7*var(--u))}
+.tx b{color:#12233f;font-weight:700}
+.b.nv .tx b{color:#F1B03C}
+.b.nv ul.li li{color:#c6d2e0}
+.b.nv ul.li li b{color:#F1B03C}
+.b.nv ul.li li:before{color:#F1B03C}
+.b.nv table.tb td{color:#c6d2e0;border-bottom-color:#2b4066}
+.b.nv table.tb td b{color:#fff}
+.hl{background:linear-gradient(transparent 62%,#ffe6bf 62%);font-weight:700;color:#12233f}
+
+/* 목록 */
+ul.li{list-style:none}
+ul.li li{font-size:calc(13*var(--u));color:#46515e;line-height:1.74;padding-left:calc(16*var(--u));
+ position:relative;margin-bottom:calc(6*var(--u));letter-spacing:-.012em}
+ul.li li:last-child{margin-bottom:0}
+ul.li li:before{content:"·";position:absolute;left:calc(4*var(--u));color:#E68100;font-weight:800}
+ul.li li b{color:#12233f;font-weight:700}
+ul.nb li:before{content:counter(x);counter-increment:x;font-size:calc(9.5*var(--u));
+ font-weight:800;color:#fff;background:#2D4D6E;border-radius:50%;width:calc(14*var(--u));
+ height:calc(14*var(--u));display:flex;align-items:center;justify-content:center;
+ left:0;top:calc(3*var(--u))}
+ul.nb{counter-reset:x}
+ul.nb li{padding-left:calc(21*var(--u))}
+
+/* 표 */
+table.tb{width:100%;border-collapse:collapse;table-layout:fixed}
+table.tb th{font-size:calc(11*var(--u));font-weight:800;color:#8b96a2;background:transparent;
+ padding:0 calc(9*var(--u)) calc(8*var(--u));text-align:left;letter-spacing:.06em;
+ border-bottom:1px solid #DDE3E9;white-space:nowrap}
+table.tb td{font-size:calc(12.4*var(--u));color:#46515e;padding:calc(7*var(--u)) calc(9*var(--u));
+ border-bottom:1px solid #EEF1F4;letter-spacing:-.012em;line-height:1.58;vertical-align:top}
+table.tb td b{color:#12233f;font-weight:700}
+table.tb tr:last-child td{border-bottom:none}
+table.tb.cp td{padding:calc(5*var(--u)) calc(9*var(--u));font-size:calc(12*var(--u))}
+table.tb.cp th{padding:0 calc(9*var(--u)) calc(7*var(--u))}
+table.tb.xs td{padding:calc(2.4*var(--u)) calc(9*var(--u));font-size:calc(11.4*var(--u));line-height:1.5}
+table.tb.xs th{padding:calc(4*var(--u)) calc(8*var(--u))}
+table.tb td.c,table.tb th.c{text-align:center}
+table.tb td.c,table.tb td.n{white-space:nowrap}
+table.tb td.r,table.tb th.r{text-align:right}
+table.tb td.n{font-family:'Paperlogy',sans-serif;font-weight:800;color:#192949}
+table.tb tr.sum td{background:#192949;color:#fff;font-weight:800;border:none}
+table.tb tr.sum td b,table.tb tr.sum td.n{color:#F1B03C}
+.tg{display:inline-block;font-size:calc(9.6*var(--u));font-weight:800;border-radius:calc(3*var(--u));
+ padding:calc(1.5*var(--u)) calc(6*var(--u));letter-spacing:.02em;white-space:nowrap}
+.tg.im{background:#E68100;color:#fff}
+.tg.nx{background:#E4E8EC;color:#5b6773}
+.tg.ok{background:#2C8F4A;color:#fff}
+.tg.hi{background:#B03A72;color:#fff}
+.tg.lo{background:#8792a0;color:#fff}
+
+/* 점수 막대 */
+.sc{display:flex;align-items:center;gap:calc(9*var(--u));margin-bottom:calc(7*var(--u))}
+.sc:last-child{margin-bottom:0}
+.sc .k{flex:0 0 calc(56*var(--u));font-size:calc(13*var(--u));font-weight:700;color:#39434f}
+.sc .g{flex:1;height:calc(13*var(--u));background:#EDF0F4;border-radius:calc(2*var(--u));
+ position:relative;overflow:hidden}
+.sc .g i{position:absolute;left:0;top:0;bottom:0;border-radius:calc(2*var(--u));background:#2D4D6E}
+.sc .g i.up{background:#E68100}
+.sc .g i.b0{background:#AAB5C1}
+.sc .v{flex:0 0 calc(58*var(--u));text-align:right;font-family:'Paperlogy',sans-serif;
+ font-size:calc(12*var(--u));font-weight:800;color:#192949}
+.sc .v span{font-size:calc(10*var(--u));color:#8b96a2;font-weight:700}
+.sc .d{flex:0 0 calc(38*var(--u));text-align:right;font-family:'Paperlogy',sans-serif;
+ font-size:calc(11.5*var(--u));font-weight:800;color:#E68100}
+
+/* 단계 띠 */
+.fl{display:flex;align-items:stretch;gap:calc(4*var(--u))}
+.fl .st{flex:1;background:#F7F9FB;border:1px solid #E4E8EC;border-radius:calc(5*var(--u));
+ padding:calc(10*var(--u)) calc(11*var(--u));position:relative}
+.fl .st.on{background:#192949;border-color:#192949}
+.fl .st .sd{font-size:calc(10.2*var(--u));font-weight:800;color:#8b96a2;letter-spacing:.06em}
+.fl .st.on .sd{color:#F1B03C}
+.fl .st .sm{font-size:calc(12.6*var(--u));font-weight:700;color:#39434f;margin-top:calc(2*var(--u));
+ letter-spacing:-.015em;line-height:1.35}
+.fl .st.on .sm{color:#fff}
+
+/* 키·값 격자 */
+.kv{display:flex;flex-wrap:wrap;gap:calc(7*var(--u))}
+.kv .it{flex:1 1 calc(30%);min-width:calc(90*var(--u));background:#F7F9FB;border-radius:calc(5*var(--u));
+ padding:calc(9*var(--u)) calc(12*var(--u))}
+.kv .it .kn{font-size:calc(10.6*var(--u));font-weight:800;color:#8b96a2;letter-spacing:.08em}
+.kv .it .kx{font-size:calc(13.4*var(--u));color:#39434f;margin-top:calc(2*var(--u));
+ letter-spacing:-.015em;line-height:1.5}
+.kv .it .kx b{color:#12233f;font-weight:700}
+
+/* 큰 수치 */
+.mt{display:flex;gap:calc(10*var(--u))}
+.mt .m{flex:1;background:#F7F9FB;border-radius:calc(6*var(--u));padding:calc(12*var(--u)) calc(14*var(--u))}
+.mt .m .big{font-size:calc(24*var(--u));font-weight:800;color:#192949;letter-spacing:-.03em;line-height:1.1}
+.mt .m .big span{font-size:calc(13*var(--u));color:#5b6773}
+.mt .m .lb{font-size:calc(11.4*var(--u));color:#8b96a2;margin-top:calc(3*var(--u));letter-spacing:-.01em}
+.mt .m.or{background:#FDF6EC}
+.mt .m.or .big{color:#C06A00}
+
+/* 하단 */
+.foot{display:flex;gap:calc(12*var(--u));align-items:stretch;margin-top:auto;flex:0 0 auto}
+.foot .pt{flex:1;background:#F7F9FB;border-radius:calc(6*var(--u));
+ padding:calc(11*var(--u)) calc(16*var(--u)) calc(12*var(--u))}
+.foot .pl{font-size:calc(10.6*var(--u));font-weight:800;color:#8b96a2;letter-spacing:.16em;
+ margin-bottom:calc(5*var(--u))}
+.foot .pt ul{list-style:none}
+.foot .pt li{font-size:calc(11.9*var(--u));color:#55616e;line-height:1.62;padding-left:calc(14*var(--u));
+ position:relative;margin-bottom:calc(3*var(--u))}
+.foot .pt li:last-child{margin-bottom:0}
+.foot .pt li:before{content:"·";position:absolute;left:calc(3*var(--u));color:#E68100;font-weight:800}
+.foot .pt li b{color:#12233f;font-weight:700}
+.foot .pt.q{background:#FDF6EC}
+.foot .pt.q .pl{color:#C09A62}
+.foot .pt.q li:before{content:"?";font-size:calc(9.5*var(--u));color:#C06A00}
+/* 프로세스 지도 */
+.pmap{display:flex;gap:calc(7*var(--u));align-items:stretch;flex:0 0 auto}
+.pmap .pc{flex:1;border:1px solid #E4E8EC;border-radius:calc(6*var(--u));
+ padding:calc(15*var(--u)) calc(13*var(--u));display:flex;flex-direction:column;min-width:0}
+.pmap .pc .pd{font-family:'Paperlogy',sans-serif;font-size:calc(10.6*var(--u));font-weight:800;
+ color:#E68100;letter-spacing:.05em}
+.pmap .pc .pn{font-family:'Paperlogy',sans-serif;font-size:calc(15.5*var(--u));font-weight:800;
+ color:#192949;margin-top:calc(5*var(--u));letter-spacing:-.025em;line-height:1.3}
+.pmap .pc .px{font-size:calc(12*var(--u));color:#5b6773;line-height:1.75;margin-top:calc(11*var(--u));flex:1;
+ letter-spacing:-.015em}
+.pmap .pc .px b{color:#12233f;font-weight:700}
+.pmap .pc .pf{font-size:calc(10.6*var(--u));color:#aeb6c0;margin-top:calc(11*var(--u));
+ padding-top:calc(9*var(--u));border-top:1px solid #EEF1F4;letter-spacing:.02em}
+.pmap .pc.on{background:#192949;border-color:#192949}
+.pmap .pc.on .pn{color:#fff}
+.pmap .pc.on .px{color:#c6d2e0}
+.pmap .pc.on .px b{color:#F1B03C}
+.pmap .pc.on .pf{color:#7d94ab;border-top-color:#2b4066}
+.band{display:flex;align-items:center;gap:calc(16*var(--u));background:#F4F9F8;border:1px dashed #B6CFCA;
+ border-radius:calc(6*var(--u));padding:calc(14*var(--u)) calc(22*var(--u))}
+.band .bn{font-family:'Paperlogy',sans-serif;font-size:calc(13.5*var(--u));font-weight:800;color:#3f6f6a;
+ letter-spacing:-.02em;white-space:nowrap}
+.band .bx2{font-size:calc(12.4*var(--u));color:#4d6f6b;line-height:1.7;letter-spacing:-.015em}
+.band .bx2 b{color:#2c5450}
+.pgno{position:absolute;left:0;right:0;bottom:calc(9*var(--u));text-align:center;
+ font-size:calc(10*var(--u));color:#b9c2cc;letter-spacing:.08em}
+
+/* 표지 */
+.cv{background:#fff;color:#2a333d;padding:calc(52*var(--u)) calc(72*var(--u)) calc(34*var(--u));
+ border-top:calc(7*var(--u)) solid #192949;display:flex;flex-direction:column}
+.cv h1{font-size:calc(38*var(--u));font-weight:800;letter-spacing:-.025em;line-height:1.32;color:#192949}
+.cv .cs{color:#5b6773;font-size:calc(14.5*var(--u));margin-top:calc(13*var(--u));line-height:1.7}
+.cv .bar{display:flex;gap:calc(10*var(--u));margin-top:calc(24*var(--u))}
+.cv .bx{background:#F7F9FB;border:1px solid #EAEEF2;border-radius:calc(5*var(--u));
+ padding:calc(12*var(--u)) calc(16*var(--u));flex:1}
+.cv .bx b{display:block;font-family:'Paperlogy',sans-serif;color:#192949;font-size:calc(20*var(--u));
+ font-weight:800;letter-spacing:-.025em}
+.cv .bx span{font-size:calc(11.4*var(--u));color:#8b96a2}
+.cv .bx.k{background:#FDF6EC;border-color:#EFD9B8}
+.cv .bx.k b{color:#C06A00}
+.cv .gd{margin-top:calc(24*var(--u));border-top:1px solid #E4E8EC;padding-top:calc(18*var(--u))}
+.cv .gd h2{font-family:'Paperlogy',sans-serif;font-size:calc(13.4*var(--u));font-weight:800;
+ color:#E68100;letter-spacing:.03em;margin-bottom:calc(9*var(--u))}
+.cv .gd ul{list-style:none;column-count:2;column-gap:calc(36*var(--u))}
+.cv .gd li{font-size:calc(13*var(--u));color:#46515e;line-height:1.72;padding-left:calc(14*var(--u));
+ position:relative;break-inside:avoid;margin-bottom:calc(2*var(--u))}
+.cv .gd li:before{content:"—";position:absolute;left:0;color:#c3ccd6}
+.cv .gd li b{color:#12233f;font-weight:700}
+.toc{margin-top:calc(18*var(--u));flex:0 0 auto;border-top:1px solid #E4E8EC;padding-top:calc(15*var(--u))}
+.tct{font-size:calc(13.4*var(--u));font-weight:800;color:#E68100;letter-spacing:.03em;
+ margin-bottom:calc(8*var(--u))}
+.toc table{width:100%;border-collapse:collapse;table-layout:fixed}
+.toc td{padding:calc(3.6*var(--u)) 0;font-size:calc(12.4*var(--u));color:#46515e;
+ border-bottom:1px solid #EEF1F4;letter-spacing:-.012em;white-space:nowrap;overflow:hidden;
+ text-overflow:ellipsis}
+.toc td.n{width:calc(28*var(--u));font-family:'Paperlogy',sans-serif;font-weight:800;color:#aeb6c0}
+.toc td.p{width:calc(74*var(--u));color:#8b96a2;font-size:calc(11.2*var(--u))}
+.toc td.g{color:#192949;padding-right:calc(14*var(--u))}
+.tl{display:flex;gap:calc(4*var(--u))}
+.tl .t{flex:1;background:#F7F9FB;border:1px solid #EAEEF2;border-radius:calc(4*var(--u));
+ padding:calc(8*var(--u)) calc(7*var(--u))}
+.tl .t.k{background:#192949;border-color:#192949}
+.tl .t .d{font-family:'Paperlogy',sans-serif;font-size:calc(10.6*var(--u));font-weight:800;color:#8b96a2;
+ letter-spacing:.02em}
+.tl .t.k .d{color:#F1B03C}
+.tl .t .n{font-size:calc(11.4*var(--u));color:#39434f;margin-top:calc(2*var(--u));letter-spacing:-.02em;
+ line-height:1.3}
+.tl .t.k .n{color:#fff;font-weight:700}
+.tlt{margin-top:auto;padding-top:calc(20*var(--u));margin-bottom:calc(8*var(--u));
+ font-family:'Paperlogy',sans-serif;font-size:calc(13.4*var(--u));font-weight:800;color:#E68100;
+ letter-spacing:.03em}
+
+/* 인쇄 — A4 가로. 2339px × 0.47991 = 297mm(1122.5px @96dpi) */
+@page{size:297mm 210mm;margin:0}
+@media print{
+ html,body{background:#fff!important;padding:0!important;margin:0!important;
+  -webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+ .wrap{width:auto!important;margin:0!important}
+ .cap{display:none!important}
+ .sheet{width:calc(2339px * .47991)!important;height:calc(1654px * .47991)!important;
+  margin:0!important;overflow:hidden!important;page-break-after:always;break-after:page}
+ .sheet:last-child{page-break-after:auto;break-after:auto}
+ .sheet .page{transform:scale(.47991)!important;transform-origin:top left!important;
+  box-shadow:none!important}
+ /* 안전 인쇄 — 여백을 0으로 못 맞출 때. 사방 12mm까지 잘리지 않는다 */
+ html.psafe .sheet{width:calc(2339px * .425)!important;height:calc(1654px * .425)!important;
+  margin:0 auto!important}
+ html.psafe .sheet .page{transform:scale(.425)!important}
+}
+
+/* 타이틀 계열에 .bl 편입 — 라벨도 Paperlogy */
+.bl,.foot .pl{font-family:'Paperlogy',sans-serif}
+
+/* 블록 여백 확대 */
+.b{padding:calc(17*var(--u)) calc(21*var(--u)) calc(18*var(--u))}
+.bd{gap:calc(13*var(--u))}
+.row{gap:calc(13*var(--u))}
+.col{gap:calc(13*var(--u))}
+
+/* 라벨 — 자간을 줄이고 한 단계 키운다 */
+.bl{font-size:calc(11.2*var(--u));letter-spacing:.09em;color:#7a8695;
+ margin-bottom:calc(11*var(--u))}
+.foot .pl{font-size:calc(11*var(--u));letter-spacing:.09em;color:#7a8695}
+
+/* 본문 — 행간 확보 · 자간 완화 · 대비 향상 */
+.tx{font-size:calc(13.2*var(--u));line-height:1.86;letter-spacing:-.006em;color:#3d4854}
+ul.li li{font-size:calc(13.2*var(--u));line-height:1.85;letter-spacing:-.006em;color:#3d4854;
+ margin-bottom:calc(7*var(--u))}
+
+/* 표 — 행 높이와 활자 한 단계씩 */
+table.tb th{font-size:calc(11.4*var(--u));color:#7a8695;letter-spacing:.02em}
+table.tb td{font-size:calc(12.8*var(--u));line-height:1.66;letter-spacing:-.006em;color:#3d4854;
+ padding:calc(8*var(--u)) calc(10*var(--u))}
+table.tb.cp td{font-size:calc(12.4*var(--u));padding:calc(6*var(--u)) calc(10*var(--u))}
+table.tb.xs td{font-size:calc(11.8*var(--u));line-height:1.55;padding:calc(2.4*var(--u)) calc(9*var(--u))}
+
+/* 하단 실무 확인 */
+.foot .pt li{font-size:calc(12.3*var(--u));line-height:1.72;letter-spacing:-.006em;color:#4b5764;
+ margin-bottom:calc(5*var(--u))}
+
+/* TBD 표기 — 두 종 */
+.tbd{display:inline-block;font-family:'Paperlogy',sans-serif;font-size:calc(10*var(--u));
+ font-weight:800;letter-spacing:.08em;color:#8792a0;background:#F4F6F8;
+ border:calc(1*var(--u)) dashed #B9C2CC;border-radius:calc(3*var(--u));
+ padding:calc(1*var(--u)) calc(8*var(--u));vertical-align:middle;white-space:nowrap}
+.tbd.co{color:#B06A00;background:#FFF6E8;border-color:#E4B673}
+</style></head><body><div class="wrap"><div class="sheet"><div class="page"><div class="hd">  <div class="num">04</div>  <div class="hi">    <div class="goal">진단 체계 — 7개 항목 100점 20문항</div>    <div class="meta">1회차 문제진단 · 3회차 종료 재진단 · <b>동일 서식</b></div>  </div>  <div class="stp"><span class="sn">100</span><span class="sl">점 배점</span></div></div><div class="bd">
+<div class="row g">
+  <div class="col" style="flex:1">
+    <div class="b">
+      <div class="bl">항목별 배점</div>
+      <table class="tb cp">
+        <colgroup><col style="width:34%"><col style="width:22%"><col></colgroup>
+        <tr><th>항목</th><th class="c">배점</th><th class="c">문항</th></tr>
+        <tr><td><b>품질</b></td><td class="c n">20</td><td class="c">4</td></tr>
+        <tr><td>서비스</td><td class="c n">15</td><td class="c">3</td></tr>
+        <tr><td>위생</td><td class="c n">15</td><td class="c">3</td></tr>
+        <tr><td>마케팅</td><td class="c n">15</td><td class="c">3</td></tr>
+        <tr><td>재무</td><td class="c n">15</td><td class="c">3</td></tr>
+        <tr><td>배달</td><td class="c n">10</td><td class="c">2</td></tr>
+        <tr><td>지역성</td><td class="c n">10</td><td class="c">2</td></tr>
+        <tr class="sum"><td><b>합계</b></td><td class="c n">100</td><td class="c"><b>20</b></td></tr>
+      </table>
+    </div>
+    <div class="b or" style="flex:1">
+      <div class="bt">배점 구성</div>
+      <ul class="li">
+        <li><b>품질 20점</b> — 조리 역량과 메뉴 경쟁력이 사업 목적</li>
+        <li><b>지역성 10점</b> — 일반 진단에 없는 신설 항목</li>
+        <li>문항별 세부 배점 기준표 <span class="tbd">TBD</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="b" style="flex:1.18">
+    <div class="bl">20문항 구성</div>
+    <table class="tb xs">
+      <colgroup><col style="width:22%"><col></colgroup>
+      <tr><th>항목</th><th>문항</th></tr>
+      <tr><td rowspan="4" class="n">품질</td><td>조리 표준 문서화</td></tr>
+      <tr><td>맛 일관성 · 재현성</td></tr>
+      <tr><td>원물 선도 관리</td></tr>
+      <tr><td>메뉴 구성과 계절 대응</td></tr>
+      <tr><td rowspan="3" class="n">서비스</td><td>응대 수준</td></tr>
+      <tr><td>대기 관리</td></tr>
+      <tr><td>매장 환경과 홀 동선</td></tr>
+      <tr><td rowspan="3" class="n">위생</td><td>주방 위생 상태</td></tr>
+      <tr><td>식재 보관과 표시</td></tr>
+      <tr><td>홀 · 집기 관리</td></tr>
+      <tr><td rowspan="3" class="n">마케팅</td><td>온라인 노출 정보 정확성</td></tr>
+      <tr><td>콘텐츠 관리</td></tr>
+      <tr><td>재방문 유도 수단</td></tr>
+      <tr><td rowspan="3" class="n">재무</td><td>메뉴별 원가 파악</td></tr>
+      <tr><td>수익 구조 인식</td></tr>
+      <tr><td>계절 매출 대응</td></tr>
+      <tr><td rowspan="2" class="n">배달</td><td>배달 운영 상태</td></tr>
+      <tr><td>배달 메뉴 적합성</td></tr>
+      <tr><td rowspan="2" class="n">지역성</td><td>속초 식재료 활용 비중</td></tr>
+      <tr><td>유형 정체성 반영</td></tr>
+    </table>
+  </div>
+
+  <div class="col" style="flex:1.02">
+    <div class="b">
+      <div class="bt">진단 운영 기준</div>
+      <ul class="li">
+        <li><b>기준값</b> — 1회차 문제진단 실측값으로 확정</li>
+        <li><b>비교값</b> — 3회차 당일 종료 재진단. <b>동일 서식 · 동일 문항</b></li>
+        <li><b>1 · 3회차 조리 전문가 동일</b> — 진단과 재진단의 편차 축소</li>
+        <li>기입은 <b>관리자 앱</b>에서 현장 수행. 별도 전사 없음</li>
+      </ul>
+    </div>
+    <div class="b" style="flex:1">
+      <div class="bl">서식과 산출</div>
+      <table class="tb cp">
+        <colgroup><col style="width:52%"><col></colgroup>
+        <tr><th>항목</th><th>상태</th></tr>
+        <tr><td>사전진단표</td><td><span class="tbd">TBD</span></td></tr>
+        <tr><td>진단표 20문항</td><td><span class="tbd">TBD</span></td></tr>
+        <tr><td>개선 방안서</td><td><span class="tbd">TBD</span></td></tr>
+        <tr><td>자가진단 12문항</td><td><span class="tbd">TBD</span></td></tr>
+        <tr><td>진단 결과 열람 범위</td><td><span class="tbd co">TBD · 협의</span></td></tr>
+      </table>
+      <p class="tx" style="margin-top:calc(11*var(--u))">
+        <span class="tbd">TBD</span> 는 수행사가 채웁니다.
+        <span class="tbd co">TBD · 협의</span> 는 주관기관 확인 후 확정됩니다.</p>
+    </div>
+  </div>
+</div>
+<div class="foot">
+  <div class="pt">
+    <div class="pl">실무 확인</div>
+    <ul>
+      <li>진단은 <b>7개 항목 100점 20문항</b> — 사업장 유형과 무관하게 동일 서식</li>
+      <li>재진단을 별도 방문으로 두지 않고 <b>3회차 당일</b>에 수행</li>
+      <li>자가진단 12문항은 이 20문항의 축소판 — <b>점주 단독 확인 가능 항목</b>으로 한정</li>
+    </ul>
+  </div>
+</div>
+</div><div class="pgno">프로그램 기획안 및 사업실행계획서 · 견본</div></div></div></div></body></html>

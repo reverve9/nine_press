@@ -504,3 +504,230 @@ ul.li li{margin-bottom:calc(6.2*var(--u))}
    머리행 아래는 한 단 더 진하게 — 머리와 본문을 가르는 선이다. */
 table.tb td{border-bottom-color:#D8D8D8}
 table.tb th{border-bottom-color:#BFBFBF}
+
+/* ── ⑱ 표 칸 세로 가운데 (v4) ──
+   v2 부터 td 가 vertical-align:top 이었다. 행 높이가 내용보다 큰 표
+   (밀도 md·fit, 여러 줄 감기는 칸, rowspan 묶음)에서 글자가 윗선에 붙어 보인다.
+   머리행은 그대로 아래쪽 정렬 — 본문과의 경계선에 붙어야 한다. */
+table.tb td{vertical-align:middle}
+table.tb th{vertical-align:bottom}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ⑲ 시나리오 판면 (v5) — .wrap.sim
+   실행계획서와 같은 규격(2340×1654 · 여백 51.31u · 3단)을 쓰되
+   헤더만 시나리오 계열 원형으로 되돌린다.
+   두 문서를 같은 헤더로 두면 따로 만들 이유가 없어진다.
+   ══════════════════════════════════════════════════════════════ */
+.sim .hd{
+  position:static; display:flex; align-items:center; height:auto;
+  gap:calc(18*var(--u));
+  padding:calc(19*var(--u)) calc(51.31*var(--u));
+  background:#F7F9FB; border-bottom:1px solid #E6EAEE;
+}
+.sim .num{
+  position:static; flex:0 0 auto;
+  width:calc(38*var(--u)); height:calc(38*var(--u)); border-radius:50%;
+  background:#192949; color:#fff;
+  font-size:calc(15*var(--u)); font-weight:800; letter-spacing:0;
+  display:flex; align-items:center; justify-content:center; line-height:1;
+}
+.sim .num::before{content:none}
+.sim .hi{position:static; flex:1; min-width:0}
+.sim .goal{font-size:calc(20.5*var(--u)); font-weight:800; color:#192949;
+  letter-spacing:-.018em; line-height:1.34}
+.sim .meta{font-size:calc(13.2*var(--u)); color:#7a8695; margin-top:calc(3*var(--u))}
+.sim .meta b{color:#4b5560}
+.sim .stp{display:block; flex:0 0 auto; text-align:right; line-height:1.15}
+.sim .bd{top:calc(100*var(--u))}
+/* 흐름 장치는 블록 껍데기 없이 판면에 바로 놓는다 */
+.sim .b:has(> .fl),
+.sim .b:has(> .pmap),
+.sim .b:has(> .band){border:0;padding:0;background:none}
+/* 시나리오는 한 면에 담는 양이 많다 — 조밀 표를 한 단 더 좁힌다 */
+.sim table.tb.xs td{padding:calc(1.2*var(--u)) calc(8*var(--u));
+  font-size:calc(11.9*var(--u)); line-height:1.42}
+/* 수치 블록 — 숫자와 단위를 띄운다 */
+.mt .m .big span{margin-left:calc(3.4*var(--u))}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ⑳ 화면 자리 (v5) — 캡처가 들어갈 칸
+   블록 안에서 남는 높이를 전부 차지한다. 캡처가 오면 이 칸을 바꾼다.
+   2열 판면 — 폭 1.5 + 1.5. ⑫ 의 계산식(370.959*w − 14.879)이 그대로 성립해
+   3단 격자를 깨지 않고 정확히 반반이 된다.
+   ══════════════════════════════════════════════════════════════ */
+.b:has(> .sh){display:flex; flex-direction:column}
+.sh{border:1px dashed #B9B9B9; border-radius:calc(5*var(--u));
+  background:#FAFBFC; display:flex; align-items:center; justify-content:center;
+  margin-top:calc(12*var(--u))}
+/* 비율은 판면이 아니라 기기가 정한다 */
+.sh.pc{flex:0 0 auto; width:100%; aspect-ratio:16/9;
+  margin-top:auto; margin-bottom:auto}                          /* 관리자 앱 — 데스크탑 */
+.sh.mo{flex:1 1 auto; min-height:0; width:auto;
+  aspect-ratio:9/19.5; align-self:center}                     /* 점주 앱 — 휴대폰 */
+.sh.free{flex:1 1 auto; width:100%; min-height:calc(140*var(--u))}
+.sh span{font-family:'Paperlogy',sans-serif; font-size:calc(12.5*var(--u));
+  font-weight:800; color:#9aa4b0; letter-spacing:.14em}
+/* 자리 위 설명 — 각진 연회색 상자. 행간을 좁혀 화면 쪽으로 눈이 가게 한다 */
+.b:has(> .sh) > ul.li{
+  background:#F1F2F4; border-radius:0;
+  padding:calc(11*var(--u)) calc(15*var(--u)) calc(12*var(--u));
+  margin-top:calc(1*var(--u))}
+.b:has(> .sh) > ul.li li{
+  margin-bottom:calc(2.5*var(--u)); line-height:1.5;
+  font-size:calc(12.6*var(--u))}
+.b:has(> .sh) > ul.li li:last-child{margin-bottom:0}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ㉑ 표지 (v6) — 제목과 기본 사항만
+   본문 헤더 · 실무 확인 띠 · 쪽번호를 두지 않는다.
+   v2 의 .cv 블록(목차 · 타임라인 · 안내)은 고치지 않는다 — 쓰지 않을 뿐이다.
+   여백은 판면 규칙 그대로 51.31u. 격자를 새로 만들지 않는다.
+   ══════════════════════════════════════════════════════════════ */
+.page.cvp{border-top:calc(9*var(--u)) solid #192949}
+.cvb{position:absolute;
+  left:calc(51.31*var(--u)); right:calc(51.31*var(--u));
+  top:calc(51.31*var(--u));  bottom:calc(51.31*var(--u));
+  display:flex; flex-direction:column}
+
+/* 용역명 — 발주 원문 표기 */
+.cvs{font-family:'Paperlogy',sans-serif; font-size:calc(15.5*var(--u)); font-weight:800;
+  color:#7a8695; letter-spacing:.01em; line-height:1.5;
+  margin-top:calc(148*var(--u))}
+
+/* 문서명 */
+.cvt{font-family:'Paperlogy',sans-serif; font-size:calc(53*var(--u)); font-weight:800;
+  color:#192949; letter-spacing:-.032em; line-height:1.22;
+  margin-top:calc(22*var(--u))}
+
+.cvr{width:calc(98*var(--u)); height:calc(4*var(--u)); background:#E68100;
+  margin-top:calc(32*var(--u))}
+
+/* 문서 구성 한 줄 */
+.cvc{font-size:calc(14.2*var(--u)); color:#5b6773; letter-spacing:-.012em;
+  margin-top:calc(26*var(--u))}
+.cvc b{color:#192949; font-weight:700}
+
+/* 하단 정보 — 3칸. 간격은 판면 세로 간격과 같은 14.879u */
+.cvi{margin-top:auto; display:flex; gap:calc(14.879*var(--u));
+  border-top:1px solid #ADADAD; padding-top:calc(24*var(--u))}
+.cvi .ci{flex:1; min-width:0}
+.cvi .ck{font-family:'Paperlogy',sans-serif; font-size:calc(11.6*var(--u)); font-weight:800;
+  color:#7a8695; letter-spacing:.09em}
+.cvi .cx{font-size:calc(15.4*var(--u)); color:#192949; letter-spacing:-.022em;
+  line-height:1.5; margin-top:calc(8*var(--u))}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ㉒ 표 선 농도 (v6) — ⑰ 을 한 단 더 올린다
+   ⑰ 에서 #D8D8D8 / #BFBFBF 로 올렸으나 인쇄에서 여전히 옅다.
+   블록 테두리 #ADADAD 를 넘지 않는 선에서 한 단씩 내린다 —
+   표가 격자로 보이면 안 되므로 테두리보다는 연하게 둔다.
+   ══════════════════════════════════════════════════════════════ */
+table.tb td{border-bottom-color:#C2C2C2}
+table.tb th{border-bottom-color:#9E9E9E}
+
+/* 실제 종이 출력 판정 — 시험지 7종 중 4번(2px · 옅게) 채택.
+   원인은 굵기 값이 아니라 인쇄 축소(scale 0.4797094) 뒤 프린터가
+   자기 해상도로 선을 다시 그릴 때 도트 수가 1~3 으로 갈리는 것이었다.
+   0.36pt 는 그 경계 아래라 무늬가 났다. 굵기를 0.72pt 로 올리고
+   색을 그만큼 옅게 해 눈에 보이는 무게는 유지하되 ±1 도트의 비중을 낮춘다.
+   ⚠ 소수 px 을 쓰지 않는다 — 화면 렌더에서도 반올림이 갈린다. */
+table.tb td{border-bottom:2px solid rgba(0,0,0,.18)}
+table.tb th{border-bottom:2px solid rgba(0,0,0,.42)}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ㉓ 먹 사다리 (v6) — 회색을 「먹 + 불투명도」 한 축으로 세운다
+   ⑨⑩ 은 v4 시점 요소만 덮었다. v5 흐름 블록 6종 · 시나리오 헤더 ·
+   화면 자리와 v6 표지가 그 규칙을 지나쳐 회색으로 남아 있었다.
+   특히 `.sim .meta b` 는 강조인데 본문(#141414)보다 흐렸다.
+
+     본문 · 표 값 · 강조     rgba(0,0,0,.92)   ≈ #141414
+     보조 라벨               rgba(0,0,0,.58)   ≈ #6B6B6B
+     각주 · 부기             rgba(0,0,0,.42)   ≈ #949494
+     블록 테두리             rgba(0,0,0,.32)   ≈ #ADADAD   (⑯ 과 같은 값)
+     표 행 구분선            rgba(0,0,0,.18)   ≈ #D1D1D1   (㉒)
+
+   색으로 뜻을 나르는 것은 건드리지 않는다 —
+   TBD 배지 · 면 연결 화살표 · 남색 제목과 합계행 · 주황 강조 · 청록 띠.
+   남색 배경 위 흰 글자(.st.on .sm · .pc.on .pn · tr.sum td)도 그대로다.
+   ══════════════════════════════════════════════════════════════ */
+
+/* 본문 계열 */
+table.tb td.n{color:rgba(0,0,0,.92)}
+.fl .st .sm{color:rgba(0,0,0,.92)}
+.sc .k{color:rgba(0,0,0,.92)}
+.kv .it .kx{color:rgba(0,0,0,.92)}
+.pmap .pc .px{color:rgba(0,0,0,.92)}
+.meta b,.sim .meta b{color:rgba(0,0,0,.92)}
+.cvi .ci .cx{color:rgba(0,0,0,.92)}
+
+/* 보조 라벨 */
+.fl .st .sd{color:rgba(0,0,0,.58)}
+.stp .sl{color:rgba(0,0,0,.58)}
+.mt .m .lb{color:rgba(0,0,0,.58)}
+.kv .it .kn{color:rgba(0,0,0,.58)}
+.sim .meta{color:rgba(0,0,0,.58)}
+.sh span{color:rgba(0,0,0,.58)}
+.cvb .cvs{color:rgba(0,0,0,.58)}
+.cvi .ci .ck{color:rgba(0,0,0,.58)}
+.pgno{color:rgba(0,0,0,.58)}
+
+/* 각주 · 부기 */
+.pmap .pc .pf{color:rgba(0,0,0,.42)}
+.cvb .cvc{color:rgba(0,0,0,.42)}
+
+/* 흰 글자 되돌림 — 위 규칙이 특정도에서 이기는 경우를 막는다 */
+.fl .st.on .sm{color:#fff}
+.pmap .pc.on .pn{color:#fff}
+.pmap .pc.on .px{color:#C6D2E0}
+.pmap .pc.on .pf{color:#7D94AB}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ㉔ 시나리오 헤더 농도 (v6)
+   ⑨ 에서 헤더 띠를 C(#BFD5D3)로 확정했으나 `.sim .hd` 가 특정도에서
+   이겨 시뮬레이션만 #F7F9FB 로 남아 있었다 — 인쇄에서 띠가 날아간다.
+   배경만 실행계획서와 같은 값으로 맞춘다. 원형 배지와 우상단 STEP 은
+   시나리오 계열 그대로 둔다(⑲ 의 판단).
+   ══════════════════════════════════════════════════════════════ */
+.sim .hd{background:linear-gradient(118deg,#BFD5D3,#C2DEDA 46%,#BED4D2);
+  border-bottom:none}
+
+/* ㉓ 보강 — 막대 값 단위 · 수치 단위. 값과 단위가 같은 덩어리로 읽혀야 한다 */
+.sc .v span{color:rgba(0,0,0,.58)}
+.mt .m .big span{color:rgba(0,0,0,.58)}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ㉕ 연한 칸 농도 (v6) — 흰 바탕에서 칸이 사라지던 것
+   #F7F9FB · 테두리 #E4E8EC 는 흰색과 거의 구분되지 않아
+   인쇄하면 칸 자체가 없어진다. 실제 출력에서 확인된 결함이다.
+   사용자 판정 「강」 — 배경 #E4E7EA · 테두리 rgba(0,0,0,.32).
+   ⑯ 블록 테두리(#ADADAD = rgba(0,0,0,.32))와 같은 값으로 맞춘다.
+   기준선 — 실무 확인 띠 #DADADA(⑨ 판정 D)보다는 옅어 층이 유지된다.
+   주황 계열(.or · .m.or · .pt.q)과 남색 활성 칸(.st.on)은 건드리지 않는다.
+   ══════════════════════════════════════════════════════════════ */
+.fl .st{background:#E4E7EA; border-color:rgba(0,0,0,.32)}
+.kv .it{background:#E4E7EA}
+.mt .m{background:#E4E7EA}
+.pmap .pc{border-color:rgba(0,0,0,.32)}
+.b.fill{background:#E4E7EA; border-color:rgba(0,0,0,.32)}
+.sh{background:#E9EBED; border-color:rgba(0,0,0,.38)}
+.b:has(> .sh) > ul.li{background:#E4E7EA}
+.sc .g{background:#DDE1E5}
+
+/* ────────────────────────────────────────────────────────────
+   ㉖ 수치 값 — 편집 경계를 값에만 건다  (2026-08-19)
+
+   결함: data-p 가 .big 에 걸려 있어 단위 <span> 까지 값으로 읽혔다.
+         roundtrip 6건 불일치 · 제자리 편집 저장 시 "2,100" → "2,100만원" 누적.
+
+   값을 .bv 로 감싸고 경계를 옮겼다. 단위는 .bu 로 따로 편집한다.
+   .mt .m .big span (단위 서식 · ⑬ ㉓) 이 값에도 걸리므로 특정도로 상쇄한다.
+   .bv 는 색을 상속하므로 .m.or 의 주황도 그대로 간다.
+   ──────────────────────────────────────────────────────────── */
+.mt .m .big .bv{font-size:inherit;color:inherit;letter-spacing:inherit;margin-left:0}

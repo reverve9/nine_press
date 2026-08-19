@@ -6,84 +6,109 @@ import { 빌드, PDF, 문안저장, 문안불러오기 } from '../actions.js';
 const W = 2340;
 const H = 1654;
 
-/* ── 경로 유틸 — ['행',0,'열',0,'블록',1,'라벨'] ── */
+/* ── 경로 유틸 ── */
 const 읽기 = (o, p) => p.reduce((a, k) => (a == null ? a : a[k]), o);
 function 쓰기(o, p, v) {
   const 부모 = p.slice(0, -1).reduce((a, k) => a[k], o);
   부모[p[p.length - 1]] = v;
 }
 
-/* ── 블록 하나에서 편집 칸을 뽑는다.  구조(행·열·블록)는 건드리지 않는다 ── */
-function 칸들(면, ri, ci, bi) {
-  const b = 면.행[ri].열[ci].블록[bi];
+/* ── 고친 DOM 을 원문 표기로 되돌린다 ──
+   판면에서 그 자리에 타이핑하면 결과는 HTML 이다. 그대로 저장하면 문안의 원본이
+   HTML 이 되어 버린다. `**굵게**` · {TBD} · {→05} · 줄바꿈으로 되돌린다.
+   왕복은 scripts/roundtrip.mjs 가 전수 검사한다. */
+function 원문(node) {
+  let s = '';
+  for (const n of node.childNodes) {
+    if (n.nodeType === 3) { s += n.nodeValue; continue; }
+    const 이름 = n.nodeName;
+    if (이름 === 'BR') { s += '\n'; continue; }
+    const cl = n.classList;
+    if (cl?.contains('tbd')) { s += cl.contains('co') ? '{TBD협의}' : '{TBD}'; continue; }
+    if (cl?.contains('ar')) {
+      s += '{→' + n.textContent.replace(/^\s*→\s*/, '').replace(/^p\./, '').trim() + '}';
+      continue;
+    }
+    if (이름 === 'B' || 이름 === 'STRONG') { s += '**' + 원문(n) + '**'; continue; }
+    s += 원문(n);
+  }
+  return s;   // NBSP 는 그대로 둔다
+}
+
+const 줄여 = (s, n = 30) => {
+  const t = String(s ?? '').replace(/\*\*/g, '').replace(/\{[^}]*\}/g, '').replace(/\s+/g, ' ').trim();
+  return t.length > n ? t.slice(0, n) + '…' : (t || '(빈 줄)');
+};
+
+const 새면 = (번호) => ({
+  번호, 제목: '새 면', 메타: '',
+  행: [{ 열: [{ 폭: 1, 블록: [{ 라벨: '새 블록', 내용: [{ 목록: ['내용'] }] }] }] }],
+  실무확인: ['실무 확인'],
+});
+const 새블록 = () => ({ 라벨: '새 블록', 내용: [{ 목록: ['내용'] }] });
+const 새덩이 = (유형) =>
+  유형 === '문단' ? { 문단: '문단' }
+  : 유형 === '표' ? { 표: { 밀도: 'cp', 열: [{ 폭: '50%' }, { 폭: '50%' }], 머리: ['머리', '머리'], 행: [['칸', '칸']] } }
+  : { 목록: ['내용'] };
+
+const 배경들 = [['', '없음'], ['or', '주황'], ['fill', '회색'], ['nv', '남색']];
+
+/* ── 구조 폼 항목 뽑기 ── */
+function 구조칸들(면, 표적) {
+  const out = [];
+  if (표적 === 'head') {
+    out.push({ 종류: '갈피', 이름: '실무 확인' });
+    (면.실무확인 ?? []).forEach((s, k) =>
+      out.push({ 종류: '줄', 이름: `${k + 1}`, 미리: 줄여(s), 배열: ['실무확인'], 자리: k }));
+    out.push({ 종류: '추가', 이름: '줄 추가', 배열: ['실무확인'], 새값: '' });
+    return out;
+  }
+
+  const { ri, ci, bi } = 표적;
+  const b = 면.행?.[ri]?.열?.[ci]?.블록?.[bi];
+  if (!b) return out;
   const base = ['행', ri, '열', ci, '블록', bi];
-  const out = [{ 종류: '글', 이름: '라벨', 경로: [...base, '라벨'], 값: b.라벨 ?? '' }];
 
   (b.내용 ?? []).forEach((it, ii) => {
     const ib = [...base, '내용', ii];
+    const 덩이 = { 배열: [...base, '내용'], 자리: ii };
 
     for (const key of ['목록', '번호목록']) {
       if (!it[key]) continue;
-      it[key].forEach((s, li) =>
-        out.push({ 종류: '글', 이름: `${key} ${li + 1}`, 경로: [...ib, key, li], 값: s,
-                   배열: [...ib, key], 자리: li }));
-      out.push({ 종류: '줄추가', 이름: `${key} 줄 추가`, 배열: [...ib, key], 새값: '' });
+      out.push({ 종류: '갈피', 이름: key, 덩이 });
+      it[key].forEach((s, k) =>
+        out.push({ 종류: '줄', 이름: `${k + 1}`, 미리: 줄여(s), 배열: [...ib, key], 자리: k }));
+      out.push({ 종류: '추가', 이름: '줄 추가', 배열: [...ib, key], 새값: '' });
     }
 
-    if (it.문단 != null)
-      out.push({ 종류: '문단', 이름: '문단', 경로: [...ib, '문단'], 값: it.문단 });
+    if (it.문단 != null) {
+      out.push({ 종류: '갈피', 이름: '문단', 덩이 });
+      out.push({ 종류: '알림', 이름: 줄여(it.문단, 38) });
+    }
 
     if (it.표) {
       const t = it.표;
       const tb = [...ib, '표'];
       const 칸수 = t.머리?.length
         ?? (Array.isArray(t.행?.[0]) ? t.행[0].length : t.행?.[0]?.칸?.length) ?? 2;
-
-      (t.머리 ?? []).forEach((s, k) =>
-        out.push({ 종류: '글', 이름: `머리 ${k + 1}`, 경로: [...tb, '머리', k], 값: s }));
-
+      out.push({ 종류: '갈피', 이름: `표 · ${칸수}열`, 덩이 });
       (t.행 ?? []).forEach((r, k) => {
-        const 배열행 = Array.isArray(r);
-        const rp = 배열행 ? [...tb, '행', k] : [...tb, '행', k, '칸'];
-        (배열행 ? r : r.칸).forEach((s, c) =>
-          out.push({ 종류: '글', 이름: `${k + 1}행 ${c + 1}`, 경로: [...rp, c], 값: s,
-                     배열: c === 0 ? [...tb, '행'] : null, 자리: k }));
+        const 칸 = Array.isArray(r) ? r : r.칸;
+        out.push({ 종류: '줄', 이름: `${k + 1}행`, 미리: 줄여(칸.join(' · ')), 배열: [...tb, '행'], 자리: k });
       });
-      out.push({ 종류: '줄추가', 이름: '표 행 추가', 배열: [...tb, '행'],
+      out.push({ 종류: '추가', 이름: '행 추가', 배열: [...tb, '행'],
                  새값: Array.from({ length: 칸수 }, () => '') });
-
       (t.묶음 ?? []).forEach((g, gi) => {
-        out.push({ 종류: '글', 이름: `묶음 ${gi + 1} 이름`, 경로: [...tb, '묶음', gi, '이름'], 값: g.이름 });
-        (g.항목 ?? []).forEach((r, k) => {
-          const 여럿 = Array.isArray(r);
-          if (여럿) r.forEach((s, c) =>
-            out.push({ 종류: '글', 이름: `묶음 ${gi + 1} · ${k + 1}행 ${c + 1}`,
-                       경로: [...tb, '묶음', gi, '항목', k, c], 값: s,
-                       배열: c === 0 ? [...tb, '묶음', gi, '항목'] : null, 자리: k }));
-          else out.push({ 종류: '글', 이름: `묶음 ${gi + 1} · ${k + 1}행`,
-                          경로: [...tb, '묶음', gi, '항목', k], 값: r,
-                          배열: [...tb, '묶음', gi, '항목'], 자리: k });
-        });
-        out.push({ 종류: '줄추가', 이름: `묶음 ${gi + 1} 줄 추가`, 배열: [...tb, '묶음', gi, '항목'], 새값: '' });
+        out.push({ 종류: '갈피', 이름: `묶음 · ${줄여(g.이름, 12)}` });
+        (g.항목 ?? []).forEach((r, k) =>
+          out.push({ 종류: '줄', 이름: `${k + 1}`,
+                     미리: 줄여(Array.isArray(r) ? r.join(' · ') : r),
+                     배열: [...tb, '묶음', gi, '항목'], 자리: k }));
+        out.push({ 종류: '추가', 이름: '줄 추가', 배열: [...tb, '묶음', gi, '항목'],
+                   새값: Array.isArray(g.항목?.[0]) ? g.항목[0].map(() => '') : '' });
       });
-
-      (t.합계 ?? []).forEach((s, c) =>
-        out.push({ 종류: '글', 이름: `합계 ${c + 1}`, 경로: [...tb, '합계', c], 값: s }));
     }
   });
-  return out;
-}
-
-/* ── 면 머리 — 제목 · 메타 · 실무 확인 ── */
-function 면칸들(면) {
-  const out = [
-    { 종류: '글', 이름: '제목', 경로: ['제목'], 값: 면.제목 ?? '' },
-    { 종류: '글', 이름: '메타', 경로: ['메타'], 값: 면.메타 ?? '' },
-  ];
-  (면.실무확인 ?? []).forEach((s, k) =>
-    out.push({ 종류: '문단', 이름: `실무 확인 ${k + 1}`, 경로: ['실무확인', k], 값: s,
-               배열: ['실무확인'], 자리: k }));
-  out.push({ 종류: '줄추가', 이름: '실무 확인 줄 추가', 배열: ['실무확인'], 새값: '' });
   return out;
 }
 
@@ -92,25 +117,36 @@ export default function Shell({ docs, first }) {
   const [doc, setDoc] = useState(first?.doc ?? null);
   const [mtime, setMtime] = useState(0);
   const [i, setI] = useState(0);
-  const [모드, set모드] = useState('면');          // 면 | 블록 | 편집
-  const [표적, set표적] = useState(null);          // {ri,ci,bi} 또는 'head'
+  const [표적, set표적] = useState(null);
   const [더러움, set더러움] = useState(false);
   const [로그, set로그] = useState('');
   const [바쁨, set바쁨] = useState(false);
   const [축척, set축척] = useState(0.3);
   const [판본키, set판본키] = useState(0);
   const [검사, set검사] = useState(null);
+  const [되돌림, set되돌림] = useState(0);
+  const [충돌, set충돌] = useState(false);
+
   const 판 = useRef(null);
   const 틀 = useRef(null);
+  const 문서ref = useRef(null);
+  const 면ref = useRef(0);
+  const 시각ref = useRef(0);
+  const 스택 = useRef([]);        // 되돌리기 — 문서 스냅샷
+  const 앞스택 = useRef([]);      // 다시 하기
 
   const 불러오기 = useCallback(async (s) => {
     const r = await 문안불러오기(s);
     if (!r.ok) return set로그(r.사유);
-    setDoc(r.doc); setMtime(r.mtime); setI(0); set모드('면'); set표적(null);
+    스택.current = []; 앞스택.current = []; set되돌림(0);
+    setDoc(r.doc); setMtime(r.mtime); setI(0); set표적(null);
     set더러움(false); set판본키((n) => n + 1);
   }, []);
 
   useEffect(() => { if (slug) 불러오기(slug); }, [slug, 불러오기]);
+  useEffect(() => { 문서ref.current = doc; }, [doc]);
+  useEffect(() => { 면ref.current = i; }, [i]);
+  useEffect(() => { 시각ref.current = mtime; }, [mtime]);
 
   useEffect(() => {
     const el = 판.current;
@@ -128,46 +164,131 @@ export default function Shell({ docs, first }) {
   const 면 = doc?.면 ?? [];
   const 현재 = 면[i];
 
-  const 블록들 = useMemo(() => {
-    if (!현재) return [];
-    const out = [{ 키: 'head', 이름: '제목 · 메타 · 실무 확인', 열: '면' }];
-    (현재.행 ?? []).forEach((r, ri) =>
-      (r.열 ?? []).forEach((c, ci) =>
-        (c.블록 ?? []).forEach((b, bi) =>
-          out.push({ 키: `${ri}-${ci}-${bi}`, ri, ci, bi,
-                     이름: b.라벨 ?? b.이름 ?? '(이름 없음)', 열: `${ci + 1}열` }))));
-    return out;
-  }, [현재]);
-
-  const 편집칸 = useMemo(() => {
-    if (모드 !== '편집' || !현재 || !표적) return [];
-    return 표적 === 'head' ? 면칸들(현재) : 칸들(현재, 표적.ri, 표적.ci, 표적.bi);
-  }, [모드, 현재, 표적, 판본키, 더러움]);
-
-  function 고침(경로, 값) {
-    const d = structuredClone(doc);
-    쓰기(d.면[i], 경로, 값);
-    setDoc(d); set더러움(true);
+  /* ── 모든 수정은 여기를 지난다.  되돌리기 스택이 여기서 쌓인다 ── */
+  function 바꾸기(fn, { 그리기 = false } = {}) {
+    const d = structuredClone(문서ref.current);
+    const r = fn(d);
+    if (r === false) return;
+    스택.current.push(structuredClone(문서ref.current));
+    if (스택.current.length > 60) 스택.current.shift();
+    앞스택.current = [];
+    문서ref.current = d;
+    setDoc(d); set더러움(true); set되돌림(스택.current.length);
+    if (그리기) set판본키((n) => n + 1);
   }
-  function 줄넣기(배열, 새값) {
-    const d = structuredClone(doc);
-    let a = 읽기(d.면[i], 배열);
-    if (!Array.isArray(a)) { 쓰기(d.면[i], 배열, []); a = 읽기(d.면[i], 배열); }  // 실무확인이 아예 없던 면
+  function 되돌리기() {
+    const 이전 = 스택.current.pop();
+    if (!이전) return set로그('되돌릴 것이 없다');
+    앞스택.current.push(structuredClone(문서ref.current));
+    문서ref.current = 이전;
+    setDoc(이전); set더러움(true); set되돌림(스택.current.length); set판본키((n) => n + 1);
+  }
+  function 다시하기() {
+    const 앞 = 앞스택.current.pop();
+    if (!앞) return;
+    스택.current.push(structuredClone(문서ref.current));
+    문서ref.current = 앞;
+    setDoc(앞); set더러움(true); set되돌림(스택.current.length); set판본키((n) => n + 1);
+  }
+
+  /* ── 줄·행 ── */
+  const 줄넣기 = (배열, 새값) => 바꾸기((d) => {
+    let a = 읽기(d.면[면ref.current], 배열);
+    if (!Array.isArray(a)) { 쓰기(d.면[면ref.current], 배열, []); a = 읽기(d.면[면ref.current], 배열); }
     a.push(structuredClone(새값));
-    setDoc(d); set더러움(true);
-  }
-  function 줄빼기(배열, 자리) {
-    const d = structuredClone(doc);
-    const a = 읽기(d.면[i], 배열);
-    if (a.length <= 1) return set로그('마지막 줄은 지우지 않는다');
+  }, { 그리기: true });
+
+  const 줄빼기 = (배열, 자리) => 바꾸기((d) => {
+    const a = 읽기(d.면[면ref.current], 배열);
+    if (a.length <= 1) { set로그('마지막 줄은 지우지 않는다'); return false; }
     a.splice(자리, 1);
-    setDoc(d); set더러움(true);
-  }
+  }, { 그리기: true });
+
+  /* ── 면 ── */
+  const 번호매기기 = (d) => d.면.forEach((p, k) => { p.번호 = String(k + 1).padStart(2, '0'); });
+  const 면넣기 = () => 바꾸기((d) => { d.면.splice(i + 1, 0, 새면('00')); 번호매기기(d); }, { 그리기: true });
+  const 면복제 = () => 바꾸기((d) => { d.면.splice(i + 1, 0, structuredClone(d.면[i])); 번호매기기(d); }, { 그리기: true });
+  const 면빼기 = () => 바꾸기((d) => {
+    if (d.면.length <= 1) { set로그('마지막 면은 지우지 않는다'); return false; }
+    d.면.splice(i, 1); 번호매기기(d);
+    setI(Math.max(0, i - 1)); set표적(null);
+  }, { 그리기: true });
+  const 면옮기기 = (dir) => 바꾸기((d) => {
+    const j = i + dir;
+    if (j < 0 || j >= d.면.length) return false;
+    [d.면[i], d.면[j]] = [d.면[j], d.면[i]];
+    번호매기기(d); setI(j); set표적(null);
+  }, { 그리기: true });
+
+  /* ── 행 · 열 · 블록 · 덩이 ── */
+  const P = 표적 && 표적 !== 'head' ? 표적 : null;
+  const 폭합 = (행) => (행?.열 ?? []).reduce((a, c) => a + (c.폭 ?? 1), 0);
+
+  const 행넣기 = () => 바꾸기((d) => {
+    d.면[i].행.splice((P?.ri ?? d.면[i].행.length - 1) + 1, 0,
+      { 열: [{ 폭: 3, 블록: [새블록()] }] });
+  }, { 그리기: true });
+  const 행빼기 = () => 바꾸기((d) => {
+    if (!P || d.면[i].행.length <= 1) { set로그('마지막 행은 지우지 않는다'); return false; }
+    d.면[i].행.splice(P.ri, 1); set표적(null);
+  }, { 그리기: true });
+
+  const 열넣기 = () => 바꾸기((d) => {
+    const 행 = d.면[i].행[P.ri];
+    if (폭합(행) >= 3) { set로그('한 행의 폭 합은 3을 넘지 않는다'); return false; }
+    행.열.splice(P.ci + 1, 0, { 폭: 1, 블록: [새블록()] });
+  }, { 그리기: true });
+  const 열빼기 = () => 바꾸기((d) => {
+    const 행 = d.면[i].행[P.ri];
+    if (행.열.length <= 1) { set로그('마지막 열은 지우지 않는다'); return false; }
+    행.열.splice(P.ci, 1); set표적(null);
+  }, { 그리기: true });
+  const 폭바꾸기 = (w) => 바꾸기((d) => {
+    const 행 = d.면[i].행[P.ri];
+    const 나머지 = 폭합(행) - (행.열[P.ci].폭 ?? 1);
+    if (나머지 + w > 3) { set로그('한 행의 폭 합은 3을 넘지 않는다'); return false; }
+    행.열[P.ci].폭 = w;
+  }, { 그리기: true });
+
+  const 블록넣기 = () => 바꾸기((d) => {
+    d.면[i].행[P.ri].열[P.ci].블록.splice(P.bi + 1, 0, 새블록());
+  }, { 그리기: true });
+  const 블록빼기 = () => 바꾸기((d) => {
+    const bs = d.면[i].행[P.ri].열[P.ci].블록;
+    if (bs.length <= 1) { set로그('열의 마지막 블록은 지우지 않는다 — 열을 지운다'); return false; }
+    bs.splice(P.bi, 1); set표적(null);
+  }, { 그리기: true });
+  const 배경바꾸기 = (v) => 바꾸기((d) => {
+    const b = d.면[i].행[P.ri].열[P.ci].블록[P.bi];
+    if (v) b.배경 = v; else delete b.배경;
+  }, { 그리기: true });
+
+  const 덩이넣기 = (유형) => 바꾸기((d) => {
+    d.면[i].행[P.ri].열[P.ci].블록[P.bi].내용.push(새덩이(유형));
+  }, { 그리기: true });
+  const 덩이빼기 = (배열, 자리) => 바꾸기((d) => {
+    const a = 읽기(d.면[면ref.current], 배열);
+    if (a.length <= 1) { set로그('마지막 덩이는 지우지 않는다 — 블록을 지운다'); return false; }
+    a.splice(자리, 1);
+  }, { 그리기: true });
 
   async function 저장() {
     set바쁨(true); set로그('저장 …');
-    const r = await 문안저장(slug, mtime, doc);
-    if (r.ok) { setMtime(r.mtime); set더러움(false); set로그('저장됨'); set판본키((n) => n + 1); }
+    const r = await 문안저장(slug, 시각ref.current, 문서ref.current);
+    if (r.ok) {
+      setMtime(r.mtime); set더러움(false); set충돌(false);
+      set로그('저장됨'); set판본키((n) => n + 1);
+    } else {
+      set충돌(true);
+      set로그(r.사유 + '\n\n고친 내용은 화면에 그대로 있다. 아래 「덮어쓰기」 를 누르면 그대로 저장한다.');
+    }
+    set바쁨(false);
+  }
+  // 밖에서 바뀐 걸 알고도 내 것으로 덮는다
+  async function 덮어쓰기() {
+    set바쁨(true); set로그('덮어쓰는 중 …');
+    const r = await 문안저장(slug, 0, 문서ref.current);   // 기준시각 0 = 대조 건너뜀
+    if (r.ok) { setMtime(r.mtime); set더러움(false); set충돌(false); set로그('저장됨'); set판본키((n) => n + 1); }
     else set로그(r.사유);
     set바쁨(false);
   }
@@ -179,28 +300,87 @@ export default function Shell({ docs, first }) {
     set바쁨(false);
   }
 
-  /* 판본이 그려지면 ① 클릭을 받고 ② 넘침을 잰다 */
+  /* ── 바깥 창에서도 ⌘Z · ⌘S ── */
+  useEffect(() => {
+    const on = (e) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      if (e.key === 'z') { e.preventDefault(); e.shiftKey ? 다시하기() : 되돌리기(); }
+      if (e.key === 's') { e.preventDefault(); 저장(); }
+    };
+    window.addEventListener('keydown', on);
+    return () => window.removeEventListener('keydown', on);
+  });
+
+  /* 판본이 그려지면 ① 제자리 편집을 붙이고 ② 넘침을 잰다 */
   function 재기() {
     const el = 틀.current;
     if (!el) return;
 
-    // ① 판면에서 블록을 누르면 그 블록 폼으로 간다 — data-b 는 렌더러가 심는다
     try {
       const d = el.contentDocument;
       if (d && !d.body.dataset.집음) {
         d.body.dataset.집음 = '1';
         const st = d.createElement('style');
         st.textContent =
-          '[data-b]{cursor:pointer}' +
-          '[data-b]:hover{outline:calc(2.5*var(--u)) solid #E68100;outline-offset:calc(2*var(--u))}';
+          '[data-p]{cursor:text}' +
+          '[data-p]:hover{background:rgba(230,129,0,.12)}' +
+          '[data-p][contenteditable="true"]{background:#fff;' +
+            'outline:calc(2*var(--u)) solid #E68100;outline-offset:calc(1.5*var(--u))}' +
+          // TBD 배지와 면 연결 표기는 글자가 아니라 표기다. 통째로 다룬다
+          '[data-p] .tbd, [data-p] .ar{user-select:all}';
         d.head.appendChild(st);
+        d.execCommand?.('defaultParagraphSeparator', false, 'br');
+
+        d.addEventListener('mousedown', (e) => {
+          const t = e.target.closest?.('[data-p]');
+          if (!t || t.isContentEditable) return;
+          t.dataset.전 = 원문(t);
+          t.dataset.전html = t.innerHTML;
+          t.contentEditable = 'true';
+          // 배지 안에 커서가 들어가지 않게 — 지울 땐 통째로, 넣을 땐 {TBD} 를 타이핑
+          t.querySelectorAll('.tbd, .ar').forEach((x) => { x.contentEditable = 'false'; });
+          setTimeout(() => t.focus(), 0);
+        });
+
+        d.addEventListener('focusout', (e) => {
+          const t = e.target.closest?.('[data-p]');
+          if (!t || !t.isContentEditable) return;
+          t.contentEditable = 'false';
+          const 뒤 = 원문(t);
+          if (뒤 === t.dataset.전) return;
+          바꾸기((dd) => 쓰기(dd.면[면ref.current], JSON.parse(t.dataset.p), 뒤));
+        }, true);
+
+        d.addEventListener('keydown', (e) => {
+          const t = e.target.closest?.('[data-p]');
+          if (e.key === 'Escape' && t?.isContentEditable) {
+            t.innerHTML = t.dataset.전html ?? t.innerHTML; t.blur(); return;
+          }
+          if (e.key === 'Enter' && !e.shiftKey && t?.isContentEditable) {
+            e.preventDefault(); d.execCommand('insertLineBreak');
+          }
+          if (e.metaKey || e.ctrlKey) {
+            if (e.key === 's') { e.preventDefault(); t?.blur(); 저장(); }
+            if (e.key === 'z' && !t?.isContentEditable) {
+              e.preventDefault(); e.shiftKey ? 다시하기() : 되돌리기();
+            }
+          }
+        });
+
+        d.addEventListener('paste', (e) => {
+          if (!e.target.closest?.('[data-p]')?.isContentEditable) return;
+          e.preventDefault();
+          d.execCommand('insertText', false, e.clipboardData.getData('text/plain'));
+        });
+
         d.addEventListener('click', (e) => {
+          if (e.target.closest?.('[data-p]')) return;
           const t = e.target.closest?.('[data-b]');
           if (!t) return;
           const v = t.getAttribute('data-b');
-          if (v === 'head') { set표적('head'); set모드('편집'); return; }
+          if (v === 'head') return set표적('head');
           const [ri, ci, bi] = v.split('-').map(Number);
-          set표적({ ri, ci, bi }); set모드('편집');
+          set표적({ ri, ci, bi });
         });
       }
     } catch { /* 다른 출처면 못 붙인다 */ }
@@ -221,14 +401,31 @@ export default function Shell({ docs, first }) {
         const bd = sh.querySelector('.bd');
         const 여유 = Math.round(((ft ?? bd)?.getBoundingClientRect()[ft ? 'top' : 'bottom'] ?? 0) - 끝);
         set검사({ 넘침, 여유 });
-      } catch { /* 다른 출처면 못 잰다 */ }
+      } catch { /* 못 잰다 */ }
     }, 700);
   }
+
+  const 표적이름 = useMemo(() => {
+    if (!현재 || !표적) return '';
+    if (표적 === 'head') return '면 머리 · 실무 확인';
+    const b = 현재.행?.[표적.ri]?.열?.[표적.ci]?.블록?.[표적.bi];
+    return b?.라벨 ?? b?.이름 ?? '(이름 없음)';
+  }, [현재, 표적]);
+
+  const 구조 = useMemo(() => (현재 && 표적 ? 구조칸들(현재, 표적) : []), [현재, 표적]);
+  const 블록 = P ? 현재?.행?.[P.ri]?.열?.[P.ci]?.블록?.[P.bi] : null;
+  const 열폭 = P ? (현재?.행?.[P.ri]?.열?.[P.ci]?.폭 ?? 1) : 1;
 
   return (
     <div className="shell">
       <aside className="side">
-        <div className="brand">nine_press</div>
+        <div className="brand">
+          nine_press
+          <span className="undo">
+            <button disabled={!되돌림} onClick={되돌리기} title="되돌리기 ⌘Z">↺</button>
+            <button disabled={!앞스택.current.length} onClick={다시하기} title="다시 ⌘⇧Z">↻</button>
+          </span>
+        </div>
 
         <select className="pick" value={slug} onChange={(e) => setSlug(e.target.value)}>
           {docs.map((d) => (
@@ -236,76 +433,123 @@ export default function Shell({ docs, first }) {
           ))}
         </select>
 
-        {모드 === '면' && (
+        {표적 ? (
+          <>
+            <button className="back" onClick={() => set표적(null)}>← 면 목록</button>
+            <div className="lbl">{표적이름}</div>
+
+            {P && (
+              <div className="ctl">
+                <div className="ctlrow">
+                  <span className="ck">열 폭</span>
+                  {[1, 2, 3].map((w) => (
+                    <button key={w} className={'chip' + (열폭 === w ? ' on' : '')}
+                            onClick={() => 폭바꾸기(w)}>{w}</button>
+                  ))}
+                </div>
+                <div className="ctlrow">
+                  <span className="ck">배경</span>
+                  {배경들.map(([v, 이름]) => (
+                    <button key={v || 'n'} className={'chip' + ((블록?.배경 ?? '') === v ? ' on' : '')}
+                            onClick={() => 배경바꾸기(v)}>{이름}</button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="list form">
+              {구조.map((f, k) => {
+                if (f.종류 === '갈피')
+                  return (
+                    <div key={k} className="grp">
+                      {f.이름}
+                      {f.덩이 && (
+                        <button className="delln" title="이 덩이 삭제"
+                                onClick={() => 덩이빼기(f.덩이.배열, f.덩이.자리)}>−</button>
+                      )}
+                    </div>
+                  );
+                if (f.종류 === '알림') return <div key={k} className="hint">{f.이름}</div>;
+                if (f.종류 === '추가')
+                  return (
+                    <button key={k} className="addln" onClick={() => 줄넣기(f.배열, f.새값)}>
+                      + {f.이름}
+                    </button>
+                  );
+                return (
+                  <div key={k} className="ln">
+                    <span className="lnno">{f.이름}</span>
+                    <span className="lntx">{f.미리}</span>
+                    <button className="delln" title="이 줄 삭제" onClick={() => 줄빼기(f.배열, f.자리)}>−</button>
+                  </div>
+                );
+              })}
+
+              {P && (
+                <>
+                  <div className="grp">덩이 추가</div>
+                  <div className="ctlrow">
+                    {['목록', '문단', '표'].map((t) => (
+                      <button key={t} className="chip" onClick={() => 덩이넣기(t)}>+ {t}</button>
+                    ))}
+                  </div>
+                  <div className="grp">구조</div>
+                  <div className="ctlrow wrap">
+                    <button className="chip" onClick={블록넣기}>+ 블록</button>
+                    <button className="chip" onClick={열넣기}>+ 열</button>
+                    <button className="chip" onClick={행넣기}>+ 행</button>
+                  </div>
+                  <div className="ctlrow wrap">
+                    <button className="chip warn" onClick={블록빼기}>− 블록</button>
+                    <button className="chip warn" onClick={열빼기}>− 열</button>
+                    <button className="chip warn" onClick={행빼기}>− 행</button>
+                  </div>
+                </>
+              )}
+            </div>
+            <p className="note">
+              글자는 <b>판면에서 그 자리에</b> 고친다.<br />
+              배지는 <b>{'{TBD}'}</b> · <b>{'{TBD협의}'}</b> 로 타이핑,<br />
+              면 연결은 <b>{'{→05}'}</b>, 굵게는 <b>⌘B</b>.
+            </p>
+          </>
+        ) : (
           <>
             <div className="lbl">면 {면.length}</div>
             <nav className="list">
               {면.map((p, n) => (
-                <button key={n} className={'row' + (n === i ? ' on' : '')}
-                        onClick={() => setI(n)} onDoubleClick={() => set모드('블록')}>
+                <button key={n} className={'row' + (n === i ? ' on' : '')} onClick={() => setI(n)}>
                   <span className="no">{p.번호}</span>
                   <span className="tt">{p.제목}</span>
                 </button>
               ))}
             </nav>
-            <button className="drill" onClick={() => set모드('블록')} disabled={!현재}>
-              블록 보기 →
-            </button>
-          </>
-        )}
-
-        {모드 === '블록' && (
-          <>
-            <button className="back" onClick={() => set모드('면')}>← 면 목록</button>
-            <div className="lbl">{현재?.번호} · 블록 {블록들.length - 1}</div>
-            <nav className="list">
-              {블록들.map((b) => (
-                <button key={b.키} className="row"
-                        onClick={() => { set표적(b.키 === 'head' ? 'head' : { ri: b.ri, ci: b.ci, bi: b.bi }); set모드('편집'); }}>
-                  <span className="col">{b.열}</span>
-                  <span className="tt">{b.이름}</span>
-                </button>
-              ))}
-            </nav>
-            <p className="note">블록을 누르면 그 안의 글을 고친다.<br />행 · 열 · 블록 추가는 JSON 에서.</p>
-          </>
-        )}
-
-        {모드 === '편집' && (
-          <>
-            <button className="back" onClick={() => set모드('블록')}>← 블록 목록</button>
-            <div className="lbl">
-              {표적 === 'head' ? '면 머리' : 블록들.find((b) => b.ri === 표적?.ri && b.ci === 표적?.ci && b.bi === 표적?.bi)?.이름}
+            <div className="ctlrow wrap pg">
+              <button className="chip" onClick={() => 면옮기기(-1)} disabled={i === 0}>↑</button>
+              <button className="chip" onClick={() => 면옮기기(1)} disabled={i >= 면.length - 1}>↓</button>
+              <button className="chip" onClick={면넣기}>+ 면</button>
+              <button className="chip" onClick={면복제}>복제</button>
+              <button className="chip warn" onClick={면빼기}>− 면</button>
             </div>
-            <div className="list form">
-              {편집칸.map((f, k) =>
-                f.종류 === '줄추가' ? (
-                  <button key={k} className="addln" onClick={() => 줄넣기(f.배열, f.새값)}>+ {f.이름}</button>
-                ) : (
-                  <label key={k} className="fld">
-                    <span className="fn">
-                      {f.이름}
-                      {f.배열 && (
-                        <button className="delln" title="이 줄 삭제"
-                                onClick={(e) => { e.preventDefault(); 줄빼기(f.배열, f.자리); }}>−</button>
-                      )}
-                    </span>
-                    <textarea
-                      rows={f.종류 === '문단' ? 3 : 1}
-                      value={f.값 ?? ''}
-                      onChange={(e) => 고침(f.경로, e.target.value)}
-                    />
-                  </label>
-                ),
-              )}
-            </div>
-            <button className="save" disabled={바쁨 || !더러움} onClick={저장}>
-              {더러움 ? '저장' : '저장됨'}
-            </button>
+            <p className="note">
+              판면에서 글자를 눌러 고친다. 빈 곳을 누르면 구조를 손본다.<br />
+              배지 <b>{'{TBD}'}</b> · 면 연결 <b>{'{→05}'}</b> · 굵게 <b>⌘B</b> · 줄바꿈 <b>Enter</b>
+            </p>
           </>
         )}
 
         <div className="foot">
+          <button className="save" disabled={바쁨 || !더러움} onClick={저장}>
+            {더러움 ? '저장  ⌘S' : '저장됨'}
+          </button>
+          {충돌 && (
+            <div className="btns" style={{ marginBottom: 10 }}>
+              <button className="thin" style={{ margin: 0 }} disabled={바쁨}
+                      onClick={() => 불러오기(slug)}>버리고 다시 불러오기</button>
+              <button className="thin" style={{ margin: 0 }} disabled={바쁨}
+                      onClick={덮어쓰기}>덮어쓰기</button>
+            </div>
+          )}
           {검사 && (
             <div className={'chk' + (검사.넘침.length ? ' bad' : '')}>
               {검사.넘침.length
