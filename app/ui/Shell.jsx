@@ -355,13 +355,14 @@ export default function Shell({ docs, first }) {
           '.rz{position:absolute;top:0;bottom:0;width:calc(14.879*var(--u));' +
             'margin-left:calc(-7.44*var(--u));cursor:col-resize;z-index:50}' +
           '.rz:hover,.rz.on{background:rgba(230,129,0,.22)}' +
-          // 12칸 격자 — 자홍. 판면이 안 쓰는 색이라 판면 요소로 오인되지 않는다
-          '.gridov{position:absolute;left:0;right:0;top:0;bottom:0;pointer-events:none;z-index:40;display:none}' +
+          // 격자 — 자홍. 판면이 안 쓰는 색이라 판면 요소로 오인되지 않는다.
+          // 선을 3px 로 둔다 — 축척 30% 에서 화면 0.9px 이다. 1px 이면 사라진다
+          '.gridov{position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;z-index:40;display:none}' +
           'html.gridon .gridov{display:block}' +
-          '.gridov i{position:absolute;top:0;bottom:0;' +
-            'background:rgba(200,0,120,.07);' +
-            'border-left:1px solid rgba(200,0,120,.24);' +
-            'border-right:1px solid rgba(200,0,120,.24)}';
+          '.gridov .c{position:absolute;top:0;bottom:0;background:rgba(200,0,120,.07)}' +
+          '.gridov .v{position:absolute;top:0;bottom:0;width:3px;background:rgba(200,0,120,.5)}' +
+          '.gridov .h{position:absolute;left:0;right:0;height:3px;background:rgba(200,0,120,.5)}' +
+          '.gridov .r{position:absolute;left:0;right:0;height:2px;background:rgba(200,0,120,.28)}';
         d.head.appendChild(st);
         d.execCommand?.('defaultParagraphSeparator', false, 'br');
 
@@ -445,19 +446,59 @@ export default function Shell({ docs, first }) {
           });
         }
 
-        // 12칸 격자 — 도구 전용. 판면에는 아무 영향이 없다
+        // 격자 — 도구 전용. 판면에는 아무 영향이 없다.
+        //   .c 12칸 세로 띠   .v 좌우 여백   .h 본문 상하   .r 행 경계
+        // 페이지 전면에 깔아 헤더 · 쪽번호 자리와의 세로 정렬까지 본다.
+        const page = d.querySelector('.page');
         const bd = d.querySelector('.page .bd');
-        if (bd && !bd.querySelector('.gridov')) {
+        if (page && !page.querySelector('.gridov')) {
           const ov = d.createElement('div');
           ov.className = 'gridov';
-          for (let k = 0; k < 12; k++) {
-            const c = d.createElement('i');
-            c.style.left  = (k * 92.73975 * uu) + 'px';
-            c.style.width = ((92.73975 - 14.879) * uu) + 'px';
-            ov.appendChild(c);
+          if (bd) {
+            const L = bd.offsetLeft, W = bd.offsetWidth;
+            const T = bd.offsetTop,  H = bd.offsetHeight;
+            const 걸음 = 92.73975 * uu;              // 180.75px
+            const 칸폭 = (92.73975 - 14.879) * uu;   // 151.75px
+            for (let k = 0; k < 12; k++) {
+              const c = d.createElement('i');
+              c.className = 'c';
+              c.style.left = (L + k * 걸음) + 'px';
+              c.style.width = 칸폭 + 'px';
+              ov.appendChild(c);
+            }
+            for (const x of [L, L + W]) {
+              const v = d.createElement('i');
+              v.className = 'v';
+              v.style.left = (x - 1.5) + 'px';
+              ov.appendChild(v);
+            }
+            for (const y of [T, T + H]) {
+              const h = d.createElement('i');
+              h.className = 'h';
+              h.style.top = (y - 1.5) + 'px';
+              ov.appendChild(h);
+            }
           }
-          bd.appendChild(ov);
+          page.appendChild(ov);
         }
+
+        // 행 경계는 콘텐츠가 정하므로 폰트가 앉은 뒤에 잰다.
+        // 행 하나에 위·아래 두 줄이 그어져 그 사이가 행 간격(29px)으로 보인다.
+        const 행선 = () => {
+          const ov = d.querySelector('.gridov');
+          const bd2 = d.querySelector('.page .bd');
+          if (!ov || !bd2) return;
+          ov.querySelectorAll('.r').forEach((x) => x.remove());
+          bd2.querySelectorAll(':scope > .row, :scope > .foot').forEach((el) => {
+            for (const y of [el.offsetTop, el.offsetTop + el.offsetHeight]) {
+              const r = d.createElement('i');
+              r.className = 'r';
+              r.style.top = (bd2.offsetTop + y - 1) + 'px';
+              ov.appendChild(r);
+            }
+          });
+        };
+        (d.fonts?.ready ?? Promise.resolve()).then(행선);
         // srcdoc 이 갈리면 문서가 새로 만들어져 클래스가 날아간다. 다시 입힌다
         d.documentElement.classList.toggle('gridon', 격자ref.current);
 
