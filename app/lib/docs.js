@@ -27,20 +27,6 @@ export function loadDoc(slug) {
   return JSON.parse(fs.readFileSync(p, 'utf8'));
 }
 
-/** 미리보기용 CSS — 폰트는 /api/font 로 돌려 정적 중복을 만들지 않는다 */
-export function previewCss() {
-  const fonts = fs
-    .readFileSync(path.join(ROOT, 'rules/fonts.css'), 'utf8')
-    .replaceAll("url('../assets/fonts/", "url('/api/font/");
-  const page = fs.readFileSync(path.join(ROOT, 'rules/page.css'), 'utf8');
-  return fonts + '\n' + page;
-}
-
-/** 면 하나만 담은 문서 — 대조할 때 한 면씩 뽑는 것과 같은 조건이 된다 */
-export function onePage(doc, i) {
-  return { ...doc, 면: [doc.면[i]] };
-}
-
 /** 문안 파일 경로 — content 밖으로 못 나간다 */
 export function docPath(slug) {
   const p = path.join(CONTENT, `${slug}.json`);
