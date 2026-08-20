@@ -4,3 +4,4 @@ out/
 *.tgz
 .next/
 *.tmp
+_DEV/_to_delete/

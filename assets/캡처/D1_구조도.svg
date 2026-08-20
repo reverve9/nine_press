@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 2056 736">
+  <!-- Generator: Adobe Illustrator 30.5.1, SVG Export Plug-In . SVG Version: 2.1.4 Build 3)  -->
+  <defs>
+    <style>
+      .st0, .st1 {
+        fill: none;
+      }
+
+      .st2, .st3, .st4, .st5, .st6, .st7, .st8, .st9, .st10, .st11, .st12, .st13, .st14, .st15 {
+        isolation: isolate;
+      }
+
+      .st2, .st3, .st5, .st6, .st7, .st8, .st9, .st10, .st11, .st12, .st13, .st15 {
+        font-weight: 700;
+      }
+
+      .st2, .st3, .st6, .st7, .st8, .st9, .st11, .st13 {
+        font-family: Pretendard-ExtraBold-KSCpc-EUC-H, Pretendard;
+      }
+
+      .st2, .st16, .st8, .st15 {
+        fill: #192949;
+      }
+
+      .st2, .st7 {
+        font-size: 20px;
+      }
+
+      .st3 {
+        font-size: 25px;
+      }
+
+      .st3, .st17, .st18 {
+        fill: #fff;
+      }
+
+      .st19, .st4 {
+        fill: #5b6773;
+      }
+
+      .st20 {
+        stroke: #5b6773;
+      }
+
+      .st20, .st17, .st21, .st22 {
+        stroke-width: 3px;
+      }
+
+      .st20, .st21, .st22 {
+        fill: #f7f9fb;
+      }
+
+      .st4, .st6, .st9, .st11 {
+        font-size: 19px;
+      }
+
+      .st4, .st14 {
+        font-family: Pretendard-Regular-KSCpc-EUC-H, Pretendard;
+      }
+
+      .st5 {
+        fill: #f1b03c;
+      }
+
+      .st5, .st10, .st12 {
+        font-size: 18px;
+      }
+
+      .st5, .st10, .st12, .st15 {
+        font-family: Pretendard-Bold-KSCpc-EUC-H, Pretendard;
+      }
+
+      .st17, .st21 {
+        stroke: #192949;
+      }
+
+      .st23 {
+        fill: #46515e;
+      }
+
+      .st6, .st7, .st13 {
+        fill: #e68100;
+      }
+
+      .st24 {
+        fill: #e4e7ea;
+      }
+
+      .st24, .st1 {
+        stroke: #adadad;
+        stroke-width: 2px;
+      }
+
+      .st8, .st13, .st14 {
+        font-size: 21px;
+      }
+
+      .st9 {
+        letter-spacing: .16em;
+      }
+
+      .st9, .st25 {
+        fill: #8b96a2;
+      }
+
+      .st10 {
+        fill: #b9c6d6;
+      }
+
+      .st11 {
+        fill: #8a1219;
+      }
+
+      .st12 {
+        fill: #c9cfd6;
+      }
+
+      .st14 {
+        fill: #39434f;
+      }
+
+      .st15 {
+        font-size: 23px;
+      }
+
+      .st22 {
+        stroke: #46515e;
+      }
+    </style>
+  </defs>
+  <rect class="st18" width="2056" height="736"/>
+  <g>
+    <text class="st9" transform="translate(30 24)"><tspan x="0" y="0">입 력</tspan></text>
+    <text class="st9" transform="translate(596 24)"><tspan x="0" y="0">기 록 — 원 본 하 나</tspan></text>
+    <text class="st9" transform="translate(1178 24)"><tspan x="0" y="0">집 계</tspan></text>
+    <text class="st9" transform="translate(1520 24)"><tspan x="0" y="0">열 람 · 산 출</tspan></text>
+  </g>
+  <rect class="st21" x="30" y="40" width="516" height="292" rx="8" ry="8"/>
+  <rect class="st16" x="30" y="40" width="516" height="50" rx="8" ry="8"/>
+  <rect class="st16" x="30" y="76" width="516" height="14"/>
+  <text class="st3" transform="translate(54 74)"><tspan x="0" y="0">관리자 앱 · 데스크탑</tspan></text>
+  <text class="st10" transform="translate(419.29 73)"><tspan x="0" y="0">PM · 컨설턴트</tspan></text>
+  <g>
+    <text class="st14" transform="translate(54 128)"><tspan x="0" y="0">접수 목록 · 신청 상세</tspan></text>
+    <text class="st14" transform="translate(54 164)"><tspan x="0" y="0">심사 입력 · 선정 · 통보</tspan></text>
+    <text class="st14" transform="translate(54 200)"><tspan x="0" y="0">사업장 카드 I 기초 현황 · 개선 3항목</tspan></text>
+    <text class="st14" transform="translate(54 236)"><tspan x="0" y="0">진단 입력 I 20문항 · 0.5 단위 · 근거 사진</tspan></text>
+    <text class="st14" transform="translate(54 272)"><tspan x="0" y="0">회차 운영일지 I 전 · 후 사진 · 서명</tspan></text>
+    <text class="st14" transform="translate(54 308)"><tspan x="0" y="0">집계 I 상승폭 · 이행률 · 만족도</tspan></text>
+  </g>
+  <rect class="st22" x="30" y="352" width="516" height="268" rx="8" ry="8"/>
+  <rect class="st23" x="30" y="352" width="516" height="50" rx="8" ry="8"/>
+  <rect class="st23" x="30" y="388" width="516" height="14"/>
+  <text class="st3" transform="translate(54 386)"><tspan x="0" y="0">점주 앱 · 휴대폰</tspan></text>
+  <text class="st12" transform="translate(490.89 385)"><tspan x="0" y="0">점주</tspan></text>
+  <g>
+    <text class="st14" transform="translate(54 436)"><tspan x="0" y="0">자가진단 12문항 I 예 · 부분 · 아니오</tspan></text>
+    <text class="st14" transform="translate(54 468)"><tspan x="0" y="0">내 진단 이력 · 전후 비교</tspan></text>
+    <text class="st14" transform="translate(54 500)"><tspan x="0" y="0">개선 방안서 다시 보기</tspan></text>
+    <text class="st14" transform="translate(54 532)"><tspan x="0" y="0">회차 일정과 담당 컨설턴트</tspan></text>
+    <text class="st14" transform="translate(54 564)"><tspan x="0" y="0">문의 남기기</tspan></text>
+    <text class="st14" transform="translate(54 596)"><tspan x="0" y="0">표준 조리 기준서 · 점검 표</tspan></text>
+  </g>
+  <g marker-end="url(#ar)">
+    <path class="st0" d=""/>
+    <path class="st25" d="M560,288l24,12-24,12v-24Z"/>
+    <path class="st25" d="M580,300"/>
+    <path class="st0" d=""/>
+    <path class="st25" d="M560,348l24,12-24,12v-24Z"/>
+    <path class="st25" d="M580,360"/>
+  </g>
+  <rect class="st17" x="596" y="40" width="536" height="568" rx="8" ry="8"/>
+  <rect class="st16" x="596" y="40" width="536" height="50" rx="8" ry="8"/>
+  <rect class="st16" x="596" y="76" width="536" height="14"/>
+  <text class="st3" transform="translate(620 74)"><tspan x="0" y="0">사업장 기록</tspan></text>
+  <g>
+    <rect class="st24" x="622" y="116" width="484" height="70" rx="6" ry="6"/>
+    <text class="st15" transform="translate(646 150)"><tspan x="0" y="0">사업장</tspan></text>
+    <text class="st4" transform="translate(646 176)"><tspan x="0" y="0">유형 · 상권 · 담당 · 기초 현황</tspan></text>
+    <rect class="st24" x="622" y="202" width="484" height="70" rx="6" ry="6"/>
+    <text class="st15" transform="translate(646 236)"><tspan x="0" y="0">진단</tspan></text>
+    <text class="st4" transform="translate(646 262)"><tspan x="0" y="0">문항별 점수 · 근거 · 사진 · 회차 구분</tspan></text>
+    <rect class="st24" x="622" y="288" width="484" height="70" rx="6" ry="6"/>
+    <text class="st15" transform="translate(646 322)"><tspan x="0" y="0">회차</tspan></text>
+    <text class="st4" transform="translate(646 348)"><tspan x="0" y="0">운영일지 · 전후 사진 · 점주 확인</tspan></text>
+    <rect class="st24" x="622" y="374" width="484" height="70" rx="6" ry="6"/>
+    <text class="st15" transform="translate(646 408)"><tspan x="0" y="0">개선</tspan></text>
+    <text class="st4" transform="translate(646 434)"><tspan x="0" y="0">과제 · 담당 · 기한 · 이행 상태</tspan></text>
+    <rect class="st24" x="622" y="460" width="484" height="70" rx="6" ry="6"/>
+    <text class="st15" transform="translate(646 494)"><tspan x="0" y="0">산출물</tspan></text>
+    <text class="st4" transform="translate(646 520)"><tspan x="0" y="0">서식 · 사진 · 아카이빙</tspan></text>
+  </g>
+  <text class="st7" transform="translate(620 576)"><tspan x="0" y="0">입력 후 뒷 단계의 기본 테이터</tspan></text>
+  <g marker-end="url(#ar)">
+    <path class="st0" d=""/>
+    <path class="st25" d="M1142,312l24,12-24,12v-24Z"/>
+    <path class="st25" d="M1162,324"/>
+  </g>
+  <rect class="st20" x="1178" y="40" width="290" height="568" rx="8" ry="8"/>
+  <rect class="st19" x="1178" y="40" width="290" height="50" rx="8" ry="8"/>
+  <rect class="st19" x="1178" y="76" width="290" height="14"/>
+  <text class="st3" transform="translate(1202 74)"><tspan x="0" y="0">집계 뷰</tspan></text>
+  <g>
+    <text class="st14" transform="translate(1202 132)"><tspan x="0" y="0">회차 이행률</tspan></text>
+    <text class="st14" transform="translate(1202 172)"><tspan x="0" y="0">진단 전후 · 상승폭</tspan></text>
+    <text class="st14" transform="translate(1202 212)"><tspan x="0" y="0">개선 과제 이행률</tspan></text>
+    <text class="st14" transform="translate(1202 252)"><tspan x="0" y="0">만족도 · 응답률</tspan></text>
+    <text class="st14" transform="translate(1202 292)"><tspan x="0" y="0">유형별 배분 현황</tspan></text>
+    <text class="st14" transform="translate(1202 332)"><tspan x="0" y="0">산출물 등록률</tspan></text>
+  </g>
+  <line class="st1" x1="1202" y1="368" x2="1444" y2="368"/>
+  <text class="st2" transform="translate(1202 406)"><tspan x="0" y="0">원본이 아니라 뷰</tspan></text>
+  <g>
+    <text class="st4" transform="translate(1202 440)"><tspan x="0" y="0">관리자 화면과 주관기관</tspan></text>
+    <text class="st4" transform="translate(1202 468)"><tspan x="0" y="0">화면이 같은 값을 읽는다</tspan></text>
+    <text class="st4" transform="translate(1202 510)"><tspan x="0" y="0">집계 기준 시점을</tspan></text>
+    <text class="st4" transform="translate(1202 538)"><tspan x="0" y="0">화면에 표시한다</tspan></text>
+  </g>
+  <g marker-end="url(#ar)">
+    <path class="st0" d=""/>
+    <path class="st25" d="M1484,168l24,12-24,12v-24Z"/>
+    <path class="st25" d="M1504,180"/>
+    <path class="st0" d=""/>
+    <path class="st25" d="M1484,458l24,12-24,12v-24Z"/>
+    <path class="st25" d="M1504,470"/>
+  </g>
+  <rect class="st22" x="1520" y="40" width="506" height="272" rx="8" ry="8"/>
+  <rect class="st23" x="1520" y="40" width="506" height="50" rx="8" ry="8"/>
+  <rect class="st23" x="1520" y="76" width="506" height="14"/>
+  <text class="st3" transform="translate(1544 74)"><tspan x="0" y="0">주관기관 공유 화면</tspan></text>
+  <text class="st5" transform="translate(1935.625 73)"><tspan x="0" y="0">읽기 전용</tspan></text>
+  <g>
+    <text class="st14" transform="translate(1544 132)"><tspan x="0" y="0">진행 현황 대시보드 I 접수 · 선정 · 회차</tspan></text>
+    <text class="st14" transform="translate(1544 172)"><tspan x="0" y="0">사업장별 요약 I 진단 전후 · 이행률</tspan></text>
+    <text class="st14" transform="translate(1544 212)"><tspan x="0" y="0">산출물 열람 · 아카이빙 자료</tspan></text>
+    <text class="st14" transform="translate(1544 252)"><tspan x="0" y="0">집계 기준 시점 표시</tspan></text>
+  </g>
+  <text class="st11" transform="translate(1544 292)"><tspan x="0" y="0">계정은 착수 시 발급 · 별도 요청 없이 상시 열람</tspan></text>
+  <rect class="st22" x="1520" y="336" width="506" height="272" rx="8" ry="8"/>
+  <rect class="st23" x="1520" y="336" width="506" height="50" rx="8" ry="8"/>
+  <rect class="st23" x="1520" y="372" width="506" height="14"/>
+  <text class="st3" transform="translate(1544 370)"><tspan x="0" y="0">성과품</tspan></text>
+  <g>
+    <text class="st14" transform="translate(1544 428)"><tspan x="0" y="0">성과보고서</tspan></text>
+    <text class="st14" transform="translate(1544 468)"><tspan x="0" y="0">회차 운영일지 · 개선 방안서</tspan></text>
+    <text class="st14" transform="translate(1544 508)"><tspan x="0" y="0">진단 결과 · 만족도 집계</tspan></text>
+    <text class="st14" transform="translate(1544 548)"><tspan x="0" y="0">사진 · 우수사례 아카이빙</tspan></text>
+  </g>
+  <text class="st6" transform="translate(1544 588)"><tspan x="0" y="0">보고 자료와 성과품이 동일 데이터 기반</tspan></text>
+  <line class="st1" x1="30" y1="646" x2="2026" y2="646"/>
+  <text class="st8" transform="translate(30 698)"><tspan x="0" y="0">열람 권한</tspan></text>
+  <g>
+    <text class="st14" transform="translate(176 698)"><tspan x="0" y="0">PM : 전체</tspan></text>
+    <text class="st14" transform="translate(392 698)"><tspan x="0" y="0">컨설턴트 : 담당 사업장</tspan></text>
+    <text class="st14" transform="translate(768 698)"><tspan x="0" y="0">점주 : 자기 사업장</tspan></text>
+    <text class="st14" transform="translate(1096 698)"><tspan x="0" y="0">주관기관 : 집계와 산출물</tspan></text>
+  </g>
+  <text class="st13" transform="translate(1773.8975 698)"><tspan x="0" y="0">입력은 공통 / 열람 권한만 구분</tspan></text>
+</svg>

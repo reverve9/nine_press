@@ -53,7 +53,22 @@ if (!link) {
   css = fonts + '\n' + page;
 }
 
-fs.writeFileSync(file, render(doc, { css }), 'utf8');
+let html = render(doc, { css });
+
+// 그림 — 폰트와 같은 방식. link 는 상대경로, 아니면 base64 로 박는다
+if (link) {
+  html = html.replaceAll('src="assets/', 'src="../../assets/');
+} else {
+  html = html.replace(/src="(assets\/[^"]+)"/g, (m, rel) => {
+    const q = path.join(root, rel);
+    if (!fs.existsSync(q)) return m;
+    const ext = path.extname(q).slice(1).toLowerCase();
+    const mime = ext === 'svg' ? 'image/svg+xml' : ext === 'jpg' ? 'image/jpeg' : `image/${ext}`;
+    return `src="data:${mime};base64,${fs.readFileSync(q).toString('base64')}"`;
+  });
+}
+
+fs.writeFileSync(file, html, 'utf8');
 
 const kb = (fs.statSync(file).size / 1024).toFixed(0);
 const mode = link ? '<link> 개발용' : embed ? '자기완결 · 폰트 내장' : '자기완결 · 폰트 상대경로';

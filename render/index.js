@@ -168,11 +168,13 @@ function 띠(v, P) {
 //   ["pc", "사업장 카드 화면"]  16:9 가로 · 칸 폭을 채운다
 //   ["mo", "자가진단 화면"]     9:19.5 세로 · 칸 높이를 채우고 가운데
 //   "구조도"                    비율 없음 · 남는 자리를 전부 채운다
+//   세 번째 칸은 그림 경로. 레포 기준 상대경로를 적는다 — "assets/캡처/A1_접수목록.png"
 function 자리(v, P) {
   const 배열 = Array.isArray(v);
-  const [형, 이름] = 배열 ? v : ['free', v];
+  const [형, 이름, 경로] = 배열 ? v : ['free', v];
   const path = P && (배열 ? [...P, '자리', 1] : [...P, '자리']);
-  return `<div class="sh ${형}"><span${dp(path)}>${inline(이름)}</span></div>`;
+  const img = 경로 ? `<img class="shi" src="${경로}" alt="">` : '';
+  return `<div class="sh ${형}${경로 ? ' on' : ''}">${img}<span${dp(path)}>${inline(이름)}</span></div>`;
 }
 
 const 흐름 = { 단계띠, 지도, 막대, 수치, 격자, 띠, 자리 };

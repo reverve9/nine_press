@@ -598,7 +598,10 @@ export default function Shell({ docs, first }) {
   const 판본 = useMemo(() => {
     const d = 문서ref.current;
     if (!d?.면?.[i]) return '';
-    return render({ ...d, 면: [d.면[i]] }, { cssBase: '/api/css', 도구: true }).replace(
+    return render({ ...d, 면: [d.면[i]] }, { cssBase: '/api/css', 도구: true })
+      // 그림은 /api/img 로 돌린다 — 정적 중복을 만들지 않는다
+      .replaceAll('src="assets/', 'src="/api/img/')
+      .replace(
       '</head>',
       `<style>
 body{padding:0;margin:0;background:transparent;overflow:hidden}

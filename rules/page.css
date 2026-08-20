@@ -1010,3 +1010,19 @@ table.tb td.n{color:rgba(0,0,0,.92)}
   flex:0 0 calc((96.6*var(--w,4) - 11)*var(--u))!important; min-width:0}
 .wrap.gn .page .bd > .row[data-h], .wrap.gn .page .bd > .foot[data-h]{
   flex:0 0 calc((100% - 235.4px) / 12 * var(--h) + (var(--h) - 1) * 21.44px)!important}
+
+/* ────────────────────────────────────────────────────────────
+   ㉚ 자리에 그림이 들어갔을 때  (2026-08-20)
+
+   자리 배열의 셋째 칸에 경로가 있으면 `.sh.on` 이 붙고 <img> 가 들어간다.
+   경로가 없으면 아무것도 바뀌지 않는다 — 지금까지의 빈 자리 그대로다.
+
+   비율은 자리가 정한다(.pc 16:9 · .mo 9:19.5). 캡처가 같은 비율이므로
+   object-fit:cover 가 잘라내는 것은 없다. 어긋난 캡처가 들어오면 잘린다.
+   자리 이름은 지우지 않고 숨긴다 — roundtrip 검사 개수를 유지한다.
+   ──────────────────────────────────────────────────────────── */
+.sh.on{position:relative; overflow:hidden; padding:0;
+  background:none; border-style:solid; border-color:rgba(0,0,0,.32)}
+.sh.on > .shi{width:100%; height:100%; object-fit:cover; display:block}
+.sh.on > span{position:absolute; width:1px; height:1px;
+  overflow:hidden; clip-path:inset(50%); white-space:nowrap}
