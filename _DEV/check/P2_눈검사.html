@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>P2 눈 검사 — 폭 조절</title>
+<style>
+  :root{
+    --nv:#192949; --or:#E68100; --ink:rgba(0,0,0,.92); --sub:rgba(0,0,0,.58);
+    --ft:rgba(0,0,0,.42); --bd:rgba(0,0,0,.18); --bg:#F7F9FB;
+    --ok:#1B7F5A; --no:#B4341F;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;color:var(--ink);
+    font:15px/1.7 -apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Pretendard',sans-serif;
+    letter-spacing:-.012em;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:920px;margin:0 auto;padding:44px 28px 96px}
+
+  header{border-bottom:2px solid var(--nv);padding-bottom:18px;margin-bottom:8px}
+  h1{margin:0;font-size:23px;font-weight:800;color:var(--nv);letter-spacing:-.02em}
+  .meta{margin-top:6px;font-size:13px;color:var(--sub)}
+  .meta b{color:var(--ink);font-weight:700}
+
+  .lead{background:var(--bg);border-radius:8px;padding:16px 20px;margin:20px 0 26px;font-size:14px}
+  .lead p{margin:0 0 6px}
+  .lead p:last-child{margin:0}
+  .lead code{background:#fff;border:1px solid var(--bd);border-radius:4px;padding:1px 6px;
+    font:13px ui-monospace,SFMono-Regular,Menlo,monospace}
+
+  .bar{position:sticky;top:0;z-index:9;background:rgba(255,255,255,.94);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--bd);
+    display:flex;align-items:center;gap:14px;padding:12px 0;margin-bottom:8px;flex-wrap:wrap}
+  .tally{font-size:13px;color:var(--sub)}
+  .tally b{font-size:16px;font-weight:800;letter-spacing:-.02em}
+  .tally .p{color:var(--ok)} .tally .f{color:var(--no)} .tally .r{color:var(--ft)}
+  .bar button{font:inherit;font-size:13px;font-weight:700;border:1px solid var(--nv);
+    background:var(--nv);color:#fff;border-radius:6px;padding:7px 14px;cursor:pointer}
+  .bar button.gh{background:#fff;color:var(--nv)}
+  .bar button:active{transform:translateY(1px)}
+
+  .grp{margin-top:26px}
+  .grp>h2{font-size:11px;font-weight:800;color:var(--sub);letter-spacing:.16em;
+    margin:0 0 10px;text-transform:uppercase}
+
+  .it{border:1px solid var(--bd);border-radius:8px;padding:14px 16px;margin-bottom:9px;
+    display:grid;grid-template-columns:30px 1fr auto;gap:12px;align-items:start}
+  .it.pass{border-color:rgba(27,127,90,.5);background:rgba(27,127,90,.045)}
+  .it.fail{border-color:rgba(180,52,31,.5);background:rgba(180,52,31,.05)}
+  .n{font-size:13px;font-weight:800;color:var(--ft);padding-top:2px}
+  .t{font-size:14.5px;font-weight:700;line-height:1.55}
+  .d{font-size:13px;color:var(--sub);margin-top:3px;line-height:1.6}
+  .d code{background:var(--bg);border-radius:3px;padding:0 5px;
+    font:12.5px ui-monospace,SFMono-Regular,Menlo,monospace}
+
+  .btns{display:flex;gap:5px}
+  .btns button{font:inherit;font-size:12.5px;font-weight:700;border:1px solid var(--bd);
+    background:#fff;color:var(--sub);border-radius:5px;padding:5px 11px;cursor:pointer;white-space:nowrap}
+  .btns button[aria-pressed="true"][data-v="p"]{background:var(--ok);border-color:var(--ok);color:#fff}
+  .btns button[aria-pressed="true"][data-v="f"]{background:var(--no);border-color:var(--no);color:#fff}
+  .btns button[aria-pressed="true"][data-v="n"]{background:var(--ft);border-color:var(--ft);color:#fff}
+
+  .memo{grid-column:2/4;margin-top:2px}
+  .memo textarea{width:100%;min-height:38px;resize:vertical;font:inherit;font-size:13px;
+    border:1px solid var(--bd);border-radius:5px;padding:7px 9px;color:var(--ink);
+    background:#fff;display:none}
+  .it.fail .memo textarea{display:block}
+  .memo textarea:focus{outline:2px solid var(--or);outline-offset:-1px;border-color:transparent}
+
+  .out{margin-top:34px;border-top:2px solid var(--nv);padding-top:18px}
+  .out h2{font-size:11px;font-weight:800;color:var(--sub);letter-spacing:.16em;margin:0 0 10px}
+  pre{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:16px 18px;
+    font:13px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;
+    word-break:break-word;margin:0;color:var(--ink)}
+  .note{font-size:12.5px;color:var(--ft);margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>P2 눈 검사 — 폭 조절</h1>
+  <div class="meta">
+    P2-e 이후 · 2026-08-19 · dev 서버 <b>localhost:4400</b> · 판정 <b>17건</b> · 문서 <b>_check / 폭조절</b>
+  </div>
+</header>
+
+<div class="lead">
+  <p><b>한 칸 = 판면 180.75px.</b> 걸음은 칸 151.75 + 거터 29 다. 화면에서 끄는 거리는 축척에 비례한다 — 왼쪽 아래 <code>30%</code> 표시 기준 약 <b>54px</b>.</p>
+  <p><b>하한 4칸 · 한 행의 칸 합은 언제나 12.</b> 나올 수 있는 구성은 <code>12</code> · <code>4+8</code> · <code>5+7</code> · <code>6+6</code> · <code>4+4+4</code> 뿐이다.</p>
+  <p>실패한 항목만 메모칸이 열린다. 다 누른 뒤 <b>결과 복사</b> 를 눌러 챗에 붙인다.</p>
+</div>
+
+<div class="bar">
+  <span class="tally">
+    통과 <b class="p" id="tp">0</b> · 실패 <b class="f" id="tf">0</b> · 해당없음 <b class="r" id="tn">0</b> · 미판정 <b class="r" id="tu">17</b>
+  </span>
+  <button id="copy">결과 복사</button>
+  <button class="gh" id="reset">초기화</button>
+</div>
+
+<div id="list"></div>
+
+<div class="out">
+  <h2>붙여넣을 것</h2>
+  <pre id="sum">아직 판정 없음</pre>
+  <p class="note">실패가 하나라도 있으면 그 항목만 보정 프롬프트로 나간다. 통과면 P3 로 넘어간다.</p>
+</div>
+
+</div>
+
+<script>
+const ITEMS = [
+  { g:'손잡이', t:'3열 행에 손잡이 2개', d:'<code>4+4+4</code> 행. 블록 사이 거터 자리에 세로 띠 둘' },
+  { g:'손잡이', t:'2열 행에 손잡이 1개', d:'<code>4+8</code> 행. p.21 첫 행이 그 예' },
+  { g:'손잡이', t:'12칸 단일 열 행에 손잡이 없음', d:'나눌 경계가 없으므로 하나도 안 나와야 한다' },
+  { g:'손잡이', t:'커서가 col-resize · 주황 띠', d:'손잡이 위에 올리면 좌우 화살표 커서 · 옅은 주황' },
+  { g:'손잡이', t:'잡을 만한가', d:'축척 30% 에서 화면 약 9px. 잡기 어려우면 실패로 두고 메모에 적는다' },
+
+  { g:'끌기', t:'감도 — 약 54px 에 한 칸', d:'격자를 켜고(<code>⌘\\</code>) 띠 하나만큼 끌면 한 칸. 두 칸씩 뛰거나 안 넘어가면 실패' },
+  { g:'끌기', t:'끄는 동안 폭이 실시간으로 변함', d:'놓기 전에 이미 블록 경계가 따라와야 한다' },
+  { g:'끌기', t:'하한 4칸에서 조용히 멈춤', d:'왼쪽이나 오른쪽이 4칸이 되면 더 안 줄어든다. 경고창이 뜨면 실패' },
+  { g:'끌기', t:'놓으면 다시 그려지고 합이 12', d:'왼쪽이 늘면 오른쪽이 그만큼 준다' },
+  { g:'끌기', t:'끄는 도중 Esc 로 취소', d:'원래 폭으로 되돌아가고 아무것도 저장되지 않는다' },
+  { g:'끌기', t:'⌘Z 한 번으로 원복', d:'끌기 한 번이 되돌리기 한 칸이어야 한다. 여러 번 눌러야 하면 실패' },
+
+  { g:'칩 · 열', t:'칩이 4 · 5 · 6 · 7 · 8 · 12', d:'왼쪽 판 <b>칸 수</b> 줄. 라벨에 <code>N / 12</code>' },
+  { g:'칩 · 열', t:'칩을 누르면 인접 열이 차액을 흡수', d:'불가능하면 <code>칸 합은 12 를 지킨다</code> 로그' },
+  { g:'칩 · 열', t:'열넣기 · 열빼기', d:'8칸 미만에서 열넣기는 거부 · 열빼기는 지운 칸이 옆으로 간다' },
+
+  { g:'격자', t:'⌘\\ 로 켜고 꺼짐', d:'왼쪽 판 <b>격자</b> 버튼도 같은 동작. 제자리 편집 중에도 듣는다' },
+  { g:'격자', t:'띠 12개가 블록 경계와 포개짐', d:'띠 폭 151.75 · 사이 거터 29. 마지막 띠 오른끝이 본문 오른끝과 맞아야 한다' },
+  { g:'간섭', t:'기존 조작이 그대로', d:'블록 클릭 선택 · 글자 눌러 제자리 편집 · ⌘S 저장 뒤 JSON 의 폭 값 반영' },
+];
+
+const S = ITEMS.map(() => ({ v:'', memo:'' }));
+const list = document.getElementById('list');
+let last = null;
+
+ITEMS.forEach((it, i) => {
+  if (it.g !== last) {
+    const h = document.createElement('div');
+    h.className = 'grp';
+    h.innerHTML = '<h2>' + it.g + '</h2>';
+    list.appendChild(h);
+    last = it.g;
+  }
+  const box = document.createElement('div');
+  box.className = 'it';
+  box.id = 'it' + i;
+  box.innerHTML =
+    '<div class="n">' + String(i + 1).padStart(2, '0') + '</div>' +
+    '<div><div class="t">' + it.t + '</div><div class="d">' + it.d + '</div></div>' +
+    '<div class="btns">' +
+      '<button data-i="' + i + '" data-v="p" aria-pressed="false">통과</button>' +
+      '<button data-i="' + i + '" data-v="f" aria-pressed="false">실패</button>' +
+      '<button data-i="' + i + '" data-v="n" aria-pressed="false">해당없음</button>' +
+    '</div>' +
+    '<div class="memo"><textarea data-i="' + i + '" placeholder="무엇이 어떻게 어긋났는지 — 한 줄"></textarea></div>';
+  list.lastChild.appendChild(box);
+});
+
+list.addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-v]');
+  if (!b) return;
+  const i = +b.dataset.i, v = b.dataset.v;
+  S[i].v = (S[i].v === v) ? '' : v;
+  const box = document.getElementById('it' + i);
+  box.querySelectorAll('button[data-v]').forEach((x) =>
+    x.setAttribute('aria-pressed', String(x.dataset.v === S[i].v)));
+  box.classList.toggle('pass', S[i].v === 'p');
+  box.classList.toggle('fail', S[i].v === 'f');
+  if (S[i].v === 'f') setTimeout(() => box.querySelector('textarea').focus(), 0);
+  그리기();
+});
+
+list.addEventListener('input', (e) => {
+  const t = e.target.closest('textarea');
+  if (!t) return;
+  S[+t.dataset.i].memo = t.value;
+  그리기();
+});
+
+document.getElementById('reset').addEventListener('click', () => {
+  S.forEach((s) => { s.v = ''; s.memo = ''; });
+  list.querySelectorAll('button[data-v]').forEach((x) => x.setAttribute('aria-pressed', 'false'));
+  list.querySelectorAll('textarea').forEach((x) => { x.value = ''; });
+  list.querySelectorAll('.it').forEach((x) => x.classList.remove('pass', 'fail'));
+  그리기();
+});
+
+document.getElementById('copy').addEventListener('click', async () => {
+  const btn = document.getElementById('copy');
+  try {
+    await navigator.clipboard.writeText(document.getElementById('sum').textContent);
+    btn.textContent = '복사됨';
+  } catch {
+    const r = document.createRange();
+    r.selectNodeContents(document.getElementById('sum'));
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    btn.textContent = '직접 복사';
+  }
+  setTimeout(() => { btn.textContent = '결과 복사'; }, 1400);
+});
+
+function 그리기() {
+  const c = { p:0, f:0, n:0, u:0 };
+  S.forEach((s) => { c[s.v || 'u']++; });
+  tp.textContent = c.p; tf.textContent = c.f; tn.textContent = c.n; tu.textContent = c.u;
+
+  if (c.p + c.f + c.n === 0) { sum.textContent = '아직 판정 없음'; return; }
+
+  const 이름 = { p:'통과', f:'실패', n:'해당없음' };
+  const L = [];
+  L.push('P2 눈 검사 · P2-e 이후');
+  L.push('통과 ' + c.p + ' · 실패 ' + c.f + ' · 해당없음 ' + c.n + ' · 미판정 ' + c.u);
+  L.push('');
+  const 실패 = [];
+  ITEMS.forEach((it, i) => {
+    if (!S[i].v) return;
+    const 줄 = String(i + 1).padStart(2, '0') + '  ' + 이름[S[i].v] + '  ' + it.t;
+    if (S[i].v === 'f') { 실패.push(줄 + (S[i].memo ? '\n      → ' + S[i].memo : '')); }
+    else L.push(줄);
+  });
+  if (실패.length) {
+    L.push('');
+    L.push('— 실패 —');
+    실패.forEach((x) => L.push(x));
+  }
+  if (c.u) { L.push(''); L.push('미판정 ' + c.u + '건'); }
+  sum.textContent = L.join('\n');
+}
+
+그리기();
+</script>
+</body>
+</html>
