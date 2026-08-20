@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
+<title>키노트 세팅 · 2339 × 1654</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#131B2B; --body:#1a1a1a; --em:#2D4D6E; --ac:#E68100;
+  --note:#6b7784; --src:#8792a0; --line:#E4E8EC; --fill:#F4F6F8;
+  --num:ui-monospace,"SF Mono",Menlo,monospace;
+}
+body{
+  font-family:'Pretendard Variable',Pretendard,-apple-system,sans-serif;
+  background:#EDEFF2;color:var(--body);line-height:1.6;padding-bottom:80px;
+}
+.wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+
+/* 상단 바 */
+header{background:var(--ink);color:#fff;padding:26px 0 24px;margin-bottom:32px}
+header .wrap{display:flex;align-items:flex-end;gap:28px;flex-wrap:wrap}
+header h1{font-size:19px;font-weight:700;letter-spacing:-.02em}
+header .size{font-family:var(--num);font-size:34px;font-weight:600;letter-spacing:-.01em;line-height:1}
+header .size small{font-size:13px;color:#8fa3bd;font-family:'Pretendard Variable',sans-serif;font-weight:400;margin-left:8px;letter-spacing:0}
+header .hint{color:#93a7c2;font-size:12.5px;flex:1;min-width:200px}
+.tgwrap{display:flex;flex-direction:column;gap:6px}
+.tglb{font-size:10.5px;font-weight:700;color:#7f93ad;letter-spacing:.1em}
+.toggle{display:flex;gap:0;border:1px solid #37455c;border-radius:7px;overflow:hidden}
+.toggle button{background:none;border:0;color:#93a7c2;font:600 12.5px/1 inherit;padding:9px 14px;cursor:pointer;font-family:inherit}
+.toggle button.on{background:var(--ac);color:#fff}
+
+section{margin-bottom:40px}
+h2{font-size:15px;font-weight:700;color:var(--ink);letter-spacing:-.01em;
+   display:flex;align-items:center;gap:9px;margin-bottom:14px}
+h2 i{font-style:normal;font-family:var(--num);font-size:11px;font-weight:700;color:#fff;
+   background:var(--em);width:20px;height:20px;border-radius:5px;display:grid;place-items:center}
+h2 em{font-style:normal;font-weight:400;font-size:12.5px;color:var(--src);margin-left:2px}
+
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px 22px}
+
+/* 숫자 카드 */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:15px 17px}
+.stat .lb{font-size:11.5px;font-weight:700;color:var(--src);letter-spacing:.06em}
+.stat .v{font-family:var(--num);font-size:24px;font-weight:600;color:var(--ink);margin-top:5px;letter-spacing:-.02em}
+.stat .s{font-size:11.5px;color:var(--src);margin-top:3px}
+.stat.hi{background:var(--ink);border-color:var(--ink)}
+.stat.hi .lb{color:#8fa3bd}.stat.hi .v{color:#fff}.stat.hi .s{color:#8fa3bd}
+
+/* 지도 */
+.maprow{display:grid;grid-template-columns:1.55fr 1fr;gap:16px;align-items:start}
+@media(max-width:940px){.maprow{grid-template-columns:1fr}}
+.map{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px}
+.map svg{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.legend span{font-size:11.5px;color:var(--note);display:flex;align-items:center;gap:6px}
+.legend b{width:16px;height:0;border-top-width:2px;border-top-style:solid;display:block}
+
+/* 좌표 목록 */
+.glist{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.glist h3{font-size:12px;font-weight:700;color:#fff;background:var(--em);padding:9px 16px;letter-spacing:.04em;
+  display:flex;justify-content:space-between;align-items:center}
+.glist h3 button{background:rgba(255,255,255,.16);border:0;color:#fff;font:600 10.5px/1 inherit;
+  padding:5px 9px;border-radius:4px;cursor:pointer;font-family:inherit}
+.glist ul{list-style:none}
+.glist li{display:flex;align-items:center;gap:12px;padding:7px 16px;border-bottom:1px solid #F2F4F6;font-size:12.5px}
+.glist li:last-child{border-bottom:0}
+.glist li.sec{background:#FAFBFC;color:var(--src);font-size:10.5px;font-weight:700;letter-spacing:.1em;padding:6px 16px}
+.glist li b{font-family:var(--num);font-size:14px;font-weight:600;color:var(--ink);flex:0 0 76px;
+  cursor:pointer;border-radius:4px;padding:1px 4px;margin-left:-4px;transition:.12s}
+.glist li b:hover{background:#FDF0E2;color:var(--ac)}
+.glist li b.key{color:var(--ac)}
+.glist li span{color:var(--note);font-size:12px}
+
+/* 골격 */
+.sks{display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:14px}
+.skc{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+.skc.key{border-color:var(--ac);box-shadow:0 0 0 1px rgba(230,129,0,.25)}
+.skh{display:flex;align-items:center;gap:9px;padding:12px 15px 10px}
+.skh u{text-decoration:none;font-family:var(--num);font-size:11px;font-weight:700;color:#fff;background:var(--em);
+  padding:2px 6px;border-radius:4px}
+.skc.key .skh u{background:var(--ac)}
+.skh strong{font-size:14px;font-weight:700;color:var(--ink);letter-spacing:-.01em}
+.skh span{margin-left:auto;font-size:11px;color:var(--src)}
+.skv{padding:0 15px}
+.skv .fr{position:relative;background:#FAFBFC;border:1px solid var(--line);border-radius:3px;
+  aspect-ratio:2086/919;padding:5px;display:flex;flex-direction:column;gap:4px}
+.skv .z{display:flex;gap:4px;flex:1;min-height:0}
+.skv .z.v{flex-direction:column}
+.skv i{display:block;flex:1;background:#DCE3EA;border-radius:2px;min-width:0;min-height:0}
+.skv i.ev{background:transparent;border:1px dashed var(--ac)}
+.skv .fr{overflow:hidden}
+.skv i.pn{flex:0 0 32%;background:#C8D4E0;border:1px solid #2D4D6E;margin:-6px 0 -6px -6px;border-radius:0}
+table.tv tr.pr td{background:#F2F6FA;color:var(--em);font-weight:600}
+table.tv tr.pr td:first-child{color:var(--em)}
+.skd{font-size:11.5px;color:var(--note);padding:10px 15px 0}
+table.tv{width:100%;border-collapse:collapse;margin:10px 0 14px;font-size:11.5px}
+table.tv th{font-size:9.5px;font-weight:700;color:var(--src);letter-spacing:.08em;text-align:right;
+  padding:5px 8px;border-bottom:1px solid var(--ink)}
+table.tv th:first-child{text-align:left}
+table.tv td{font-family:var(--num);text-align:right;padding:5px 8px;border-bottom:1px solid #F2F4F6;color:var(--ink);font-size:12px}
+table.tv td:first-child{font-family:inherit;text-align:left;color:var(--src);font-size:11px}
+.skt{padding:0 15px}
+
+/* 타이포 */
+.tp{width:100%;border-collapse:collapse;font-size:13px}
+.tp th{font-size:10px;font-weight:700;color:var(--src);letter-spacing:.1em;text-align:left;padding:8px 10px;border-bottom:1.5px solid var(--ink)}
+.tp th.r,.tp td.r{text-align:right}
+.tp td{padding:9px 10px;border-bottom:1px solid #F2F4F6}
+.tp td.n{font-family:var(--num);font-weight:600;color:var(--ink);font-size:14px}
+.tp td.g{color:var(--src);font-size:12px}
+.sw{display:inline-block;width:13px;height:13px;border-radius:3px;vertical-align:-2px;margin-right:7px;border:1px solid rgba(0,0,0,.09)}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:840px){.two{grid-template-columns:1fr}}
+
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:#fff;font-size:12.5px;font-weight:600;padding:10px 18px;border-radius:8px;
+  opacity:0;pointer-events:none;transition:.18s;z-index:99}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div>
+      <h1>키노트 세팅</h1>
+      <div class="size">2339 × 1654<small>슬라이드 크기 · 사용자 설정</small></div>
+    </div>
+    <div class="tgwrap">
+      <div class="tglb">지면</div>
+      <div class="toggle" id="tg">
+        <button class="on" data-m="copy">카피 있음</button>
+        <button data-m="cont">연속</button>
+      </div>
+    </div>
+    <div class="tgwrap">
+      <div class="tglb">사이드 패널</div>
+      <div class="toggle" id="tp">
+        <button class="on" data-p="none">없음</button>
+        <button data-p="left">좌</button>
+        <button data-p="right">우</button>
+      </div>
+    </div>
+    <div class="hint">숫자를 클릭하면 복사됩니다 &nbsp;·&nbsp; 도형을 그리고 <b style="color:#fff">포맷 &gt; 정렬</b> 탭에 X · Y · 너비 · 높이를 입력하세요</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- 1 -->
+<section>
+  <h2><i>1</i>판과 안전 영역<em>모든 콘텐츠가 들어가는 범위</em></h2>
+  <div class="stats">
+    <div class="stat hi"><div class="lb">슬라이드</div><div class="v">2339 × 1654</div><div class="s">297 × 210 mm · 도련 없음</div></div>
+    <div class="stat"><div class="lb">안전 영역</div><div class="v">2179 × 1498</div><div class="s">X 80 · Y 120</div></div>
+    <div class="stat"><div class="lb">본문 프레임</div><div class="v">2179 × 1271</div><div class="s">X 80 · Y 271</div></div>
+    <div class="stat"><div class="lb">블록 존</div><div class="v" id="bzv">2179 × 975</div><div class="s" id="bzs">X 80 · Y 567</div></div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section>
+  <h2><i>2</i>페이지 지도<em>안내선이 놓이는 자리</em></h2>
+  <div class="maprow">
+    <div class="map">
+      <svg viewBox="-190 -80 2760 1860" id="map"></svg>
+      <div class="legend">
+        <span><b style="border-color:#131B2B"></b>안전 영역</span>
+        <span><b style="border-color:#E68100"></b>본문 프레임</span>
+        <span><b style="border-color:#2D4D6E;border-top-style:dashed"></b>열</span>
+        <span><b style="border-color:#487B76;border-top-style:dashed"></b>존 경계</span>
+        <span><b style="border-color:#D6207A;border-top-style:dotted"></b>제본 여유</span>
+      </div>
+    </div>
+
+    <div class="two" style="grid-template-columns:1fr 1fr">
+      <div class="glist">
+        <h3>세로 안내선 · X <button onclick="copyList('lx')">전체 복사</button></h3>
+        <ul id="lx"></ul>
+      </div>
+      <div class="glist">
+        <h3>가로 안내선 · Y <button onclick="copyList('ly')">전체 복사</button></h3>
+        <ul id="ly"></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section>
+  <h2><i>3</i>세로 구성<em>안전 영역 1498의 내역</em></h2>
+  <div class="card">
+    <table class="tp">
+      <tr><th>밴드</th><th class="r">시작 Y</th><th class="r">끝 Y</th><th class="r">높이</th><th>내용</th></tr>
+      <tr><td>헤더</td><td class="n r">120</td><td class="n r">185</td><td class="n r">65</td><td class="g">페이지타이틀 · 챕터칩</td></tr>
+      <tr><td class="g">간격</td><td class="r g">185</td><td class="r g">271</td><td class="n r" style="color:var(--src)">86</td><td class="g">거터 × 2</td></tr>
+      <tr style="background:#FDF8F2"><td><b>본문 프레임</b></td><td class="n r">271</td><td class="n r">1542</td><td class="n r">1271</td><td class="g">카피 존 + 논지 존 + 블록 존</td></tr>
+      <tr><td class="g">간격</td><td class="r g">1542</td><td class="r g">1585</td><td class="n r" style="color:var(--src)">43</td><td class="g">거터 × 1</td></tr>
+      <tr><td>푸터</td><td class="n r">1585</td><td class="n r">1618</td><td class="n r">33</td><td class="g">페이지번호(중앙 1170) · 문서명(우 2259)</td></tr>
+      </table>
+    <div style="font-size:12px;color:var(--src);margin-top:12px;line-height:1.65">
+      헤더 높이를 바꾸면 <b style="color:var(--ink)">프레임 상단만</b> 내려옵니다. 프레임 하단 1542와 푸터는 고정입니다.<br>
+      <b style="color:var(--ink);font-family:var(--num)">본문 프레임 = 1336 − 헤더 높이</b> &nbsp;·&nbsp;
+      <b style="color:var(--ink);font-family:var(--num)">블록 존 = 1040 − 헤더 높이</b> (카피 있는 지면)
+    </div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section>
+  <h2><i>4</i>골격 여덟<em>정렬 탭에 그대로 입력하는 값</em></h2>
+  <div class="card" id="pnlnote" style="margin-bottom:14px;display:none;padding:14px 18px;background:#FDF8F2;border-color:#F0D3AC">
+    <div style="font-size:12.5px;color:var(--body);line-height:1.6">
+      <b style="color:var(--ac)">사이드 패널은 골격이 아니라 모디파이어입니다.</b>
+      패널은 <b>세로 전면 재단</b>(Y 0 → 1654)이며 페이지타이틀이 패널 위에 놓입니다.
+      폭 735는 지면의 31.4%로, 제안서03 p.18(실측 718)과 거의 같습니다.
+      콘텐츠 존은 1438이 되고 <b>그 안의 2열이 기존 3열 안내선(821 · 1561)에 그대로 떨어집니다.</b>
+      골격 여덟은 좁아진 존 안에서 그대로 쓰입니다.
+      <span id="pnlrect" style="font-family:var(--num);color:var(--ink);font-weight:600"></span>
+    </div>
+  </div>
+  <div class="sks" id="sks"></div>
+</section>
+
+<!-- 5 -->
+<section>
+  <h2><i>5</i>글자 · 색 · 도형</h2>
+  <div class="two">
+    <div class="card">
+      <table class="tp">
+        <tr><th>계층</th><th class="r">크기</th><th class="r">굵기</th></tr>
+        <tr><td>메인카피</td><td class="n r">64</td><td class="r g">800</td></tr>
+        <tr><td>서브디스크립션</td><td class="n r">39</td><td class="r g">400</td></tr>
+        <tr><td>타이틀 — 논지</td><td class="n r">45</td><td class="r g">800</td></tr>
+        <tr><td>페이지타이틀</td><td class="n r">41</td><td class="r g">800</td></tr>
+        <tr><td>박스 타이틀</td><td class="n r">29</td><td class="r g">700</td></tr>
+        <tr><td>요약문</td><td class="n r">26</td><td class="r g">400</td></tr>
+        <tr><td>본문</td><td class="n r">24</td><td class="r g">400 · 행간 1.75</td></tr>
+        <tr><td>라벨 · 출처 · 배지</td><td class="n r">20</td><td class="r g">700 / 400</td></tr>
+        <tr><td>강조 수치</td><td class="n r">52</td><td class="r g">700</td></tr>
+      </table>
+      <div style="font-size:11.5px;color:var(--src);margin-top:10px">자간 — 표제 −15 · 본문 −5 · 라벨 +180 (1/1000 em)</div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <table class="tp">
+          <tr><th>색</th><th class="r">값</th></tr>
+          <tr><td><span class="sw" style="background:#1a1a1a"></span>본문 먹</td><td class="n r">1a1a1a</td></tr>
+          <tr><td><span class="sw" style="background:#131B2B"></span>제목 네이비</td><td class="n r">131B2B</td></tr>
+          <tr><td><span class="sw" style="background:#2D4D6E"></span>강조</td><td class="n r">2D4D6E</td></tr>
+          <tr><td><span class="sw" style="background:#E68100"></span>결론 · 표식</td><td class="n r">E68100</td></tr>
+          <tr><td><span class="sw" style="background:#6b7784"></span>부연</td><td class="n r">6b7784</td></tr>
+          <tr><td><span class="sw" style="background:#8792a0"></span>출처 · 라벨</td><td class="n r">8792a0</td></tr>
+          <tr><td><span class="sw" style="background:#F4F6F8"></span>블록 배경</td><td class="n r">F4F6F8</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <table class="tp">
+          <tr><th>도형</th><th class="r">값</th></tr>
+          <tr><td>블록 사이 · 거터</td><td class="n r">43</td></tr>
+          <tr><td>블록 안쪽 여백</td><td class="n r">33</td></tr>
+          <tr><td>모서리 반경</td><td class="n r">10</td></tr>
+          <tr><td>선 굵기</td><td class="n r">1</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+<div id="toast"></div>
+
+<script>
+/* ===== 기준값 ===== */
+const W=2339, H=1654;
+const FX=80, FW=2179, FT=271, FB=1542;
+const G=43, COPY=156, TIT=54;
+const BIND=118, SAFE_T=120, SAFE_B=1618, HDR_B=185, FTR_T=1585;
+let mode='copy', panel='none';
+const r1 = v => Math.round(v);
+
+/* 정수 분할 — 경계를 반올림하고 폭은 경계에서 역산한다. 합은 항상 정확 */
+function split(start,total,n,g){
+  const w=(total-g*(n-1))/n, end=start+total, p=[], out=[];
+  for(let i=0;i<n;i++) p.push(Math.round(start+i*(w+g)));
+  for(let i=0;i<n;i++) out.push({x:p[i], w:(i<n-1? p[i+1]-g-p[i] : end-p[i])});
+  return out;
+}
+const PW = 735, PH = H, ZW = 1438, GAP = 86;    // 패널 = 전면 재단 · 콘텐츠 존 1438
+
+const zoneY = () => mode==='copy'
+  ? {t: FT+COPY+G+TIT+G, b: FB}
+  : {t: FT+TIT+G,        b: FB};
+
+const zoneX = () => {
+  if(panel==='none')  return {x:FX, w:FW, px:null};
+  if(panel==='left')  return {x:821, w:ZW, px:0};          // 패널 0→735 · 존 821→2259
+  return {x:FX, w:ZW, px:W-PW};                            // 존 80→1518 · 패널 1604→2339
+};
+
+const cols = n => {
+  const z=zoneX();
+  if(panel!=='none' && n===2){                 // 패널 + 2열 = 프레임 3열의 두 칸과 같은 자리
+    const f3=split(FX,FW,3,G);
+    return panel==='left' ? f3.slice(1) : f3.slice(0,2);
+  }
+  return split(z.x,z.w,n,G);
+};
+
+/* 세로 — 1:1 과 1:2 */
+const rows2 = (t,h) => { const a=Math.round((h-G)/2); return [{y:t,h:a},{y:t+a+G,h:h-G-a}]; };
+const rows12= (t,h) => { const a=Math.round((h-G)/3); return [{y:t,h:a},{y:t+a+G,h:h-G-a}]; };
+
+/* ===== 안내선 ===== */
+function buildLists(){
+  const zy=zoneY(), zx=zoneX(), h=zy.b-zy.t;
+  const c3=cols(3), c4=cols(4);
+  const X=[['sec','프레임'],[FX,'프레임 좌'],[FX+FW,'프레임 우']];
+  if(panel!=='none'){
+    X.push(['sec','사이드 패널 · 폭 '+PW+' · 전면 재단']);
+    if(panel==='left'){ X.push([PW,'패널 우'],[zx.x,'콘텐츠 존 좌'],[zx.x+zx.w,'콘텐츠 존 우']); }
+    else { X.push([zx.x,'콘텐츠 존 좌'],[zx.x+zx.w,'콘텐츠 존 우'],[zx.px,'패널 좌']); }
+  }
+  X.push(['sec','3열 · 폭 '+c3[0].w]);
+  X.push([c3[0].x+c3[0].w,''],[c3[1].x,''],[c3[1].x+c3[1].w,''],[c3[2].x,'']);
+  X.push(['sec','4열 · 폭 '+c4[0].w]);
+  X.push([c4[0].x+c4[0].w,''],[c4[1].x,''],[c4[1].x+c4[1].w,''],
+         [c4[2].x,''],[c4[2].x+c4[2].w,''],[c4[3].x,'']);
+  const c2=cols(2);
+  X.push(['sec','2열 · 폭 '+c2[0].w],[c2[0].x+c2[0].w,''],[c2[1].x,'']);
+
+  const Y=[['sec','판'],[BIND,'제본 여유 하한'],[SAFE_T,'안전 영역 상단 = 헤더 상단'],[HDR_B,'헤더 하단'],
+           ['sec','프레임'],[FT, mode==='copy'?'프레임 상단 = 카피 존 시작':'프레임 상단 = 논지 존 시작']];
+  if(mode==='copy') Y.push([FT+COPY,'카피 존 끝'],[FT+COPY+G,'논지 존 시작'],[FT+COPY+G+TIT,'논지 존 끝']);
+  else Y.push([FT+TIT,'논지 존 끝']);
+  Y.push(['key',zy.t,'블록 존 시작'],['key',zy.b,'블록 존 끝 = 프레임 하단']);
+  Y.push(['sec','블록 존 세로 분할 · '+h]);
+  const R2=rows2(zy.t,h), R3=rows12(zy.t,h);
+  Y.push([R2[0].y+R2[0].h,'1 : 1'],[R2[1].y,'1 : 1'],[R3[0].y+R3[0].h,'1 : 2'],[R3[1].y,'1 : 2']);
+  Y.push(['sec','푸터'],[FTR_T,'푸터 상단'],[SAFE_B,'안전 영역 하단']);
+
+  const render=(arr,id)=>{document.getElementById(id).innerHTML=arr.map(r=>{
+    if(r[0]==='sec') return `<li class="sec">${r[1]}</li>`;
+    const key=r[0]==='key', v=key?r[1]:r[0], lb=key?r[2]:r[1];
+    return `<li><b class="${key?'key':''}" onclick="cp(${v})">${v}</b><span>${lb}</span></li>`;}).join('');};
+  render(X,'lx'); render(Y,'ly');
+
+  document.getElementById('bzv').textContent = `${zx.w} × ${h}`;
+  document.getElementById('bzs').textContent = `X ${zx.x} · Y ${zy.t}`;
+
+  const note=document.getElementById('pnlnote');
+  note.style.display = panel==='none' ? 'none' : 'block';
+  if(panel!=='none')
+    document.getElementById('pnlrect').textContent =
+      `　패널 X ${zx.px} · Y 0 · ${PW} × ${PH}　／　콘텐츠 존 X ${zx.x} · ${zx.w} × ${h}`;
+}
+
+/* ===== 골격 ===== */
+function buildSks(){
+  const zy=zoneY(), zx=zoneX(), T=zy.t, Hh=zy.b-zy.t;
+  const c2=cols(2), c3=cols(3), c4=cols(4);
+  const R2=rows2(T,Hh), R3=rows12(T,Hh);
+  const half=R2[0].h, halfY=R2[1].y, half2=R2[1].h;
+  const third=R3[0].h, thirdY=R3[1].y, twothird=R3[1].h;
+  const ZX=zx.x, ZW=zx.w;
+  const pnl = panel==='none' ? [] : [['패널 · 전면 재단',zx.px,0,PW,PH,'p']];
+  const pv  = panel==='none' ? ''
+            : (panel==='left' ? '<i class="pn"></i>' : '');
+  const pv2 = panel==='right' ? '<i class="pn"></i>' : '';
+  const wrap = inner => panel==='none' ? inner
+            : `<div class="z">${pv}<div class="z v" style="flex:2.1">${inner}</div>${pv2}</div>`;
+
+  const S=[
+   {id:'G1',n:'전면',d:'대형 표 · 대형 도식 · 이미지 격자',key:0,
+    v:'<div class="z"><i class="ev"></i></div>', r:[['전면',ZX,T,ZW,Hh,'e']]},
+   {id:'G2',n:'좌우 둘',d:'서술 : 자료 · 5:5 기준',key:0,
+    v:'<div class="z"><i></i><i></i></div>',
+    r:[['좌',c2[0].x,T,c2[0].w,Hh],['우',c2[1].x,T,c2[1].w,Hh]]},
+   {id:'G3',n:'3열',d:'대등한 항목 셋 · 기본값',key:0,
+    v:'<div class="z"><i></i><i></i><i></i></div>',
+    r:c3.map((c,i)=>['블록 '+(i+1),c.x,T,c.w,Hh])},
+   {id:'G4',n:'좌1 : 우2',d:'근거 하나가 크고 보조가 둘',key:1,
+    v:'<div class="z"><i></i><div class="z v"><i></i><i></i></div></div>',
+    r:[['좌',c2[0].x,T,c2[0].w,Hh],['우 상',c2[1].x,T,c2[1].w,half],['우 하',c2[1].x,halfY,c2[1].w,half2]]},
+   {id:'G5',n:'상1 : 하2',d:'전제를 깔고 두 갈래로 전개',key:0,
+    v:'<div class="z v"><i style="flex:0 0 30%"></i><div class="z"><i></i><i></i></div></div>',
+    r:[['상',ZX,T,ZW,third],['하 좌',c2[0].x,thirdY,c2[0].w,twothird],['하 우',c2[1].x,thirdY,c2[1].w,twothird]]},
+   {id:'G6',n:'4열',d:'대등한 항목 넷 · 설명 3줄까지',key:0,
+    v:'<div class="z"><i></i><i></i><i></i><i></i></div>',
+    r:c4.map((c,i)=>['블록 '+(i+1),c.x,T,c.w,Hh])},
+   {id:'G7',n:'2 × 2',d:'항목 넷 · 설명이 길 때',key:0,
+    v:'<div class="z v"><div class="z"><i></i><i></i></div><div class="z"><i></i><i></i></div></div>',
+    r:[['좌 상',c2[0].x,T,c2[0].w,half],['우 상',c2[1].x,T,c2[1].w,half],
+       ['좌 하',c2[0].x,halfY,c2[0].w,half2],['우 하',c2[1].x,halfY,c2[1].w,half2]]},
+   {id:'G8',n:'상3열 : 하 전면',d:'주장 셋 + 근거 한 덩어리',key:1,
+    v:'<div class="z v"><div class="z" style="flex:0 0 30%"><i></i><i></i><i></i></div><i class="ev"></i></div>',
+    r:[...c3.map((c,i)=>['상 '+(i+1),c.x,T,c.w,third]),['하 전면',ZX,thirdY,ZW,twothird,'e']]},
+  ];
+
+  document.getElementById('sks').innerHTML = S.map(s=>{
+    const rows=[...pnl,...s.r];
+    const nblk=rows.filter(r=>r[5]!=='e').length;
+    return `
+    <div class="skc${s.key?' key':''}">
+      <div class="skh"><u>${s.id}</u><strong>${s.n}</strong><span>블록 ${nblk}</span></div>
+      <div class="skv"><div class="fr">${wrap(s.v)}</div></div>
+      <div class="skd">${s.d}</div>
+      <div class="skt"><table class="tv">
+        <tr><th>영역</th><th>X</th><th>Y</th><th>너비</th><th>높이</th></tr>
+        ${rows.map(r=>`<tr${r[5]==='p'?' class="pr"':''}><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td></tr>`).join('')}
+      </table></div>
+    </div>`;}).join('');
+}
+
+/* ===== 지도 ===== */
+function buildMap(){
+  const zy=zoneY(), zx=zoneX(), c3=cols(3);
+  const L=[],T=[];
+  const line=(x1,y1,x2,y2,c,d)=>L.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="3"${d?` stroke-dasharray="${d}"`:''}/>`);
+  const txt=(x,y,s,c,a)=>T.push(`<text x="${x}" y="${y}" fill="${c}" font-size="34" font-family="ui-monospace,Menlo,monospace" font-weight="600" text-anchor="${a||'start'}">${s}</text>`);
+
+  L.push(`<rect x="0" y="0" width="${W}" height="${H}" fill="#fff" stroke="#C6CDD4" stroke-width="3"/>`);
+  L.push(`<rect x="${FX}" y="${SAFE_T}" width="${FW}" height="${HDR_B-SAFE_T}" fill="#EEF1F4"/>`);
+  L.push(`<rect x="${FX}" y="${FTR_T}" width="${FW}" height="${SAFE_B-FTR_T}" fill="#EEF1F4"/>`);
+  L.push(`<rect x="${zx.x}" y="${zy.t}" width="${zx.w}" height="${zy.b-zy.t}" fill="#FDF3EA"/>`);
+  if(panel!=='none') L.push(`<rect x="${zx.px}" y="0" width="${PW}" height="${H}" fill="#DCE5EE" stroke="#2D4D6E" stroke-width="3"/>`);
+  line(0,BIND,W,BIND,'#D6207A','10 10');
+  L.push(`<rect x="${FX}" y="${SAFE_T}" width="${FW}" height="${SAFE_B-SAFE_T}" fill="none" stroke="#131B2B" stroke-width="3"/>`);
+  L.push(`<rect x="${FX}" y="${FT}" width="${FW}" height="${FB-FT}" fill="none" stroke="#E68100" stroke-width="4"/>`);
+  c3.forEach((c,i)=>{ if(i>0) line(c.x,FT,c.x,FB,'#2D4D6E','9 9');
+                      if(i<2) line(c.x+c.w,FT,c.x+c.w,FB,'#2D4D6E','9 9'); });
+  if(mode==='copy'){ line(FX,FT+COPY,FX+FW,FT+COPY,'#487B76','9 9'); line(FX,FT+COPY+G,FX+FW,FT+COPY+G,'#487B76','9 9');
+                     line(FX,FT+COPY+G+TIT,FX+FW,FT+COPY+G+TIT,'#487B76','9 9'); }
+  else line(FX,FT+TIT,FX+FW,FT+TIT,'#487B76','9 9');
+  line(FX,zy.t,FX+FW,zy.t,'#E68100','');
+
+  txt(-24,BIND-16,'118','#D6207A','end');
+  txt(-24,SAFE_T+40,'120','#131B2B','end');
+  txt(-24,FT+12,'271','#E68100','end');
+  txt(-24,zy.t+12,String(zy.t),'#E68100','end');
+  txt(-24,FB+12,'1542','#E68100','end');
+  txt(-24,FTR_T+12,'1585','#8792a0','end');
+  txt(-24,SAFE_B+40,'1618','#131B2B','end');
+  txt(FX,-12,'80','#131B2B');
+  txt(FX+FW,-12,'2259','#131B2B','end');
+  c3.forEach((c,i)=>{ if(i>0) txt(c.x,H+90,String(c.x),'#2D4D6E','middle');
+                      if(i<2) txt(c.x+c.w,H+44,String(c.x+c.w),'#2D4D6E','middle'); });
+  txt(zx.x+24,zy.t+56,'블록 존 '+zx.w+' × '+(zy.b-zy.t),'#E68100');
+  if(panel!=='none') txt(zx.px+40,120,'패널 '+PW+' · 전면','#2D4D6E');
+
+  document.getElementById('map').innerHTML = L.join('')+T.join('');
+}
+
+/* ===== 복사 ===== */
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');
+  clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove('on'),1300);}
+function cp(v){navigator.clipboard.writeText(String(v)).then(()=>toast(v+' 복사됨'));}
+function copyList(id){
+  const v=[...document.querySelectorAll('#'+id+' b')].map(b=>b.textContent).join(String.fromCharCode(10));
+  navigator.clipboard.writeText(v).then(()=>toast('전체 복사됨'));}
+
+document.getElementById('tg').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('#tg button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');mode=b.dataset.m;render();};
+document.getElementById('tp').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  document.querySelectorAll('#tp button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');panel=b.dataset.p;render();};
+function render(){buildLists();buildSks();buildMap();}
+render();
+</script>
+</body>
+</html>
