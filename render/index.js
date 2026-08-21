@@ -44,7 +44,7 @@ const 존높이 = (모드) => 프레임.하단 - 존[모드];             // 975
    짝수 쪽 반올림 (half to even). 키노트 · Numbers 가 쓰는 방식이다.
    Math.round 는 .5 를 올림 방향으로 고정해 4열 경계 1746.5 를 1747 로 밀었다. */
 
-function r(v) {
+function 반올림(v) {
   const f = Math.floor(v), d = v - f;
   if (d > 0.5) return f + 1;
   if (d < 0.5) return f;
@@ -57,7 +57,7 @@ function r(v) {
 
 function split(start, total, n, g) {
   const w = (total - g * (n - 1)) / n, end = start + total, p = [], out = [];
-  for (let i = 0; i < n; i++) p.push(r(start + i * (w + g)));
+  for (let i = 0; i < n; i++) p.push(반올림(start + i * (w + g)));
   for (let i = 0; i < n; i++) out.push({ x: p[i], w: (i < n - 1 ? p[i + 1] - g - p[i] : end - p[i]) });
   return out;
 }
@@ -66,7 +66,7 @@ function split(start, total, n, g) {
 
 function rows(t, h, ratio, g = 43) {          // ratio : '1:1' | '1:2' | '2:1'
   const [a, b] = ratio.split(':').map(Number);
-  const first = r((h - g) * a / (a + b));
+  const first = 반올림((h - g) * a / (a + b));
   return [{ y: t, h: first }, { y: t + first + g, h: h - g - first }];
 }
 
