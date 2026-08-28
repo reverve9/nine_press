@@ -69,9 +69,16 @@ body{
    여백은 0 이다. 계층이 저마다 한 칸(42)을 통째로 차지하므로
    여백을 따로 주면 그만큼 격자에서 밀려난다.
 
-   덩이가 여러 줄이 되어도 42 의 배수라 격자가 유지된다. */
+   덩이가 여러 줄이 되어도 42 의 배수라 격자가 유지된다.
 
-.lb{font-size:20px;font-weight:700;letter-spacing:.180em;color:var(--출처);line-height:42px}
+   라벨만 다르다. 행 상자를 42 로 키우면 20px 글자가 헐거워 보인다.
+   행간은 28 로 조이고 상하 패딩 7 로 칸(42)을 채운다.
+   이건 「라벨은 한 줄」을 전제로 한다 — 두 줄이면 70 이 되어 격자가 깨진다.
+   실측 근거 : 실제 문안 라벨 147개 중 145개가 G6 4열(22자)에서도 한 줄.
+   제목은 그렇지 않다 — 45개 중 G3 3열에서 17개가 두 줄이라 행 상자를 쓴다. */
+
+.lb{font-size:20px;font-weight:700;letter-spacing:.180em;color:var(--출처);
+  line-height:28px;padding:7px 0}
 .bt{font-size:29px;font-weight:700;letter-spacing:-.010em;color:var(--네이비);line-height:42px}
 .bd{font-size:24px;font-weight:400;letter-spacing:-.005em;color:var(--먹);line-height:42px}
 
