@@ -102,27 +102,32 @@ b{font-weight:700;color:var(--강조)}
 .tbd.co{border-color:var(--결론);color:var(--결론)}
 .ar{color:var(--강조);font-weight:700;letter-spacing:0}
 
-/* ── 헤더 밴드 — Y 120 → 185 · 높이 65 ── */
+/* ── 헤더 밴드 — Y 120 → 185 · 높이 65 ──
+   페이지타이틀 41 × 1.2 = 49 · 남음 16. 밴드 계층은 격자 밖이다. */
 
 .hd{position:absolute;left:var(--안전X);top:var(--헤더Y);
   width:var(--안전W);height:var(--헤더H);
   display:flex;align-items:center;
-  font-size:29px;font-weight:700;letter-spacing:-.010em;color:var(--네이비)}
+  font-size:41px;font-weight:800;letter-spacing:-.015em;color:var(--네이비);line-height:49px}
 
-/* ── 카피 존 — 카피 모드에서만. Y 271 · 높이 156 ── */
+/* ── 카피 존 — 카피 모드에서만. Y 271 · 높이 156 ──
+   메인카피 74 + 간격 10 + 서브디스크립션 55 = 139 · 남음 17.
+   **메인카피는 한 줄이다** — 두 줄이면 213 이 되어 밴드를 57 넘친다.
+   카피 존 폭 2179 · 64px 기준 34자가 한계다. */
 
 .cp{position:absolute;left:var(--안전X);top:var(--카피Y);
   width:var(--안전W);height:var(--카피H);
   display:flex;flex-direction:column;justify-content:center;gap:10px}
-.cpm{font-size:29px;font-weight:700;letter-spacing:-.010em;color:var(--네이비);line-height:1.35}
-.cps{font-size:24px;font-weight:400;letter-spacing:-.005em;color:var(--부연);line-height:1.75}
+.cpm{font-size:64px;font-weight:800;letter-spacing:-.015em;color:var(--네이비);line-height:74px}
+.cps{font-size:39px;font-weight:400;letter-spacing:-.005em;color:var(--부연);line-height:55px}
 .page[data-mode="연속"] .cp{display:none}
 
-/* ── 논지 — 높이 54. 모드가 Y 를 정한다 ── */
+/* ── 논지 — 높이 54. 모드가 Y 를 정한다 ──
+   45px × 1.2 = 54 로 밴드에 딱 맞는다. 여유가 0 이라 한 줄만 들어간다. */
 
 .tt{position:absolute;left:var(--안전X);width:var(--안전W);height:var(--논지H);
   display:flex;align-items:center;
-  font-size:29px;font-weight:700;letter-spacing:-.010em;color:var(--강조)}
+  font-size:45px;font-weight:800;letter-spacing:-.015em;color:var(--강조);line-height:54px}
 .page[data-mode="카피"] .tt{top:var(--논지Y카피)}
 .page[data-mode="연속"] .tt{top:var(--논지Y연속)}
 
