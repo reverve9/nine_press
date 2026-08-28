@@ -61,29 +61,36 @@ body{
 .page{position:relative;width:var(--판W);height:var(--판H);
   background:#fff;overflow:hidden;box-shadow:0 1px 3px rgba(19,27,43,.07)}
 
-/* ── 글자 3계층 — §3-3 ───────────────────────────────────
-   자간 단위는 1/1000 em. 나머지 6계층은 N-글자 다.
+/* ── 글자 계층 · 자리 안 다섯 — 키노트 세팅 §5 ────────────
+   자간 단위는 1/1000 em · 표제 −15 · 본문 −5 · 라벨 +180.
 
-   행 높이를 배수가 아닌 px 로 못박는다 — 기준선 42 격자 (§4-3).
-   비율(1.4 · 1.35)로 두면 글자 크기를 건드릴 때마다 격자가 깨진다.
-   여백은 0 이다. 계층이 저마다 한 칸(42)을 통째로 차지하므로
+   행 높이를 비율이 아니라 px 로 못박는다 — 기준선 42 격자 (§4-3).
+   비율로 두면 글자 크기를 건드릴 때마다 격자가 깨진다.
+   여백은 0 이다. 계층이 저마다 42 의 배수를 통째로 차지하므로
    여백을 따로 주면 그만큼 격자에서 밀려난다.
 
-   덩이가 여러 줄이 되어도 42 의 배수라 격자가 유지된다.
+   계층      크기 굵기  행 상자   두 줄이 되나
+   박스 타이틀  29  700   42      된다 · G6 4열에서 8% · 그래서 행 상자
+   요약문      26  400   42      된다
+   본문        24  400   42      당연히 된다
+   라벨·출처   20  700   28+7/7  거의 안 된다 · 그래서 패딩으로 조인다
+   강조 수치    52  700   84      52px 글자는 한 칸에 안 들어간다
 
-   라벨만 다르다. 행 상자를 42 로 키우면 20px 글자가 헐거워 보인다.
-   행간은 28 로 조이고 상하 패딩 7 로 칸(42)을 채운다.
-   이건 「라벨은 한 줄」을 전제로 한다 — 두 줄이면 70 이 되어 격자가 깨진다.
-   실측 근거 : 실제 문안 라벨 147개 중 145개가 G6 4열(22자)에서도 한 줄.
-   제목은 그렇지 않다 — 45개 중 G3 3열에서 17개가 두 줄이라 행 상자를 쓴다. */
+   밴드 계층 넷(메인카피·서브디스크립션·논지·페이지타이틀)은 격자 밖이다.
+   카피 존 156 · 논지 존 54 · 헤더 65 가 고정 높이라 42 배수를 안 따진다. */
 
+.bt{font-size:29px;font-weight:700;letter-spacing:-.015em;color:var(--네이비);line-height:42px}
+.sm{font-size:26px;font-weight:400;letter-spacing:-.005em;color:var(--먹);line-height:42px}
+.bd{font-size:24px;font-weight:400;letter-spacing:-.005em;color:var(--먹);line-height:42px}
+.nm{font-size:52px;font-weight:700;letter-spacing:-.015em;color:var(--결론);line-height:84px}
+
+/* 라벨만 패딩으로 칸을 채운다 — 20px 을 42 행 상자에 넣으면 헐겁다.
+   「라벨은 한 줄」 전제 · 두 줄이면 70 이 되어 격자가 깨진다.
+   실측 : 실제 문안 147개 중 145개가 G6 4열(22자)에서도 한 줄 */
 .lb{font-size:20px;font-weight:700;letter-spacing:.180em;color:var(--출처);
   line-height:28px;padding:7px 0}
-.bt{font-size:29px;font-weight:700;letter-spacing:-.010em;color:var(--네이비);line-height:42px}
-.bd{font-size:24px;font-weight:400;letter-spacing:-.005em;color:var(--먹);line-height:42px}
 
-.lb + .bt{margin-top:0}
-.bt + .bd,.lb + .bd{margin-top:0}
+.bt + .sm,.bt + .bd,.sm + .bd,.lb + .bt,.lb + .bd{margin-top:0}
 .bd + .bd{margin-top:var(--문단사이)}
 
 b{font-weight:700;color:var(--강조)}

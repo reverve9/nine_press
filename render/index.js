@@ -174,10 +174,14 @@ function 블록(자리, r, i, 여백문서) {
     (pad !== 여백기본 || 자리.여백 != null ? `;padding:${pad}px` : '');
   const P = ['자리', i];
   const o = [`<div class="bx" style="${st}"${dk(자리.이름)}>`];
-  if (자리.라벨) o.push(`<div class="lb"${dp([...P, '라벨'])}>${inline(자리.라벨)}</div>`);
+  // 순서 고정 — 제목(박스 타이틀) → 요약문 → 문단 → 출처
   if (자리.제목) o.push(`<div class="bt"${dp([...P, '제목'])}>${inline(자리.제목)}</div>`);
+  if (자리.요약) o.push(`<div class="sm"${dp([...P, '요약'])}>${inline(자리.요약)}</div>`);
   const 문단 = 자리.문단 == null ? [] : Array.isArray(자리.문단) ? 자리.문단 : [자리.문단];
   문단.forEach((t, j) => o.push(`<div class="bd"${dp([...P, '문단', j])}>${inline(t)}</div>`));
+  if (자리.출처) o.push(`<div class="lb"${dp([...P, '출처'])}>${inline(자리.출처)}</div>`);
+  if (자리.라벨 != null) throw new Error(
+    `자리 ${i} 가 옛 열쇠 "라벨" 을 쓴다. 박스 타이틀이면 "제목" · 출처 표기면 "출처" 로 바꾼다`);
   o.push('</div>');
   return o.join('');
 }
