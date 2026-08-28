@@ -22,6 +22,7 @@
 
   --거터:43px;
   --여백:33px;          /* 블록 안쪽 여백 · 문서 기본값 */
+  --기준선:42px;        /* 본문 24px × 행간 1.75 · 세로 치수는 전부 이 배수 */
   --선굵기:1px;
 
   /* 색 7 — §3-3 */
@@ -118,6 +119,20 @@ b{font-weight:700;color:var(--강조)}
 
 .bx{position:absolute;padding:var(--여백);overflow:hidden}
 
+/* ── 기준선 자 — 42px 격자 · 검사용 · 출력에 안 나간다 ──
+   render(doc,{기준선:true}) 또는 doc.기준선 이면 .wrap 에 .bl 이 붙는다.
+   자리(.bx) 안쪽 여백 위에서 시작한다. 자리마다 원점을 새로 잡으므로
+   골격이 무엇이든 그 자리 안에서는 언제나 맞는 자다.
+   굵은 선은 5줄(210px)마다. 줄을 세기 쉬우라고 둔다. */
+
+.wrap.bl .bx:before{content:"";position:absolute;pointer-events:none;
+  left:0;right:0;top:var(--여백);bottom:0;
+  background:
+    repeating-linear-gradient(to bottom,
+      rgba(200,0,120,.34) 0 1px, transparent 1px calc(var(--기준선) * 5)),
+    repeating-linear-gradient(to bottom,
+      rgba(200,0,120,.17) 0 1px, transparent 1px var(--기준선));}
+
 /* ── 검사용 임시 외곽선 · 기본 꺼 둠 — §2⑤
    문서 JSON 에 "판면":"dbg" 를 주면 .wrap.dbg 가 붙어 켜진다.
    구분선(N2)이 아니다. 출력에 나가지 않는다. */
@@ -144,6 +159,7 @@ b{font-weight:700;color:var(--강조)}
   /* psafe — 프린터 여백을 못 끄는 환경용. html 에 클래스를 붙인다 */
   html.psafe .sheet{width:273mm!important;height:186mm!important;margin:0 auto!important}
   html.psafe .sheet .page{transform:scale(.44094)!important}
+  .wrap.bl .bx:before{display:none!important}
   .wrap.dbg .bx,.wrap.dbg .hd,.wrap.dbg .cp,.wrap.dbg .tt,.wrap.dbg .ft{outline:none!important}
   .wrap.dbg .page:before{display:none!important}
 }

@@ -208,9 +208,10 @@ ${rects.map((r, i) => 블록(자리[i], r, i, 여백문서)).join('\n')}
    파일을 옮기든 메일로 보내든 판면이 깨지지 않는다. 이것이 기본이다.
    css 를 안 주면 <link> 로 건다 (규칙을 고치며 새로고침하는 개발용).
 
-   doc.판면 은 .wrap 에 그대로 붙는다. "판면":"dbg" 로 검사용 외곽선을 켠다. */
+   doc.판면 은 .wrap 에 그대로 붙는다. "판면":"dbg" 로 검사용 외곽선을 켠다.
+   기준선 자는 render(doc,{기준선:true}) 또는 doc.기준선 으로 켠다 → .wrap.bl */
 
-export function render(doc, { css, cssBase = '../../rules', 도구: 표식 = false } = {}) {
+export function render(doc, { css, cssBase = '../../rules', 도구: 표식 = false, 기준선 = false } = {}) {
   도구 = 표식;
   let pages;
   try {
@@ -225,7 +226,7 @@ export function render(doc, { css, cssBase = '../../rules', 도구: 표식 = fal
   return `<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
 <title>${doc.문서명 ?? 'nine_press'}</title>
 ${head}
-</head><body><div class="wrap${doc.판면 ? ' ' + doc.판면 : ''}">
+</head><body><div class="wrap${doc.판면 ? ' ' + doc.판면 : ''}${기준선 || doc.기준선 ? ' bl' : ''}">
 ${pages}
 </div></body></html>`;
 }

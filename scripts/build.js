@@ -4,6 +4,7 @@
 //   node scripts/build.js content/sokcho/실행계획서.json --embed   폰트까지 base64
 //   node scripts/build.js content/sokcho/실행계획서.json --link    개발용 <link>
 //   node scripts/build.js content/sokcho/실행계획서.json --v3      봉인한 12칸 트랙 렌더러
+//   node scripts/build.js content/_check/판면기준.json --grid       기준선 자 42px 를 켠다
 //
 // 기본이 자기완결인 이유 — <link> 로 걸면 파일을 옮기는 순간 판면이 통째로 날아간다.
 // 옮긴 사람은 그게 CSS 경로 문제인지 알 수 없다.
@@ -18,6 +19,7 @@ const src = argv.find((a) => !a.startsWith('--')) ?? 'content/sokcho/실행계�
 const embed = argv.includes('--embed');
 const link = argv.includes('--link');
 const v3 = argv.includes('--v3');      // 봉인본 · render/_v3/봉인.md
+const grid = argv.includes('--grid');  // 기준선 자 · 봉인본에는 없다
 
 const { render } = await import(v3 ? '../render/_v3/index.js' : '../render/index.js');
 
@@ -56,7 +58,7 @@ if (!link) {
   css = fonts + '\n' + page;
 }
 
-let html = render(doc, { css });
+let html = render(doc, { css, 기준선: grid });
 
 // 그림 — 폰트와 같은 방식. link 는 상대경로, 아니면 base64 로 박는다
 if (link) {
@@ -75,4 +77,4 @@ fs.writeFileSync(file, html, 'utf8');
 
 const kb = (fs.statSync(file).size / 1024).toFixed(0);
 const mode = link ? '<link> 개발용' : embed ? '자기완결 · 폰트 내장' : '자기완결 · 폰트 상대경로';
-console.log(`${file}\n  ${doc.면.length}면 · ${kb}KB · ${mode}${v3 ? ' · 봉인본 v3' : ''}`);
+console.log(`${file}\n  ${doc.면.length}면 · ${kb}KB · ${mode}${v3 ? ' · 봉인본 v3' : ''}${grid ? ' · 기준선 자' : ''}`);
