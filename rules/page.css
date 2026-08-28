@@ -23,6 +23,7 @@
   --거터:43px;
   --여백:33px;          /* 블록 안쪽 여백 · 문서 기본값 */
   --기준선:42px;        /* 본문 24px × 행간 1.75 · 세로 치수는 전부 이 배수 */
+  --문단사이:42px;      /* 문단 사이 여백 · 0 또는 42 만 쓴다. 21 은 격자가 엇갈린다 */
   --선굵기:1px;
 
   /* 색 7 — §3-3 */
@@ -61,15 +62,22 @@ body{
   background:#fff;overflow:hidden;box-shadow:0 1px 3px rgba(19,27,43,.07)}
 
 /* ── 글자 3계층 — §3-3 ───────────────────────────────────
-   자간 단위는 1/1000 em. 나머지 6계층은 N3 이다. */
+   자간 단위는 1/1000 em. 나머지 6계층은 N-글자 다.
 
-.lb{font-size:20px;font-weight:700;letter-spacing:.180em;color:var(--출처);line-height:1.4}
-.bt{font-size:29px;font-weight:700;letter-spacing:-.010em;color:var(--네이비);line-height:1.35}
-.bd{font-size:24px;font-weight:400;letter-spacing:-.005em;color:var(--먹);line-height:1.75}
+   행 높이를 배수가 아닌 px 로 못박는다 — 기준선 42 격자 (§4-3).
+   비율(1.4 · 1.35)로 두면 글자 크기를 건드릴 때마다 격자가 깨진다.
+   여백은 0 이다. 계층이 저마다 한 칸(42)을 통째로 차지하므로
+   여백을 따로 주면 그만큼 격자에서 밀려난다.
 
-.lb + .bt{margin-top:12px}
-.bt + .bd,.lb + .bd{margin-top:14px}
-.bd + .bd{margin-top:12px}
+   덩이가 여러 줄이 되어도 42 의 배수라 격자가 유지된다. */
+
+.lb{font-size:20px;font-weight:700;letter-spacing:.180em;color:var(--출처);line-height:42px}
+.bt{font-size:29px;font-weight:700;letter-spacing:-.010em;color:var(--네이비);line-height:42px}
+.bd{font-size:24px;font-weight:400;letter-spacing:-.005em;color:var(--먹);line-height:42px}
+
+.lb + .bt{margin-top:0}
+.bt + .bd,.lb + .bd{margin-top:0}
+.bd + .bd{margin-top:var(--문단사이)}
 
 b{font-weight:700;color:var(--강조)}
 .bd b{color:var(--강조)}
