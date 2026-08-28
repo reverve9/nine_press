@@ -1,0 +1,1028 @@
+:root{--u:1.949px;--view:.42}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Pretendard Variable',Pretendard,'Noto Sans KR','Malgun Gothic',sans-serif;
+ background:#eef0f3;padding:34px 20px 60px;color:#2a333d;line-height:1.7;
+ word-break:keep-all;overflow-wrap:break-word}
+.goal,.num,.stp,.pgno,.bt,.cv h1,.tct,.big,.kn,.mt,.sn{font-family:'Paperlogy',sans-serif}
+.wrap{width:calc(2339px * var(--view));margin:0 auto}
+.cap{color:#5b6773;font-size:12.5px;margin:0 0 7px 2px;letter-spacing:-.01em}
+.cap b{color:#192949}
+.sheet{width:calc(2339px * var(--view));height:calc(1654px * var(--view));overflow:hidden;
+ margin-bottom:calc(30px * var(--view))}
+.sheet .page{transform:scale(var(--view));transform-origin:top left}
+.page{position:relative;width:2339px;height:1654px;background:#fff;overflow:hidden;
+ box-shadow:0 1px 3px rgba(25,41,73,.07)}
+
+/* ── 헤더 ── */
+.hd{display:flex;align-items:center;gap:calc(18*var(--u));
+ padding:calc(17*var(--u)) calc(30*var(--u));background:#F7F9FB;border-bottom:1px solid #E6EAEE}
+.num{flex:0 0 auto;width:calc(38*var(--u));height:calc(38*var(--u));border-radius:50%;
+ background:#192949;color:#fff;font-size:calc(15*var(--u));font-weight:800;
+ display:flex;align-items:center;justify-content:center}
+.hi{flex:1;min-width:0}
+.goal{font-size:calc(20*var(--u));font-weight:800;color:#192949;letter-spacing:-.015em;line-height:1.4}
+.meta{font-size:calc(12.4*var(--u));color:#8b96a2;margin-top:calc(3*var(--u));letter-spacing:-.01em}
+.meta b{color:#5b6773;font-weight:700}
+.stp{flex:0 0 auto;text-align:right;line-height:1.15}
+.stp .sn{font-size:calc(23*var(--u));font-weight:800;color:#E68100;letter-spacing:-.02em;display:block}
+.stp .sl{font-size:calc(11*var(--u));color:#8b96a2;letter-spacing:.02em}
+
+/* ── 본문 ── */
+.bd{position:absolute;left:calc(30*var(--u));right:calc(30*var(--u));
+ top:calc(100*var(--u));bottom:calc(28*var(--u));display:flex;flex-direction:column;
+ gap:calc(12*var(--u))}
+.row{display:flex;gap:calc(12*var(--u));min-height:0}
+.row.g{flex:1}
+.col{display:flex;flex-direction:column;gap:calc(12*var(--u));min-width:0}
+.b{border:1px solid #E4E8EC;border-radius:calc(6*var(--u));
+ padding:calc(15*var(--u)) calc(19*var(--u)) calc(16*var(--u));min-width:0}
+.b.fill{background:#F7F9FB;border-color:#EAEEF2}
+.b.nv{background:#192949;border-color:#192949;color:#dfe6ee}
+.b.or{background:#FDF6EC;border-color:#EFD9B8}
+.b.gr{background:#F4F9F8;border-color:#CFE0DD}
+.bl{font-size:calc(10.8*var(--u));font-weight:800;color:#8b96a2;letter-spacing:.16em;
+ margin-bottom:calc(10*var(--u))}
+.b.nv .bl{color:#8fa6b8}
+.bt{font-size:calc(14.8*var(--u));font-weight:800;color:#192949;letter-spacing:-.015em;
+ margin-bottom:calc(9*var(--u))}
+.b.nv .bt{color:#fff}
+.tx{font-size:calc(13*var(--u));color:#46515e;line-height:1.8;letter-spacing:-.012em}
+.b.nv .tx{color:#c6d2e0}
+.tx + .tx{margin-top:calc(6*var(--u))}
+ul.li + .tx,table.tb + .tx{margin-top:calc(9*var(--u))}
+.tx + ul.li{margin-top:calc(7*var(--u))}
+.tx b{color:#12233f;font-weight:700}
+.b.nv .tx b{color:#F1B03C}
+.b.nv ul.li li{color:#c6d2e0}
+.b.nv ul.li li b{color:#F1B03C}
+.b.nv ul.li li:before{color:#F1B03C}
+.b.nv table.tb td{color:#c6d2e0;border-bottom-color:#2b4066}
+.b.nv table.tb td b{color:#fff}
+.hl{background:linear-gradient(transparent 62%,#ffe6bf 62%);font-weight:700;color:#12233f}
+
+/* 목록 */
+ul.li{list-style:none}
+ul.li li{font-size:calc(13*var(--u));color:#46515e;line-height:1.74;padding-left:calc(16*var(--u));
+ position:relative;margin-bottom:calc(6*var(--u));letter-spacing:-.012em}
+ul.li li:last-child{margin-bottom:0}
+ul.li li:before{content:"·";position:absolute;left:calc(4*var(--u));color:#E68100;font-weight:800}
+ul.li li b{color:#12233f;font-weight:700}
+ul.nb li:before{content:counter(x);counter-increment:x;font-size:calc(9.5*var(--u));
+ font-weight:800;color:#fff;background:#2D4D6E;border-radius:50%;width:calc(14*var(--u));
+ height:calc(14*var(--u));display:flex;align-items:center;justify-content:center;
+ left:0;top:calc(3*var(--u))}
+ul.nb{counter-reset:x}
+ul.nb li{padding-left:calc(21*var(--u))}
+
+/* 표 */
+table.tb{width:100%;border-collapse:collapse;table-layout:fixed}
+table.tb th{font-size:calc(11*var(--u));font-weight:800;color:#8b96a2;background:transparent;
+ padding:0 calc(9*var(--u)) calc(8*var(--u));text-align:left;letter-spacing:.06em;
+ border-bottom:1px solid #DDE3E9;white-space:nowrap}
+table.tb td{font-size:calc(12.4*var(--u));color:#46515e;padding:calc(7*var(--u)) calc(9*var(--u));
+ border-bottom:1px solid #EEF1F4;letter-spacing:-.012em;line-height:1.58;vertical-align:top}
+table.tb td b{color:#12233f;font-weight:700}
+table.tb tr:last-child td{border-bottom:none}
+table.tb.cp td{padding:calc(5*var(--u)) calc(9*var(--u));font-size:calc(12*var(--u))}
+table.tb.cp th{padding:0 calc(9*var(--u)) calc(7*var(--u))}
+table.tb.xs td{padding:calc(2.4*var(--u)) calc(9*var(--u));font-size:calc(11.4*var(--u));line-height:1.5}
+table.tb.xs th{padding:calc(4*var(--u)) calc(8*var(--u))}
+table.tb td.c,table.tb th.c{text-align:center}
+table.tb td.c,table.tb td.n{white-space:nowrap}
+table.tb td.r,table.tb th.r{text-align:right}
+table.tb td.n{font-family:'Paperlogy',sans-serif;font-weight:800;color:#192949}
+table.tb tr.sum td{background:#192949;color:#fff;font-weight:800;border:none}
+table.tb tr.sum td b,table.tb tr.sum td.n{color:#F1B03C}
+.tg{display:inline-block;font-size:calc(9.6*var(--u));font-weight:800;border-radius:calc(3*var(--u));
+ padding:calc(1.5*var(--u)) calc(6*var(--u));letter-spacing:.02em;white-space:nowrap}
+.tg.im{background:#E68100;color:#fff}
+.tg.nx{background:#E4E8EC;color:#5b6773}
+.tg.ok{background:#2C8F4A;color:#fff}
+.tg.hi{background:#B03A72;color:#fff}
+.tg.lo{background:#8792a0;color:#fff}
+
+/* 점수 막대 */
+.sc{display:flex;align-items:center;gap:calc(9*var(--u));margin-bottom:calc(7*var(--u))}
+.sc:last-child{margin-bottom:0}
+.sc .k{flex:0 0 calc(56*var(--u));font-size:calc(13*var(--u));font-weight:700;color:#39434f}
+.sc .g{flex:1;height:calc(13*var(--u));background:#EDF0F4;border-radius:calc(2*var(--u));
+ position:relative;overflow:hidden}
+.sc .g i{position:absolute;left:0;top:0;bottom:0;border-radius:calc(2*var(--u));background:#2D4D6E}
+.sc .g i.up{background:#E68100}
+.sc .g i.b0{background:#AAB5C1}
+.sc .v{flex:0 0 calc(58*var(--u));text-align:right;font-family:'Paperlogy',sans-serif;
+ font-size:calc(12*var(--u));font-weight:800;color:#192949}
+.sc .v span{font-size:calc(10*var(--u));color:#8b96a2;font-weight:700}
+.sc .d{flex:0 0 calc(38*var(--u));text-align:right;font-family:'Paperlogy',sans-serif;
+ font-size:calc(11.5*var(--u));font-weight:800;color:#E68100}
+
+/* 단계 띠 */
+.fl{display:flex;align-items:stretch;gap:calc(4*var(--u))}
+.fl .st{flex:1;background:#F7F9FB;border:1px solid #E4E8EC;border-radius:calc(5*var(--u));
+ padding:calc(10*var(--u)) calc(11*var(--u));position:relative}
+.fl .st.on{background:#192949;border-color:#192949}
+.fl .st .sd{font-size:calc(10.2*var(--u));font-weight:800;color:#8b96a2;letter-spacing:.06em}
+.fl .st.on .sd{color:#F1B03C}
+.fl .st .sm{font-size:calc(12.6*var(--u));font-weight:700;color:#39434f;margin-top:calc(2*var(--u));
+ letter-spacing:-.015em;line-height:1.35}
+.fl .st.on .sm{color:#fff}
+
+/* 키·값 격자 */
+.kv{display:flex;flex-wrap:wrap;gap:calc(7*var(--u))}
+.kv .it{flex:1 1 calc(30%);min-width:calc(90*var(--u));background:#F7F9FB;border-radius:calc(5*var(--u));
+ padding:calc(9*var(--u)) calc(12*var(--u))}
+.kv .it .kn{font-size:calc(10.6*var(--u));font-weight:800;color:#8b96a2;letter-spacing:.08em}
+.kv .it .kx{font-size:calc(13.4*var(--u));color:#39434f;margin-top:calc(2*var(--u));
+ letter-spacing:-.015em;line-height:1.5}
+.kv .it .kx b{color:#12233f;font-weight:700}
+
+/* 큰 수치 */
+.mt{display:flex;gap:calc(10*var(--u))}
+.mt .m{flex:1;background:#F7F9FB;border-radius:calc(6*var(--u));padding:calc(12*var(--u)) calc(14*var(--u))}
+.mt .m .big{font-size:calc(24*var(--u));font-weight:800;color:#192949;letter-spacing:-.03em;line-height:1.1}
+.mt .m .big span{font-size:calc(13*var(--u));color:#5b6773}
+.mt .m .lb{font-size:calc(11.4*var(--u));color:#8b96a2;margin-top:calc(3*var(--u));letter-spacing:-.01em}
+.mt .m.or{background:#FDF6EC}
+.mt .m.or .big{color:#C06A00}
+
+/* 하단 */
+.foot{display:flex;gap:calc(12*var(--u));align-items:stretch;margin-top:auto;flex:0 0 auto}
+.foot .pt{flex:1;background:#F7F9FB;border-radius:calc(6*var(--u));
+ padding:calc(11*var(--u)) calc(16*var(--u)) calc(12*var(--u))}
+.foot .pl{font-size:calc(10.6*var(--u));font-weight:800;color:#8b96a2;letter-spacing:.16em;
+ margin-bottom:calc(5*var(--u))}
+.foot .pt ul{list-style:none}
+.foot .pt li{font-size:calc(11.9*var(--u));color:#55616e;line-height:1.62;padding-left:calc(14*var(--u));
+ position:relative;margin-bottom:calc(3*var(--u))}
+.foot .pt li:last-child{margin-bottom:0}
+.foot .pt li:before{content:"·";position:absolute;left:calc(3*var(--u));color:#E68100;font-weight:800}
+.foot .pt li b{color:#12233f;font-weight:700}
+.foot .pt.q{background:#FDF6EC}
+.foot .pt.q .pl{color:#C09A62}
+.foot .pt.q li:before{content:"?";font-size:calc(9.5*var(--u));color:#C06A00}
+/* 프로세스 지도 */
+.pmap{display:flex;gap:calc(7*var(--u));align-items:stretch;flex:0 0 auto}
+.pmap .pc{flex:1;border:1px solid #E4E8EC;border-radius:calc(6*var(--u));
+ padding:calc(15*var(--u)) calc(13*var(--u));display:flex;flex-direction:column;min-width:0}
+.pmap .pc .pd{font-family:'Paperlogy',sans-serif;font-size:calc(10.6*var(--u));font-weight:800;
+ color:#E68100;letter-spacing:.05em}
+.pmap .pc .pn{font-family:'Paperlogy',sans-serif;font-size:calc(15.5*var(--u));font-weight:800;
+ color:#192949;margin-top:calc(5*var(--u));letter-spacing:-.025em;line-height:1.3}
+.pmap .pc .px{font-size:calc(12*var(--u));color:#5b6773;line-height:1.75;margin-top:calc(11*var(--u));flex:1;
+ letter-spacing:-.015em}
+.pmap .pc .px b{color:#12233f;font-weight:700}
+.pmap .pc .pf{font-size:calc(10.6*var(--u));color:#aeb6c0;margin-top:calc(11*var(--u));
+ padding-top:calc(9*var(--u));border-top:1px solid #EEF1F4;letter-spacing:.02em}
+.pmap .pc.on{background:#192949;border-color:#192949}
+.pmap .pc.on .pn{color:#fff}
+.pmap .pc.on .px{color:#c6d2e0}
+.pmap .pc.on .px b{color:#F1B03C}
+.pmap .pc.on .pf{color:#7d94ab;border-top-color:#2b4066}
+.band{display:flex;align-items:center;gap:calc(16*var(--u));background:#F4F9F8;border:1px dashed #B6CFCA;
+ border-radius:calc(6*var(--u));padding:calc(14*var(--u)) calc(22*var(--u))}
+.band .bn{font-family:'Paperlogy',sans-serif;font-size:calc(13.5*var(--u));font-weight:800;color:#3f6f6a;
+ letter-spacing:-.02em;white-space:nowrap}
+.band .bx2{font-size:calc(12.4*var(--u));color:#4d6f6b;line-height:1.7;letter-spacing:-.015em}
+.band .bx2 b{color:#2c5450}
+.pgno{position:absolute;left:0;right:0;bottom:calc(9*var(--u));text-align:center;
+ font-size:calc(10*var(--u));color:#b9c2cc;letter-spacing:.08em}
+
+/* 표지 */
+.cv{background:#fff;color:#2a333d;padding:calc(52*var(--u)) calc(72*var(--u)) calc(34*var(--u));
+ border-top:calc(7*var(--u)) solid #192949;display:flex;flex-direction:column}
+.cv h1{font-size:calc(38*var(--u));font-weight:800;letter-spacing:-.025em;line-height:1.32;color:#192949}
+.cv .cs{color:#5b6773;font-size:calc(14.5*var(--u));margin-top:calc(13*var(--u));line-height:1.7}
+.cv .bar{display:flex;gap:calc(10*var(--u));margin-top:calc(24*var(--u))}
+.cv .bx{background:#F7F9FB;border:1px solid #EAEEF2;border-radius:calc(5*var(--u));
+ padding:calc(12*var(--u)) calc(16*var(--u));flex:1}
+.cv .bx b{display:block;font-family:'Paperlogy',sans-serif;color:#192949;font-size:calc(20*var(--u));
+ font-weight:800;letter-spacing:-.025em}
+.cv .bx span{font-size:calc(11.4*var(--u));color:#8b96a2}
+.cv .bx.k{background:#FDF6EC;border-color:#EFD9B8}
+.cv .bx.k b{color:#C06A00}
+.cv .gd{margin-top:calc(24*var(--u));border-top:1px solid #E4E8EC;padding-top:calc(18*var(--u))}
+.cv .gd h2{font-family:'Paperlogy',sans-serif;font-size:calc(13.4*var(--u));font-weight:800;
+ color:#E68100;letter-spacing:.03em;margin-bottom:calc(9*var(--u))}
+.cv .gd ul{list-style:none;column-count:2;column-gap:calc(36*var(--u))}
+.cv .gd li{font-size:calc(13*var(--u));color:#46515e;line-height:1.72;padding-left:calc(14*var(--u));
+ position:relative;break-inside:avoid;margin-bottom:calc(2*var(--u))}
+.cv .gd li:before{content:"—";position:absolute;left:0;color:#c3ccd6}
+.cv .gd li b{color:#12233f;font-weight:700}
+.toc{margin-top:calc(18*var(--u));flex:0 0 auto;border-top:1px solid #E4E8EC;padding-top:calc(15*var(--u))}
+.tct{font-size:calc(13.4*var(--u));font-weight:800;color:#E68100;letter-spacing:.03em;
+ margin-bottom:calc(8*var(--u))}
+.toc table{width:100%;border-collapse:collapse;table-layout:fixed}
+.toc td{padding:calc(3.6*var(--u)) 0;font-size:calc(12.4*var(--u));color:#46515e;
+ border-bottom:1px solid #EEF1F4;letter-spacing:-.012em;white-space:nowrap;overflow:hidden;
+ text-overflow:ellipsis}
+.toc td.n{width:calc(28*var(--u));font-family:'Paperlogy',sans-serif;font-weight:800;color:#aeb6c0}
+.toc td.p{width:calc(74*var(--u));color:#8b96a2;font-size:calc(11.2*var(--u))}
+.toc td.g{color:#192949;padding-right:calc(14*var(--u))}
+.tl{display:flex;gap:calc(4*var(--u))}
+.tl .t{flex:1;background:#F7F9FB;border:1px solid #EAEEF2;border-radius:calc(4*var(--u));
+ padding:calc(8*var(--u)) calc(7*var(--u))}
+.tl .t.k{background:#192949;border-color:#192949}
+.tl .t .d{font-family:'Paperlogy',sans-serif;font-size:calc(10.6*var(--u));font-weight:800;color:#8b96a2;
+ letter-spacing:.02em}
+.tl .t.k .d{color:#F1B03C}
+.tl .t .n{font-size:calc(11.4*var(--u));color:#39434f;margin-top:calc(2*var(--u));letter-spacing:-.02em;
+ line-height:1.3}
+.tl .t.k .n{color:#fff;font-weight:700}
+.tlt{margin-top:auto;padding-top:calc(20*var(--u));margin-bottom:calc(8*var(--u));
+ font-family:'Paperlogy',sans-serif;font-size:calc(13.4*var(--u));font-weight:800;color:#E68100;
+ letter-spacing:.03em}
+
+/* 인쇄 — A4 가로. 2339px × 0.47991 = 297mm(1122.5px @96dpi) */
+@page{size:297mm 210mm;margin:0}
+@media print{
+ html,body{background:#fff!important;padding:0!important;margin:0!important;
+  -webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+ .wrap{width:auto!important;margin:0!important}
+ .cap{display:none!important}
+ .sheet{width:calc(2339px * .47991)!important;height:calc(1654px * .47991)!important;
+  margin:0!important;overflow:hidden!important;page-break-after:always;break-after:page}
+ .sheet:last-child{page-break-after:auto;break-after:auto}
+ .sheet .page{transform:scale(.47991)!important;transform-origin:top left!important;
+  box-shadow:none!important}
+ /* 안전 인쇄 — 여백을 0으로 못 맞출 때. 사방 12mm까지 잘리지 않는다 */
+ html.psafe .sheet{width:calc(2339px * .425)!important;height:calc(1654px * .425)!important;
+  margin:0 auto!important}
+ html.psafe .sheet .page{transform:scale(.425)!important}
+}
+.page,.sheet{width:2340px!important}
+.wrap{width:calc(2340px*var(--view))!important}
+
+/* ── 판면 여백 (확정 v2) ── */
+.bd{left:calc(51.31*var(--u));right:calc(51.31*var(--u));bottom:calc(52*var(--u));gap:calc(14.879*var(--u))}
+.pgno{bottom:calc(17*var(--u))}
+.hd{padding-left:calc(51.31*var(--u));padding-right:calc(51.31*var(--u))}
+.row{gap:calc(14.879*var(--u))}
+.col{gap:calc(14.879*var(--u))}
+.b{padding:calc(17*var(--u)) calc(21*var(--u)) calc(18*var(--u))}
+
+/* ── 활자 (확정 v2) ── */
+.bl,.foot .pl{font-family:'Paperlogy',sans-serif}
+.bl{font-size:calc(11.2*var(--u));letter-spacing:.09em;color:#7a8695;margin-bottom:calc(11*var(--u))}
+.foot .pl{font-size:calc(11*var(--u));letter-spacing:.09em;color:#7a8695}
+.tx{font-size:calc(13.2*var(--u));line-height:1.86;letter-spacing:-.006em;color:#3d4854}
+ul.li li{font-size:calc(13.2*var(--u));line-height:1.85;letter-spacing:-.006em;color:#3d4854;
+ margin-bottom:calc(7*var(--u))}
+table.tb th{font-size:calc(11.4*var(--u));color:#7a8695;letter-spacing:.02em}
+table.tb td{font-size:calc(12.8*var(--u));line-height:1.66;letter-spacing:-.006em;color:#3d4854;
+ padding:calc(8*var(--u)) calc(10*var(--u))}
+table.tb.cp td{font-size:calc(12.4*var(--u));padding:calc(5*var(--u)) calc(10*var(--u))}
+table.tb.xs td{font-size:calc(11.8*var(--u));line-height:1.55;padding:calc(2.4*var(--u)) calc(9*var(--u))}
+.foot .pt li{font-size:calc(12.3*var(--u));line-height:1.72;letter-spacing:-.006em;color:#4b5764;
+ margin-bottom:calc(5*var(--u))}
+
+/* ── TBD 표기 ── */
+.tbd{display:inline-block;font-family:'Paperlogy',sans-serif;font-size:calc(10*var(--u));
+ font-weight:800;letter-spacing:.08em;color:#8792a0;background:#F4F6F8;
+ border:calc(1*var(--u)) dashed #B9C2CC;border-radius:calc(3*var(--u));
+ padding:calc(1*var(--u)) calc(8*var(--u));vertical-align:middle;white-space:nowrap}
+.tbd.co{color:#B06A00;background:#FFF6E8;border-color:#E4B673}
+
+/* ── 면 연결 표기 ── */
+.ar{font-family:'Paperlogy',sans-serif;font-size:calc(10.4*var(--u));font-weight:800;
+ color:#E68100;letter-spacing:.02em;white-space:nowrap}
+
+/* 3열 균등 고정 — 694pt */
+.row.g>.col,.row.g>.b{flex:0 0 calc(356.08*var(--u))!important;min-width:0}
+
+/* ══════════════════════════════════════════════════════════════
+   확정 v3 — 키노트 조판 반영 (2026-08-17)
+   실측 출처: 사업실행계획.pdf (Keynote 내보내기, 2340×1655)
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── 헤더 — 청록 띠 · 아웃라인 번호 · 우측 수치 폐기 ── */
+.hd{
+  position:relative; display:block; height:calc(99*var(--u));
+  padding:0; border-bottom:none;
+  background:linear-gradient(118deg,#E1EBEB 0%,#E4F1F0 46%,#E0EAEA 100%);
+}
+.num{                       /* 원형 남색 배지 폐기 */
+  position:absolute; left:calc(51.31*var(--u)); top:calc(46.7*var(--u));
+  width:auto; height:auto; display:block;
+  background:none; border-radius:0;
+  color:#141414; font-size:calc(33.4*var(--u)); font-weight:200;
+  line-height:1; letter-spacing:-.005em;
+}
+.num::before{               /* 번호 위 짧은 굵은 대시 */
+  content:""; position:absolute; left:0; top:calc(-14.9*var(--u));
+  width:calc(23*var(--u)); height:calc(5.1*var(--u)); background:#141414;
+}
+.hi{
+  position:absolute; left:calc(128*var(--u)); top:calc(32.8*var(--u));
+  right:calc(51.31*var(--u));
+}
+.goal{font-size:calc(21.5*var(--u)); line-height:1.15; color:#141414; letter-spacing:-.022em}
+.meta{font-size:calc(15.2*var(--u)); line-height:1.5; color:#4b5560; margin-top:calc(2*var(--u))}
+.meta b{color:#141414}
+.stp{display:none}          /* 헤더 우측 수치 폐기 */
+
+/* ── 본문 시작 ── */
+.bd{top:calc(121.6*var(--u))}
+
+/* ── 블록 ── */
+.b{border-radius:calc(6.7*var(--u)); border-color:#CCCCCC}
+.b.or{background:#F4E0CF; border-color:#F2780C}
+.b.fill{background:#F7F7F7; border-color:#DDDDDD}
+
+/* ── 목록 불릿 — 주황 · 에서 검정 • 로 ── */
+ul.li li:before{content:"•"; color:#141414; font-weight:400}
+
+/* ── 표 밀도 3단 — 키노트 실측 행 간격에 맞춤 ──
+   기본 91px · cp 60px · xs 45.5px  (활자 크기는 v2 와 같다. 간격만 다르다) */
+table.tb td{padding:calc(12.8*var(--u)) calc(10*var(--u))}
+table.tb.cp td{padding:calc(4.8*var(--u)) calc(10*var(--u)); font-size:calc(12.4*var(--u))}
+table.tb.xs td{padding:calc(1.4*var(--u)) calc(9*var(--u)); font-size:calc(12.4*var(--u))}
+table.tb th{padding-bottom:calc(10*var(--u))}
+
+/* ── 목록 — 키노트 실측 행 간격 52px ── */
+ul.li li{margin-bottom:calc(2.2*var(--u))}
+
+/* ── 실무 확인 띠 — 모서리 직각 ── */
+.foot .pt{background:#F4F4F4; border-radius:0}
+.foot .pt li:before{content:"•"}
+
+/* ── 블록은 내용만큼 차지하고 줄지 않는다 ──
+   flex-shrink 기본값 1 이면 열 높이가 모자랄 때 블록이 눌려 내용이 잘린다.
+   눌리지 않게 두면 넘침이 열 단위로 드러나고, 그때는 활자가 아니라 내용을 덜어낸다(§8-2). */
+.col > .b{flex-shrink:0}
+
+/* ══════════════════════════════════════════════════════════════
+   확정 v4 — §7 판정 5건 반영 (2026-08-18)
+   판정: 다섯 건 모두 키노트 쪽. .bt 는 폐기하고 블록 머리를 라벨 하나로 통일.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── ① 볼드 양 — 강조를 남색·700 에서 본문색·600 으로 낮춘다 ──
+   문안의 `**…**` 표기는 그대로 두고 눈에 띄는 정도만 줄인다.
+   되돌리려면 이 규칙만 지우면 된다. */
+.tx b, ul.li li b, table.tb td b, .foot .pt li b, .meta b{
+  font-weight:600; color:inherit;
+}
+table.tb tr.sum td b{color:#F1B03C; font-weight:800}   /* 남색 강조행은 유지 */
+
+/* ── ② 표 숫자 강조 해제 · ③ 묶음 이름 보통 굵기 ──
+   렌더러가 묶음 첫 칸에 class="n" 을 붙이므로 두 건이 같은 규칙으로 풀린다. */
+table.tb td.n{
+  font-family:inherit; font-weight:inherit; color:inherit;
+}
+table.tb tr.sum td.n{color:#F1B03C; font-weight:800}
+
+/* ── ④ 블록 라벨 색 — 회색에서 검정에 가깝게 ── */
+.bl{color:#141414}
+.b.nv .bl{color:#E8EEF4}
+
+/* ── ⑥ 인쇄 경로 교정 (v4) ──
+   결함: `.page,.sheet{width:2340px!important}` 가 @media print 블록 **뒤에** 있어
+   같은 특정도끼리 나중 규칙이 이겨, 인쇄 때도 .sheet 폭이 2340px 로 남았다.
+   그래서 A4 한 장의 좌상단에만 판면이 찍히고 우측·하단이 비었다.
+   교정: 그 두 줄을 화면 전용으로 가두고, 인쇄 규격은 mm 로 직접 준다.
+   scale 0.4797094 = 297mm(1122.52px @96dpi) / 2340px */
+@media screen{
+  .page,.sheet{width:2340px!important}
+  .wrap{width:calc(2340px*var(--view))!important}
+}
+@media print{
+  .page{width:2340px!important}
+  .sheet{width:297mm!important; height:210mm!important}
+  .sheet .page{transform:scale(0.4797094)!important; transform-origin:top left!important}
+  /* 안전 인쇄 — 사방 12mm 여백. 273mm / 2340px = 0.44094 */
+  html.psafe .sheet{width:273mm!important; height:186mm!important; margin:0 auto!important}
+  html.psafe .sheet .page{transform:scale(0.44094)!important}
+}
+
+/* ── ⑦ 실무 확인 띠를 본문과 맞춘다 (v4) ──
+   v3 에서 본문 목록만 주황 · → 검정 • 로 바꾸고 띠는 빠져 있었다.
+   ④ 도 블록 라벨만 검게 했다. 면 안에서 같은 것은 같게 보인다. */
+.foot .pt li:before{content:"•"; color:#141414; font-weight:400}
+.foot .pl{color:#141414}
+
+/* ── ⑧ 헤더 번호 위 대시 위치 (v4) ──
+   v3 실측값 -14.9u 는 떠 보이고, -3.5u 는 너무 붙었다.
+   둘의 중간 -9.2u 로 확정. */
+.num::before{top:calc(-9.2*var(--u))}
+
+/* ── ⑨ 인쇄 농도 확정 · 본문 글자 검정 (v4) ──
+   실제 프린터 테스트(out/pdf/인쇄농도테스트.pdf) 결과 사용자 판정:
+   헤더 띠 C · 실무 확인 띠 D · 본문 글자색 검정.
+   화면과 인쇄를 다르게 두지 않는다 — @media 로 가르지 않고 한 값으로 간다. */
+
+/* 헤더 띠 — C */
+.hd{background:linear-gradient(118deg,#BFD5D3,#C2DEDA 46%,#BED4D2)}
+
+/* 실무 확인 띠 — D */
+.foot .pt{background:#DADADA}
+
+/* 본문 글자 — 청회색에서 검정으로.
+   남색 블록(.b.nv)과 남색 강조행(tr.sum)은 특정도가 높아 그대로 남는다. */
+ul.li li{color:#141414}
+.tx{color:#141414}
+table.tb td{color:#141414}
+.foot .pt li{color:#141414}
+
+/* ── ⑩ 글자는 먹 (v4) ──
+   사용자 판정: 헤더 C · 실무 확인 D · 텍스트 먹.
+   ⑨에서 본문만 올렸고, 남아 있던 흐린 글자를 여기서 정리한다. */
+table.tb th{color:#141414}        /* 표 머리행 — 인쇄에서 이 줄만 날아가고 있었다 */
+.meta{color:#141414}              /* 헤더 메타 */
+.pgno{color:#55616e}              /* 하단 쪽수 — 먹으로 두면 본문과 다투므로 한 단만 올린다 */
+
+/* 색으로 뜻을 나르는 것은 그대로 둔다 — 먹으로 바꾸면 구분이 사라진다.
+   TBD 배지(회색/주황) · 면 연결 화살표(주황) · 남색 블록 · 남색 합계행 */
+
+/* ── ⑪ 번호목록 배지 복구 (v4) — 버그 수정 ──
+   v3 의 `ul.li li:before{content:"•"}` 와 원래의 `ul.nb li:before{content:counter(x)}` 가
+   특정도가 같은데(둘 다 0,1,3) v3 가 뒤에 있어 이겼다.
+   `<ul class="li nb">` 는 양쪽에 다 걸리므로 번호가 점으로 바뀌고 글자색까지 먹으로 덮였다.
+   → 클래스를 하나 더 얹어 특정도를 올린다. */
+ul.li.nb li:before{
+  content:counter(x); counter-increment:x;
+  color:#fff; font-weight:800;
+}
+
+/* ── ⑫ 3열 균등 고정에서 폭 2·3 이 살아나게 (v4) — 버그 수정 ──
+   기존 `.row.g>.col,.row.g>.b{flex:0 0 356.08u}` 는 폭에 관계없이 1열로 고정했다.
+   면의 마지막 행에는 g 가 붙으므로, 한 행짜리 면의 폭3 블록이나
+   마지막 행의 폭2 블록이 1열로 찌그러지고 나머지 열이 비었다(06면 하단).
+   → 렌더러가 넘기는 --w 로 폭을 읽는다.  폭 n = n*356.08u + (n-1)*14.879u */
+.row.g>.col, .row.g>.b{
+  flex:0 0 calc((370.959*var(--w,1) - 14.879)*var(--u))!important;
+  min-width:0;
+}
+
+/* ── ⑬ 표가 블록 높이를 채운다 · 밀도 md (v4) ──
+   표 하나로 면을 채우는 구성에서, 남는 높이를 행이 나눠 갖게 한다.
+   밀도를 손으로 맞추면 문안이 한 글자만 바뀌어도 다시 맞춰야 한다.
+
+   md   기본 활자(12.8u) + 좁은 세로 여백 — fit 과 함께 쓰는 바탕값
+   fit  블록의 남는 높이를 행에 고르게 분배.  밀도 "md fit" 처럼 같이 준다
+        (:has 로 이 표를 가진 블록만 세로 플렉스가 된다. 다른 블록은 그대로) */
+table.tb.md td{padding:calc(5*var(--u)) calc(10*var(--u)); font-size:calc(12.8*var(--u))}
+
+.b:has(> table.tb.fit){display:flex; flex-direction:column}
+.b:has(> table.tb.fit) > table.tb.fit{flex:1 1 auto}
+
+/* ── ⑭ 번호 배지 정렬 (v4) — 버그 수정 ──
+   원래 top 3u 고정이라 글자보다 위로 떠 있었다.
+
+   ⚠ 처음엔 `calc((1.85em - 14u)/2)` 로 고쳤다가 틀렸다.
+   ::before 안의 em 은 배지 자신의 글자 크기(9.5u)를 가리키지 li 의 13.2u 가 아니다.
+
+   그다음 실측으로 중심을 맞췄더니(top 5.21u) 수치는 맞는데 여전히 아래로 보였다.
+   원인은 위치가 아니라 크기다 — 배지 지름 27.3px, 글자 잉크 높이 21px.
+   중심을 맞춰도 위 2px · 아래 3px 삐져나와 아래가 무거워 보인다.
+
+   → 배지를 글자 잉크 높이에 가깝게 줄인다.  12u = 23.4px.
+     이러면 위치를 눈대중으로 보정할 필요가 없고, 다른 면에서 글자 크기가
+     달라져도 어긋나지 않는다.
+     첫 줄 높이 24.42u, 배지 12u → top = (24.42 − 12) / 2 = 6.21u */
+ul.li.nb li:before{
+  width:calc(12*var(--u)); height:calc(12*var(--u));
+  font-size:calc(8.4*var(--u));
+  top:calc(6.21*var(--u));
+}
+ul.li.nb li{padding-left:calc(19*var(--u))}   /* 배지가 2u 줄었으니 글자도 그만큼 당긴다 */
+
+/* ── ⑮ 목록 행 간격을 넉넉하게 (v4) ──
+   지금까지는 밀도를 손으로 골라 블록 아래가 비면 그대로 버려졌다.
+   남는 높이를 끝까지 분배해 보니(시험 B) 항목 서넛짜리 블록에서 위아래로 흩어져
+   오히려 안 읽혔다. 행 간격은 넉넉한 고정값으로 두고, 남는 것은 하단 여백으로 둔다.
+   목록 행 52px → 60px.  표는 밀도 + fit(⑬) 이 따로 맡는다. */
+ul.li li{margin-bottom:calc(6.2*var(--u))}
+.foot .pt li{margin-bottom:calc(4*var(--u))}
+
+/* ── ⑯ 블록 테두리를 진하게 (v4) ──
+   #CCCCCC 는 화면에서도 흐리고 인쇄하면 거의 사라진다.
+   실무 확인 띠를 올린 폭(#F4F4F4 → #DADADA)과 같은 만큼 내린다. */
+.b{border-color:#ADADAD}
+
+/* ── ⑰ 표 안 가로 구분선 (v4) ──
+   블록 테두리를 #ADADAD 로 올렸더니 표 안 선(#EEF1F4)만 남아 사라진다.
+   테두리보다는 연하게 두되(표가 격자로 보이면 안 된다) 지금보다는 읽히게.
+   머리행 아래는 한 단 더 진하게 — 머리와 본문을 가르는 선이다. */
+table.tb td{border-bottom-color:#D8D8D8}
+table.tb th{border-bottom-color:#BFBFBF}
+
+/* ── ⑱ 표 칸 세로 가운데 (v4) ──
+   v2 부터 td 가 vertical-align:top 이었다. 행 높이가 내용보다 큰 표
+   (밀도 md·fit, 여러 줄 감기는 칸, rowspan 묶음)에서 글자가 윗선에 붙어 보인다.
+   머리행은 그대로 아래쪽 정렬 — 본문과의 경계선에 붙어야 한다. */
+table.tb td{vertical-align:middle}
+table.tb th{vertical-align:bottom}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ⑲ 시나리오 판면 (v5) — .wrap.sim
+   실행계획서와 같은 규격(2340×1654 · 여백 51.31u · 3단)을 쓰되
+   헤더만 시나리오 계열 원형으로 되돌린다.
+   두 문서를 같은 헤더로 두면 따로 만들 이유가 없어진다.
+   ══════════════════════════════════════════════════════════════ */
+.sim .hd{
+  position:static; display:flex; align-items:center; height:auto;
+  gap:calc(18*var(--u));
+  padding:calc(19*var(--u)) calc(51.31*var(--u));
+  background:#F7F9FB; border-bottom:1px solid #E6EAEE;
+}
+.sim .num{
+  position:static; flex:0 0 auto;
+  width:calc(38*var(--u)); height:calc(38*var(--u)); border-radius:50%;
+  background:#192949; color:#fff;
+  font-size:calc(15*var(--u)); font-weight:800; letter-spacing:0;
+  display:flex; align-items:center; justify-content:center; line-height:1;
+}
+.sim .num::before{content:none}
+.sim .hi{position:static; flex:1; min-width:0}
+.sim .goal{font-size:calc(20.5*var(--u)); font-weight:800; color:#192949;
+  letter-spacing:-.018em; line-height:1.34}
+.sim .meta{font-size:calc(13.2*var(--u)); color:#7a8695; margin-top:calc(3*var(--u))}
+.sim .meta b{color:#4b5560}
+.sim .stp{display:block; flex:0 0 auto; text-align:right; line-height:1.15}
+.sim .bd{top:calc(100*var(--u))}
+/* 흐름 장치는 블록 껍데기 없이 판면에 바로 놓는다 */
+.sim .b:has(> .fl),
+.sim .b:has(> .pmap),
+.sim .b:has(> .band){border:0;padding:0;background:none}
+/* 시나리오는 한 면에 담는 양이 많다 — 조밀 표를 한 단 더 좁힌다 */
+.sim table.tb.xs td{padding:calc(1.2*var(--u)) calc(8*var(--u));
+  font-size:calc(11.9*var(--u)); line-height:1.42}
+/* 수치 블록 — 숫자와 단위를 띄운다 */
+.mt .m .big span{margin-left:calc(3.4*var(--u))}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ⑳ 화면 자리 (v5) — 캡처가 들어갈 칸
+   블록 안에서 남는 높이를 전부 차지한다. 캡처가 오면 이 칸을 바꾼다.
+   2열 판면 — 폭 1.5 + 1.5. ⑫ 의 계산식(370.959*w − 14.879)이 그대로 성립해
+   3단 격자를 깨지 않고 정확히 반반이 된다.
+   ══════════════════════════════════════════════════════════════ */
+.b:has(> .sh){display:flex; flex-direction:column}
+.sh{border:1px dashed #B9B9B9; border-radius:calc(5*var(--u));
+  background:#FAFBFC; display:flex; align-items:center; justify-content:center;
+  margin-top:calc(12*var(--u))}
+/* 비율은 판면이 아니라 기기가 정한다 */
+.sh.pc{flex:0 0 auto; width:100%; aspect-ratio:16/9;
+  margin-top:auto; margin-bottom:auto}                          /* 관리자 앱 — 데스크탑 */
+.sh.mo{flex:1 1 auto; min-height:0; width:auto;
+  aspect-ratio:9/19.5; align-self:center}                     /* 점주 앱 — 휴대폰 */
+.sh.free{flex:1 1 auto; width:100%; min-height:calc(140*var(--u))}
+.sh span{font-family:'Paperlogy',sans-serif; font-size:calc(12.5*var(--u));
+  font-weight:800; color:#9aa4b0; letter-spacing:.14em}
+/* 자리 위 설명 — 각진 연회색 상자. 행간을 좁혀 화면 쪽으로 눈이 가게 한다 */
+.b:has(> .sh) > ul.li{
+  background:#F1F2F4; border-radius:0;
+  padding:calc(11*var(--u)) calc(15*var(--u)) calc(12*var(--u));
+  margin-top:calc(1*var(--u))}
+.b:has(> .sh) > ul.li li{
+  margin-bottom:calc(2.5*var(--u)); line-height:1.5;
+  font-size:calc(12.6*var(--u))}
+.b:has(> .sh) > ul.li li:last-child{margin-bottom:0}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ㉑ 표지 (v6) — 제목과 기본 사항만
+   본문 헤더 · 실무 확인 띠 · 쪽번호를 두지 않는다.
+   v2 의 .cv 블록(목차 · 타임라인 · 안내)은 고치지 않는다 — 쓰지 않을 뿐이다.
+   여백은 판면 규칙 그대로 51.31u. 격자를 새로 만들지 않는다.
+   ══════════════════════════════════════════════════════════════ */
+.page.cvp{border-top:calc(9*var(--u)) solid #192949}
+.cvb{position:absolute;
+  left:calc(51.31*var(--u)); right:calc(51.31*var(--u));
+  top:calc(51.31*var(--u));  bottom:calc(51.31*var(--u));
+  display:flex; flex-direction:column}
+
+/* 용역명 — 발주 원문 표기 */
+.cvs{font-family:'Paperlogy',sans-serif; font-size:calc(15.5*var(--u)); font-weight:800;
+  color:#7a8695; letter-spacing:.01em; line-height:1.5;
+  margin-top:calc(148*var(--u))}
+
+/* 문서명 */
+.cvt{font-family:'Paperlogy',sans-serif; font-size:calc(53*var(--u)); font-weight:800;
+  color:#192949; letter-spacing:-.032em; line-height:1.22;
+  margin-top:calc(22*var(--u))}
+
+.cvr{width:calc(98*var(--u)); height:calc(4*var(--u)); background:#E68100;
+  margin-top:calc(32*var(--u))}
+
+/* 문서 구성 한 줄 */
+.cvc{font-size:calc(14.2*var(--u)); color:#5b6773; letter-spacing:-.012em;
+  margin-top:calc(26*var(--u))}
+.cvc b{color:#192949; font-weight:700}
+
+/* 하단 정보 — 3칸. 간격은 판면 세로 간격과 같은 14.879u */
+.cvi{margin-top:auto; display:flex; gap:calc(14.879*var(--u));
+  border-top:1px solid #ADADAD; padding-top:calc(24*var(--u))}
+.cvi .ci{flex:1; min-width:0}
+.cvi .ck{font-family:'Paperlogy',sans-serif; font-size:calc(11.6*var(--u)); font-weight:800;
+  color:#7a8695; letter-spacing:.09em}
+.cvi .cx{font-size:calc(15.4*var(--u)); color:#192949; letter-spacing:-.022em;
+  line-height:1.5; margin-top:calc(8*var(--u))}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ㉒ 표 선 농도 (v6) — ⑰ 을 한 단 더 올린다
+   ⑰ 에서 #D8D8D8 / #BFBFBF 로 올렸으나 인쇄에서 여전히 옅다.
+   블록 테두리 #ADADAD 를 넘지 않는 선에서 한 단씩 내린다 —
+   표가 격자로 보이면 안 되므로 테두리보다는 연하게 둔다.
+   ══════════════════════════════════════════════════════════════ */
+table.tb td{border-bottom-color:#C2C2C2}
+table.tb th{border-bottom-color:#9E9E9E}
+
+/* 실제 종이 출력 판정 — 시험지 7종 중 4번(2px · 옅게) 채택.
+   원인은 굵기 값이 아니라 인쇄 축소(scale 0.4797094) 뒤 프린터가
+   자기 해상도로 선을 다시 그릴 때 도트 수가 1~3 으로 갈리는 것이었다.
+   0.36pt 는 그 경계 아래라 무늬가 났다. 굵기를 0.72pt 로 올리고
+   색을 그만큼 옅게 해 눈에 보이는 무게는 유지하되 ±1 도트의 비중을 낮춘다.
+   ⚠ 소수 px 을 쓰지 않는다 — 화면 렌더에서도 반올림이 갈린다. */
+table.tb td{border-bottom:2px solid rgba(0,0,0,.18)}
+table.tb th{border-bottom:2px solid rgba(0,0,0,.42)}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ㉓ 먹 사다리 (v6) — 회색을 「먹 + 불투명도」 한 축으로 세운다
+   ⑨⑩ 은 v4 시점 요소만 덮었다. v5 흐름 블록 6종 · 시나리오 헤더 ·
+   화면 자리와 v6 표지가 그 규칙을 지나쳐 회색으로 남아 있었다.
+   특히 `.sim .meta b` 는 강조인데 본문(#141414)보다 흐렸다.
+
+     본문 · 표 값 · 강조     rgba(0,0,0,.92)   ≈ #141414
+     보조 라벨               rgba(0,0,0,.58)   ≈ #6B6B6B
+     각주 · 부기             rgba(0,0,0,.42)   ≈ #949494
+     블록 테두리             rgba(0,0,0,.32)   ≈ #ADADAD   (⑯ 과 같은 값)
+     표 행 구분선            rgba(0,0,0,.18)   ≈ #D1D1D1   (㉒)
+
+   색으로 뜻을 나르는 것은 건드리지 않는다 —
+   TBD 배지 · 면 연결 화살표 · 남색 제목과 합계행 · 주황 강조 · 청록 띠.
+   남색 배경 위 흰 글자(.st.on .sm · .pc.on .pn · tr.sum td)도 그대로다.
+   ══════════════════════════════════════════════════════════════ */
+
+/* 본문 계열 */
+table.tb td.n{color:rgba(0,0,0,.92)}
+.fl .st .sm{color:rgba(0,0,0,.92)}
+.sc .k{color:rgba(0,0,0,.92)}
+.kv .it .kx{color:rgba(0,0,0,.92)}
+.pmap .pc .px{color:rgba(0,0,0,.92)}
+.meta b,.sim .meta b{color:rgba(0,0,0,.92)}
+.cvi .ci .cx{color:rgba(0,0,0,.92)}
+
+/* 보조 라벨 */
+.fl .st .sd{color:rgba(0,0,0,.58)}
+.stp .sl{color:rgba(0,0,0,.58)}
+.mt .m .lb{color:rgba(0,0,0,.58)}
+.kv .it .kn{color:rgba(0,0,0,.58)}
+.sim .meta{color:rgba(0,0,0,.58)}
+.sh span{color:rgba(0,0,0,.58)}
+.cvb .cvs{color:rgba(0,0,0,.58)}
+.cvi .ci .ck{color:rgba(0,0,0,.58)}
+.pgno{color:rgba(0,0,0,.58)}
+
+/* 각주 · 부기 */
+.pmap .pc .pf{color:rgba(0,0,0,.42)}
+.cvb .cvc{color:rgba(0,0,0,.42)}
+
+/* 흰 글자 되돌림 — 위 규칙이 특정도에서 이기는 경우를 막는다 */
+.fl .st.on .sm{color:#fff}
+.pmap .pc.on .pn{color:#fff}
+.pmap .pc.on .px{color:#C6D2E0}
+.pmap .pc.on .pf{color:#7D94AB}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ㉔ 시나리오 헤더 농도 (v6)
+   ⑨ 에서 헤더 띠를 C(#BFD5D3)로 확정했으나 `.sim .hd` 가 특정도에서
+   이겨 시뮬레이션만 #F7F9FB 로 남아 있었다 — 인쇄에서 띠가 날아간다.
+   배경만 실행계획서와 같은 값으로 맞춘다. 원형 배지와 우상단 STEP 은
+   시나리오 계열 그대로 둔다(⑲ 의 판단).
+   ══════════════════════════════════════════════════════════════ */
+.sim .hd{background:linear-gradient(118deg,#BFD5D3,#C2DEDA 46%,#BED4D2);
+  border-bottom:none}
+
+/* ㉓ 보강 — 막대 값 단위 · 수치 단위. 값과 단위가 같은 덩어리로 읽혀야 한다 */
+.sc .v span{color:rgba(0,0,0,.58)}
+.mt .m .big span{color:rgba(0,0,0,.58)}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ㉕ 연한 칸 농도 (v6) — 흰 바탕에서 칸이 사라지던 것
+   #F7F9FB · 테두리 #E4E8EC 는 흰색과 거의 구분되지 않아
+   인쇄하면 칸 자체가 없어진다. 실제 출력에서 확인된 결함이다.
+   사용자 판정 「강」 — 배경 #E4E7EA · 테두리 rgba(0,0,0,.32).
+   ⑯ 블록 테두리(#ADADAD = rgba(0,0,0,.32))와 같은 값으로 맞춘다.
+   기준선 — 실무 확인 띠 #DADADA(⑨ 판정 D)보다는 옅어 층이 유지된다.
+   주황 계열(.or · .m.or · .pt.q)과 남색 활성 칸(.st.on)은 건드리지 않는다.
+   ══════════════════════════════════════════════════════════════ */
+.fl .st{background:#E4E7EA; border-color:rgba(0,0,0,.32)}
+.kv .it{background:#E4E7EA}
+.mt .m{background:#E4E7EA}
+.pmap .pc{border-color:rgba(0,0,0,.32)}
+.b.fill{background:#E4E7EA; border-color:rgba(0,0,0,.32)}
+.sh{background:#E9EBED; border-color:rgba(0,0,0,.38)}
+.b:has(> .sh) > ul.li{background:#E4E7EA}
+.sc .g{background:#DDE1E5}
+
+/* ────────────────────────────────────────────────────────────
+   ㉖ 수치 값 — 편집 경계를 값에만 건다  (2026-08-19)
+
+   결함: data-p 가 .big 에 걸려 있어 단위 <span> 까지 값으로 읽혔다.
+         roundtrip 6건 불일치 · 제자리 편집 저장 시 "2,100" → "2,100만원" 누적.
+
+   값을 .bv 로 감싸고 경계를 옮겼다. 단위는 .bu 로 따로 편집한다.
+   .mt .m .big span (단위 서식 · ⑬ ㉓) 이 값에도 걸리므로 특정도로 상쇄한다.
+   .bv 는 색을 상속하므로 .m.or 의 주황도 그대로 간다.
+   ──────────────────────────────────────────────────────────── */
+.mt .m .big .bv{font-size:inherit;color:inherit;letter-spacing:inherit;margin-left:0}
+
+/* ────────────────────────────────────────────────────────────
+   ㉗ 12칸 트랙  (2026-08-19)
+
+   앞 규칙 `.row.g>.col,.row.g>.b` 의 계수를 4로 나눈 것이다.
+   폭 1 · 1.5 · 2 · 3  →  칸 4 · 6 · 8 · 12.  실폭은 그대로다.
+
+     4칸 = 693.99   6칸 = 1055.49   8칸 = 1416.98   12칸 = 2139.98
+
+   함께 `.row.g` 제한을 푼다.
+   `.g` 는 면의 마지막 행에만 붙으므로, 마지막이 아닌 행은 트랙을 안 타고
+   flex 비율 + 블록 안쪽 여백이 섞인 값으로 나뉘고 있었다.
+   실측에서 실행계획서 p.21 첫 행이 그 이유로 37.60px 어긋나 있었다.
+
+   특정도를 `.page` 로 올려 앞 규칙(0,3,0)과 동률로 만들고 뒤에서 덮는다.
+   세로 채움 규칙 `.row.g{flex:1}` 은 건드리지 않는다.
+   계수는 370.959 / 4 = 92.73975.  소수 3자리로 자르면 12칸에서 0.0175px 이 깎인다.
+   ──────────────────────────────────────────────────────────── */
+.page .row>.col, .page .row>.b{
+  flex:0 0 calc((92.73975*var(--w,4) - 14.879)*var(--u))!important;
+  min-width:0;
+}
+
+/* ────────────────────────────────────────────────────────────
+   ㉘ 세로 12칸  (2026-08-19)
+
+   행에 --h 가 있으면 그 칸 수의 높이로 고정한다. 없으면 지금대로 자동이다.
+   가로(㉗)는 열의 폭을 정하고 이쪽은 행의 높이를 정한다.
+
+     높이(n) = (100% - 319px) / 12 * n + (n - 1) * 29px      319 = 11 × 29
+
+   100% 는 .bd 높이다. 백분율로 쓰는 이유 — .sim 판면은 본문 시작이 100u 라
+   .bd 높이가 1358px 이고 실행계획서는 1316px 다. 절대값을 박으면 어긋난다.
+
+   실무확인 띠(.foot)도 같은 규칙을 탄다. margin-top:auto 는 그대로 두어
+   칸 수를 안 준 면에서는 여전히 바닥에 붙는다.
+   ──────────────────────────────────────────────────────────── */
+.page .bd > .row[data-h],
+.page .bd > .foot[data-h]{
+  flex:0 0 calc((100% - 319px) / 12 * var(--h) + (var(--h) - 1) * 29px)!important;
+}
+
+
+/* ────────────────────────────────────────────────────────────
+   ㉙ 판면 변종 gn — 강릉 홍보전략 브리프  (2026-08-20)
+
+   문서 JSON 에 "판면":"gn" 이 있으면 .wrap.gn 이 붙는다.
+   적색 계열 · 자체 크기 사다리 · 자체 여백을 쓴다.
+   속초 판면(기본 · .sim)에는 아무 영향이 없다 — 전부 .wrap.gn 아래다.
+
+   크기 사다리 (인쇄 pt · u = pt × 1.4262)
+     8pt 11.4 · 9pt 12.8 · 10pt 14.3 · 11pt 15.7 · 12.5pt 17.8
+     14pt 19.9 · 15pt 21.4 · 18pt 25.7 · 23pt 32.8 · 26pt 37.1
+
+   격자   본문 2238px · 거터 11u(21.44px) · 12칸
+          걸음 96.6u · 폭(w) = (96.6·w − 11)·u
+   ──────────────────────────────────────────────────────────── */
+.wrap.gn .goal,.wrap.gn .num,.wrap.gn .stp,.wrap.gn .pgno,.wrap.gn .bt,.wrap.gn .cv h1,.wrap.gn .tct,.wrap.gn .big,.wrap.gn .kn,.wrap.gn .mt,.wrap.gn .sn{font-family:'Paperlogy','Pretendard Variable',Pretendard,'Noto Sans CJK KR',sans-serif}
+.wrap.gn .hd{display:flex;align-items:center;gap:calc(16*var(--u)); padding:calc(16*var(--u)) calc(26*var(--u));background:#FAF8F8;border-bottom:1px solid #E9E3E3}
+.wrap.gn .num{flex:0 0 auto;width:calc(38*var(--u));height:calc(38*var(--u));border-radius:50%; background:#8A1219;color:#fff;font-size:calc(15.7*var(--u));font-weight:800; display:flex;align-items:center;justify-content:center}
+.wrap.gn .hi{flex:1;min-width:0}
+.wrap.gn .goal{font-size:calc(21.4*var(--u));font-weight:800;color:#8A1219;letter-spacing:-.015em;line-height:1.4}
+.wrap.gn .meta{font-size:calc(12.8*var(--u));color:#8b96a2;margin-top:calc(3*var(--u));letter-spacing:-.01em}
+.wrap.gn .meta b{color:#5b6773;font-weight:700}
+.wrap.gn .stp{flex:0 0 auto;text-align:right;line-height:1.15}
+.wrap.gn .stp .sn{font-size:calc(25.7*var(--u));font-weight:800;color:#E61E2B;letter-spacing:-.02em;display:block}
+.wrap.gn .stp .sl{font-size:calc(12.8*var(--u));color:#8b96a2;letter-spacing:.02em}
+.wrap.gn .bd{position:absolute;left:calc(26*var(--u));right:calc(26*var(--u)); top:calc(96*var(--u));bottom:calc(26*var(--u));display:flex;flex-direction:column; gap:calc(11*var(--u))}
+.wrap.gn .row{display:flex;gap:calc(11*var(--u));min-height:0}
+.wrap.gn .row.g{flex:1}
+.wrap.gn .col{display:flex;flex-direction:column;gap:calc(11*var(--u));min-width:0}
+.wrap.gn .b{border:1px solid #E7E1E1;border-radius:calc(5*var(--u)); padding:calc(13*var(--u)) calc(17*var(--u)) calc(15*var(--u));min-width:0}
+.wrap.gn .b.fill{background:#FAF8F8;border-color:#EDE7E7}
+.wrap.gn .b.nv{background:#8A1219;border-color:#8A1219;color:#F5E2E3}
+.wrap.gn .b.or{background:#FDF0F1;border-color:#F2C9CC}
+.wrap.gn .b.gr{background:#F4F9F8;border-color:#CFE0DD}
+.wrap.gn .bl{font-size:calc(12.8*var(--u));font-weight:800;color:#8b96a2;letter-spacing:.16em; margin-bottom:calc(8*var(--u))}
+.wrap.gn .b.nv .bl{color:#DFA9AD}
+.wrap.gn .bt{font-size:calc(17.8*var(--u));font-weight:800;color:#8A1219;letter-spacing:-.015em; margin-bottom:calc(8*var(--u))}
+.wrap.gn .b.nv .bt{color:#fff}
+.wrap.gn .tx{font-size:calc(15.7*var(--u));color:#46515e;line-height:1.76;letter-spacing:-.012em}
+.wrap.gn .b.nv .tx{color:#F0D5D7}
+.wrap.gn .tx + .tx{margin-top:calc(6*var(--u))}
+.wrap.gn ul.li + .tx,.wrap.gn table.tb + .tx{margin-top:calc(9*var(--u))}
+.wrap.gn .tx + ul.li{margin-top:calc(7*var(--u))}
+.wrap.gn .tx b{color:#3A1013;font-weight:700}
+.wrap.gn .b.nv .tx b{color:#FFC24B}
+.wrap.gn .b.nv ul.li li{color:#F0D5D7}
+.wrap.gn .b.nv ul.li li b{color:#FFC24B}
+.wrap.gn .b.nv ul.li li:before{color:#FFC24B}
+.wrap.gn .b.nv table.tb td{color:#F0D5D7;border-bottom-color:#A8404A}
+.wrap.gn .b.nv table.tb td b{color:#fff}
+.wrap.gn .hl{background:linear-gradient(transparent 62%,#FFD9DC 62%);font-weight:700;color:#3A1013}
+.wrap.gn ul.li{list-style:none}
+.wrap.gn ul.li li{font-size:calc(15.7*var(--u));color:#46515e;line-height:1.74;padding-left:calc(15*var(--u)); position:relative;margin-bottom:calc(5*var(--u));letter-spacing:-.012em}
+.wrap.gn ul.li li:last-child{margin-bottom:0}
+.wrap.gn ul.li li:before{content:"·";position:absolute;left:calc(4*var(--u));color:#E61E2B;font-weight:800}
+.wrap.gn ul.li li b{color:#3A1013;font-weight:700}
+.wrap.gn ul.nb li:before{content:counter(x);counter-increment:x;font-size:calc(11.4*var(--u)); font-weight:800;color:#fff;background:#B32430;border-radius:50%;width:calc(14*var(--u)); height:calc(14*var(--u));display:flex;align-items:center;justify-content:center; left:0;top:calc(3*var(--u))}
+.wrap.gn ul.nb{counter-reset:x}
+.wrap.gn ul.nb li{padding-left:calc(21*var(--u))}
+.wrap.gn table.tb{width:100%;border-collapse:collapse;table-layout:fixed}
+.wrap.gn table.tb th{font-size:calc(12.8*var(--u));font-weight:800;color:#5b6773;background:#F5F0F0; padding:calc(6*var(--u)) calc(8*var(--u));text-align:left;letter-spacing:.02em; border-bottom:1px solid #E2DADA;white-space:nowrap}
+.wrap.gn table.tb td{font-size:calc(14.3*var(--u));color:#46515e;padding:calc(6.5*var(--u)) calc(8*var(--u)); border-bottom:1px solid #F1ECEC;letter-spacing:-.012em;line-height:1.5;vertical-align:top}
+.wrap.gn table.tb td b{color:#3A1013;font-weight:700}
+.wrap.gn table.tb tr:last-child td{border-bottom:none}
+.wrap.gn table.tb.cp td{padding:calc(3.6*var(--u)) calc(8*var(--u));font-size:calc(12.8*var(--u))}
+.wrap.gn table.tb.cp th{padding:calc(5*var(--u)) calc(8*var(--u))}
+.wrap.gn table.tb.xs td{padding:calc(2.5*var(--u)) calc(8*var(--u));font-size:calc(12.8*var(--u))}
+.wrap.gn table.tb.xs th{padding:calc(4*var(--u)) calc(8*var(--u))}
+.wrap.gn table.tb td.c,.wrap.gn table.tb th.c{text-align:center}
+.wrap.gn table.tb td.c,.wrap.gn table.tb td.n{white-space:nowrap}
+.wrap.gn table.tb td.r,.wrap.gn table.tb th.r{text-align:right}
+.wrap.gn table.tb td.n{font-family:'Paperlogy',sans-serif;font-weight:800;color:#8A1219}
+.wrap.gn table.tb tr.sum td{background:#8A1219;color:#fff;font-weight:800;border:none}
+.wrap.gn table.tb tr.sum td b,.wrap.gn table.tb tr.sum td.n{color:#FFC24B}
+.wrap.gn .tg{display:inline-block;font-size:calc(11.4*var(--u));font-weight:800;border-radius:calc(3*var(--u)); padding:calc(1.5*var(--u)) calc(6*var(--u));letter-spacing:.02em;white-space:nowrap}
+.wrap.gn .tg.im{background:#E61E2B;color:#fff}
+.wrap.gn .tg.nx{background:#E7E1E1;color:#5b6773}
+.wrap.gn .tg.ok{background:#2C8F4A;color:#fff}
+.wrap.gn .tg.hi{background:#B03A72;color:#fff}
+.wrap.gn .tg.lo{background:#8792a0;color:#fff}
+.wrap.gn .sc{display:flex;align-items:center;gap:calc(9*var(--u));margin-bottom:calc(7*var(--u))}
+.wrap.gn .sc:last-child{margin-bottom:0}
+.wrap.gn .sc .k{flex:0 0 calc(56*var(--u));font-size:calc(14.3*var(--u));font-weight:700;color:#39434f}
+.wrap.gn .sc .g{flex:1;height:calc(13*var(--u));background:#F0EBEB;border-radius:calc(2*var(--u)); position:relative;overflow:hidden}
+.wrap.gn .sc .g i{position:absolute;left:0;top:0;bottom:0;border-radius:calc(2*var(--u));background:#B32430}
+.wrap.gn .sc .g i.up{background:#E61E2B}
+.wrap.gn .sc .g i.b0{background:#BEB4B4}
+.wrap.gn .sc .v{flex:0 0 calc(58*var(--u));text-align:right;font-family:'Paperlogy',sans-serif; font-size:calc(12.8*var(--u));font-weight:800;color:#8A1219}
+.wrap.gn .sc .v span{font-size:calc(11.4*var(--u));color:#8b96a2;font-weight:700}
+.wrap.gn .sc .d{flex:0 0 calc(38*var(--u));text-align:right;font-family:'Paperlogy',sans-serif; font-size:calc(12.8*var(--u));font-weight:800;color:#E61E2B}
+.wrap.gn .fl{display:flex;align-items:stretch;gap:calc(4*var(--u))}
+.wrap.gn .fl .st{flex:1;background:#FAF8F8;border:1px solid #E7E1E1;border-radius:calc(4*var(--u)); padding:calc(8*var(--u)) calc(9*var(--u));position:relative}
+.wrap.gn .fl .st.on{background:#8A1219;border-color:#8A1219}
+.wrap.gn .fl .st .sd{font-size:calc(12.8*var(--u));font-weight:800;color:#8b96a2;letter-spacing:.06em}
+.wrap.gn .fl .st.on .sd{color:#FFC24B}
+.wrap.gn .fl .st .sm{font-size:calc(14.3*var(--u));font-weight:700;color:#39434f;margin-top:calc(2*var(--u)); letter-spacing:-.015em;line-height:1.35}
+.wrap.gn .fl .st.on .sm{color:#fff}
+.wrap.gn .kv{display:flex;flex-wrap:wrap;gap:calc(7*var(--u))}
+.wrap.gn .kv .it{flex:1 1 calc(30%);min-width:calc(90*var(--u));background:#FAF8F8;border-radius:calc(4*var(--u)); padding:calc(8*var(--u)) calc(11*var(--u))}
+.wrap.gn .kv .it .kn{font-size:calc(12.8*var(--u));font-weight:800;color:#8b96a2;letter-spacing:.08em}
+.wrap.gn .kv .it .kx{font-size:calc(14.3*var(--u));color:#39434f;margin-top:calc(2*var(--u)); letter-spacing:-.015em;line-height:1.5}
+.wrap.gn .kv .it .kx b{color:#3A1013;font-weight:700}
+.wrap.gn .mt{display:flex;gap:calc(9*var(--u))}
+.wrap.gn .mt .m{flex:1;background:#FAF8F8;border-radius:calc(5*var(--u));padding:calc(11*var(--u)) calc(13*var(--u))}
+.wrap.gn .mt .m .big{font-size:calc(25.7*var(--u));font-weight:800;color:#8A1219;letter-spacing:-.03em;line-height:1.1}
+.wrap.gn .mt .m .big span{font-size:calc(14.3*var(--u));color:#5b6773}
+.wrap.gn .mt .m .lb{font-size:calc(12.8*var(--u));color:#8b96a2;margin-top:calc(3*var(--u));letter-spacing:-.01em}
+.wrap.gn .mt .m.or{background:#FDF0F1}
+.wrap.gn .mt .m.or .big{color:#A8121C}
+.wrap.gn .foot{display:flex;gap:calc(9*var(--u));align-items:stretch;margin-top:auto;flex:0 0 auto}
+.wrap.gn .foot .pt{flex:1;background:#FAF8F8;border-radius:calc(5*var(--u)); padding:calc(9*var(--u)) calc(14*var(--u)) calc(10*var(--u))}
+.wrap.gn .foot .pl{font-size:calc(12.8*var(--u));font-weight:800;color:#8b96a2;letter-spacing:.16em; margin-bottom:calc(5*var(--u))}
+.wrap.gn .foot .pt ul{list-style:none}
+.wrap.gn .foot .pt li{font-size:calc(14.3*var(--u));color:#55616e;line-height:1.62;padding-left:calc(13*var(--u)); position:relative;margin-bottom:calc(2*var(--u))}
+.wrap.gn .foot .pt li:last-child{margin-bottom:0}
+.wrap.gn .foot .pt li:before{content:"·";position:absolute;left:calc(3*var(--u));color:#E61E2B;font-weight:800}
+.wrap.gn .foot .pt li b{color:#3A1013;font-weight:700}
+.wrap.gn .foot .pt.q{background:#FDF0F1}
+.wrap.gn .foot .pt.q .pl{color:#C0707A}
+.wrap.gn .foot .pt.q li:before{content:"?";font-size:calc(11.4*var(--u));color:#A8121C}
+.wrap.gn .pgno{position:absolute;left:0;right:0;bottom:calc(6*var(--u));text-align:center; font-size:calc(11.4*var(--u));color:#C4B8B8;letter-spacing:.08em}
+.wrap.gn .cv{background:#fff;color:#2a333d;padding:calc(52*var(--u)) calc(72*var(--u)) calc(34*var(--u)); border-top:calc(7*var(--u)) solid #8A1219;display:flex;flex-direction:column}
+.wrap.gn .cv h1{font-size:calc(37.1*var(--u));font-weight:800;letter-spacing:-.025em;line-height:1.32;color:#8A1219}
+.wrap.gn .cv .cs{color:#5b6773;font-size:calc(15.7*var(--u));margin-top:calc(13*var(--u));line-height:1.7}
+.wrap.gn .cv .bar{display:flex;gap:calc(10*var(--u));margin-top:calc(24*var(--u))}
+.wrap.gn .cv .bx{background:#FAF8F8;border:1px solid #EDE7E7;border-radius:calc(5*var(--u)); padding:calc(12*var(--u)) calc(16*var(--u));flex:1}
+.wrap.gn .cv .bx b{display:block;font-family:'Paperlogy',sans-serif;color:#8A1219;font-size:calc(21.4*var(--u)); font-weight:800;letter-spacing:-.025em}
+.wrap.gn .cv .bx span{font-size:calc(12.8*var(--u));color:#8b96a2}
+.wrap.gn .cv .bx.k{background:#FDF0F1;border-color:#F2C9CC}
+.wrap.gn .cv .bx.k b{color:#A8121C}
+.wrap.gn .cv .gd{margin-top:calc(24*var(--u));border-top:1px solid #E7E1E1;padding-top:calc(18*var(--u))}
+.wrap.gn .cv .gd h2{font-family:'Paperlogy',sans-serif;font-size:calc(14.3*var(--u));font-weight:800; color:#E61E2B;letter-spacing:.03em;margin-bottom:calc(9*var(--u))}
+.wrap.gn .cv .gd ul{list-style:none;column-count:2;column-gap:calc(36*var(--u))}
+.wrap.gn .cv .gd li{font-size:calc(14.3*var(--u));color:#46515e;line-height:1.72;padding-left:calc(14*var(--u)); position:relative;break-inside:avoid;margin-bottom:calc(2*var(--u))}
+.wrap.gn .cv .gd li:before{content:"—";position:absolute;left:0;color:#CFC4C4}
+.wrap.gn .cv .gd li b{color:#3A1013;font-weight:700}
+.wrap.gn .toc{margin-top:calc(18*var(--u));flex:0 0 auto;border-top:1px solid #E7E1E1;padding-top:calc(15*var(--u))}
+.wrap.gn .tct{font-size:calc(14.3*var(--u));font-weight:800;color:#E61E2B;letter-spacing:.03em; margin-bottom:calc(8*var(--u))}
+.wrap.gn .toc table{width:100%;border-collapse:collapse;table-layout:fixed}
+.wrap.gn .toc td{padding:calc(3.6*var(--u)) 0;font-size:calc(12.8*var(--u));color:#46515e; border-bottom:1px solid #F1ECEC;letter-spacing:-.012em;white-space:nowrap;overflow:hidden; text-overflow:ellipsis}
+.wrap.gn .toc td.n{width:calc(28*var(--u));font-family:'Paperlogy',sans-serif;font-weight:800;color:#BAAFAF}
+.wrap.gn .toc td.p{width:calc(74*var(--u));color:#8b96a2;font-size:calc(12.8*var(--u))}
+.wrap.gn .toc td.g{color:#8A1219;padding-right:calc(14*var(--u))}
+.wrap.gn .tl{display:flex;gap:calc(4*var(--u))}
+.wrap.gn .tl .t{flex:1;background:#FAF8F8;border:1px solid #EDE7E7;border-radius:calc(4*var(--u)); padding:calc(8*var(--u)) calc(7*var(--u))}
+.wrap.gn .tl .t.k{background:#8A1219;border-color:#8A1219}
+.wrap.gn .tl .t .d{font-family:'Paperlogy',sans-serif;font-size:calc(12.8*var(--u));font-weight:800;color:#8b96a2; letter-spacing:.02em}
+.wrap.gn .tl .t.k .d{color:#FFC24B}
+.wrap.gn .tl .t .n{font-size:calc(12.8*var(--u));color:#39434f;margin-top:calc(2*var(--u));letter-spacing:-.02em; line-height:1.3}
+.wrap.gn .tl .t.k .n{color:#fff;font-weight:700}
+.wrap.gn .tlt{margin-top:auto;padding-top:calc(20*var(--u));margin-bottom:calc(8*var(--u)); font-family:'Paperlogy',sans-serif;font-size:calc(14.3*var(--u));font-weight:800;color:#E61E2B; letter-spacing:.03em}
+.wrap.gn .tx{font-size:calc(21.4*var(--u));line-height:1.86}
+.wrap.gn .tx + .tx{margin-top:calc(9*var(--u))}
+.wrap.gn ul.li li{font-size:calc(21.4*var(--u));line-height:1.78;margin-bottom:calc(13*var(--u));padding-left:calc(22*var(--u))}
+.wrap.gn ul.li li:before{left:calc(6*var(--u))}
+.wrap.gn ul.nb li{font-size:calc(21.4*var(--u));line-height:1.76;margin-bottom:calc(21*var(--u));padding-left:calc(35*var(--u))}
+.wrap.gn ul.nb li:before{width:calc(24*var(--u));height:calc(24*var(--u));font-size:calc(15.7*var(--u));top:calc(5*var(--u))}
+.wrap.gn table.tb td{font-size:calc(19.9*var(--u));padding:calc(14*var(--u)) calc(12*var(--u));line-height:1.62}
+.wrap.gn table.tb th{font-size:calc(15.7*var(--u));padding:calc(11*var(--u)) calc(12*var(--u))}
+.wrap.gn table.tb td .mini{display:block;font-size:calc(17.8*var(--u));color:#8b96a2;margin-top:calc(5*var(--u));line-height:1.5}
+.wrap.gn .b.nv table.tb td .mini{color:#DFA9AD}
+.wrap.gn .b{padding:calc(19*var(--u)) calc(23*var(--u)) calc(21*var(--u))}
+.wrap.gn .bt{font-size:calc(25.7*var(--u));margin-bottom:calc(12*var(--u))}
+.wrap.gn .bl{font-size:calc(15.7*var(--u));margin-bottom:calc(12*var(--u))}
+.wrap.gn .goal{font-size:calc(25.7*var(--u))}
+.wrap.gn .meta{font-size:calc(15.7*var(--u))}
+.wrap.gn .foot .pt{padding:calc(12*var(--u)) calc(17*var(--u)) calc(13*var(--u))}
+.wrap.gn .foot .pt li{font-size:calc(17.8*var(--u));line-height:1.6;padding-left:calc(16*var(--u));margin-bottom:calc(4*var(--u))}
+.wrap.gn .foot .pl{font-size:calc(14.3*var(--u));margin-bottom:calc(7*var(--u))}
+.wrap.gn .fl .st{padding:calc(12*var(--u)) calc(13*var(--u))}
+.wrap.gn .fl .st .sd{font-size:calc(14.3*var(--u))}
+.wrap.gn .fl .st .sm{font-size:calc(17.8*var(--u));line-height:1.45}
+.wrap.gn .mt .m{padding:calc(14*var(--u)) calc(16*var(--u))}
+.wrap.gn .mt .m .big{font-size:calc(32.8*var(--u))}
+.wrap.gn .mt .m .big span{font-size:calc(17.8*var(--u))}
+.wrap.gn .mt .m .lb{font-size:calc(15.7*var(--u))}
+.wrap.gn .tg{font-size:calc(14.3*var(--u));padding:calc(2.5*var(--u)) calc(8*var(--u))}
+.wrap.gn .up .tx{font-size:calc(25.7*var(--u));line-height:1.85}
+.wrap.gn .up ul.li li{font-size:calc(21.4*var(--u));line-height:1.76;margin-bottom:calc(15*var(--u))}
+.wrap.gn .up ul.nb li{font-size:calc(25.7*var(--u));line-height:1.74;margin-bottom:calc(26*var(--u))}
+.wrap.gn .up ul.nb li:before{width:calc(26*var(--u));height:calc(26*var(--u));font-size:calc(15.7*var(--u))}
+.wrap.gn .up .bt{font-size:calc(25.7*var(--u))}
+.wrap.gn .up .bl{font-size:calc(15.7*var(--u))}
+.wrap.gn .up table.tb td{font-size:calc(21.4*var(--u));padding:calc(15*var(--u)) calc(12*var(--u))}
+.wrap.gn .b.vc{display:flex;flex-direction:column;justify-content:center}
+.wrap.gn .b.sp{display:flex;flex-direction:column;justify-content:space-between}
+.wrap.gn .b.sp{justify-content:flex-start}
+.wrap.gn .b.sp > .spin{flex:1 1 auto;display:flex;flex-direction:column;justify-content:space-between}
+.wrap.gn .b.sp > .spin > ul.li{flex:1 1 auto;display:flex;flex-direction:column;justify-content:space-between}
+.wrap.gn .b.sp2 .tx{font-size:calc(17.8*var(--u));line-height:1.92}
+.wrap.gn .b.sp2 ul.li li{font-size:calc(17.8*var(--u));line-height:1.9}
+.wrap.gn .b.vc > *{flex:0 0 auto}
+.wrap.gn .dn table.tb td{font-size:calc(17.8*var(--u));padding:calc(10.5*var(--u)) calc(11*var(--u))}
+.wrap.gn .dn table.tb th{font-size:calc(15.7*var(--u));padding:calc(9*var(--u)) calc(11*var(--u))}
+.wrap.gn .dn table.tb td .mini{font-size:calc(15.7*var(--u))}
+.wrap.gn .dn .tx{font-size:calc(19.9*var(--u));line-height:1.74}
+.wrap.gn .dn ul.li li{font-size:calc(19.9*var(--u));line-height:1.7;margin-bottom:calc(9*var(--u))}
+.wrap.gn .dn .bt{font-size:calc(21.4*var(--u));margin-bottom:calc(10*var(--u))}
+.wrap.gn .dn .fl .st .sm{font-size:calc(15.7*var(--u))}
+.wrap.gn .dn .b{padding:calc(15*var(--u)) calc(19*var(--u)) calc(16*var(--u))}
+.wrap.gn .dn2 table.tb td{font-size:calc(17.8*var(--u));padding:calc(8.5*var(--u)) calc(10*var(--u))}
+.wrap.gn .dn2 table.tb th{font-size:calc(14.3*var(--u));padding:calc(8*var(--u)) calc(10*var(--u))}
+.wrap.gn .dn2 .tx{font-size:calc(17.8*var(--u));line-height:1.72}
+.wrap.gn .dn2 ul.li li{font-size:calc(17.8*var(--u));line-height:1.68;margin-bottom:calc(8*var(--u))}
+.wrap.gn .dn2 .bt{font-size:calc(19.9*var(--u))}
+.wrap.gn .dn2 .bl{font-size:calc(14.3*var(--u));margin-bottom:calc(9*var(--u))}
+.wrap.gn .dn2 .fl .st .sm{font-size:calc(15.7*var(--u))}
+.wrap.gn .dn2 .fl .st .sd{font-size:calc(12.8*var(--u))}
+.wrap.gn .dn2 .b{padding:calc(14*var(--u)) calc(18*var(--u)) calc(15*var(--u))}
+.wrap.gn #tb{position:fixed;left:0;right:0;top:0;height:86px;background:#8A1219;color:#fff;z-index:9999; display:flex;align-items:center;gap:12px;padding:0 18px;flex-wrap:nowrap;overflow-x:auto; font-family:'Pretendard Variable',Pretendard,'Noto Sans CJK KR',sans-serif; box-shadow:0 2px 12px rgba(90,15,20,.3)}
+.wrap.gn #tb .ti{font-weight:800;font-size:15px;letter-spacing:-.02em;line-height:1.35;white-space:nowrap}
+.wrap.gn #tb .ti span{display:block;font-weight:400;font-size:11.5px;color:#E9B3B7;letter-spacing:0;margin-top:2px}
+.wrap.gn #tb .sp{flex:1;min-width:8px}
+.wrap.gn #tb button{font-family:inherit;font-size:13px;font-weight:700;border:0;border-radius:6px; padding:9px 14px;cursor:pointer;background:#B32430;color:#fff;letter-spacing:-.01em;white-space:nowrap}
+.wrap.gn #tb button:hover{background:#C93341}
+.wrap.gn #tb button.go{background:#E61E2B}
+.wrap.gn #tb button.go:hover{background:#F53C49}
+.wrap.gn #tb button.gh{background:transparent;color:#E9B3B7;border:1px solid #A85058}
+.wrap.gn #tb button.gh:hover{background:#9E2028;color:#fff}
+.wrap.gn #tb .cnt{font-weight:800;font-size:20px;color:#FFC24B;letter-spacing:-.02em;white-space:nowrap;padding:4px 8px}
+.wrap.gn #tb .cnt b{font-size:11.5px;color:#E9B3B7;font-weight:700;margin-left:3px}
+.wrap.gn #tb select{font-family:inherit;font-size:13px;padding:8px 9px;border-radius:6px;border:0; background:#B32430;color:#fff;font-weight:700}
+.wrap.gn #tb .fw{display:flex;align-items:center;gap:6px;background:#9E2028;border-radius:6px;padding:3px 4px 3px 10px}
+.wrap.gn #tb .fw input{background:transparent;border:0;outline:0;color:#fff;font-family:inherit;font-size:13px; width:104px;font-weight:600}
+.wrap.gn #tb .fw input::placeholder{color:#D19AA0;font-weight:400}
+.wrap.gn #tb .fw .fc{font-size:11.5px;color:#FFC24B;font-weight:700;min-width:38px;text-align:right}
+.wrap.gn #tb .fw button{padding:6px 9px;font-size:12px}
+.wrap.gn #tb .sv{font-size:11.5px;color:#E9B3B7;white-space:nowrap;min-width:112px;text-align:right}
+.wrap.gn #tb .sv.on{color:#8FE0A6}
+.wrap.gn #tb label.ck{font-size:12px;color:#E9B3B7;display:flex;align-items:center;gap:5px;white-space:nowrap;cursor:pointer}
+.wrap.gn [data-eid]{border-radius:3px}
+.wrap.gn [data-eid].hit{box-shadow:0 0 0 3px #FFC24B}
+
+.wrap.gn .page .row>.col, .wrap.gn .page .row>.b{
+  flex:0 0 calc((96.6*var(--w,4) - 11)*var(--u))!important; min-width:0}
+.wrap.gn .page .bd > .row[data-h], .wrap.gn .page .bd > .foot[data-h]{
+  flex:0 0 calc((100% - 235.4px) / 12 * var(--h) + (var(--h) - 1) * 21.44px)!important}
+
+/* ────────────────────────────────────────────────────────────
+   ㉚ 자리에 그림이 들어갔을 때  (2026-08-20)
+
+   자리 배열의 셋째 칸에 경로가 있으면 `.sh.on` 이 붙고 <img> 가 들어간다.
+   경로가 없으면 아무것도 바뀌지 않는다 — 지금까지의 빈 자리 그대로다.
+
+   비율은 자리가 정한다(.pc 16:9 · .mo 9:19.5). 캡처가 같은 비율이므로
+   object-fit:cover 가 잘라내는 것은 없다. 어긋난 캡처가 들어오면 잘린다.
+   자리 이름은 지우지 않고 숨긴다 — roundtrip 검사 개수를 유지한다.
+   ──────────────────────────────────────────────────────────── */
+.sh.on{position:relative; overflow:hidden; padding:0;
+  background:none; border-style:solid; border-color:rgba(0,0,0,.32)}
+.sh.on > .shi{width:100%; height:100%; object-fit:cover; display:block}
+.sh.on > span{position:absolute; width:1px; height:1px;
+  overflow:hidden; clip-path:inset(50%); white-space:nowrap}

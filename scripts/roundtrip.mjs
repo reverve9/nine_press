@@ -1,6 +1,7 @@
 // 제자리 편집 왕복 검사 — 문안 → 렌더 → DOM → 원문 복원 → 문안 대조
 //
-//   node scripts/roundtrip.mjs
+//   node scripts/roundtrip.mjs <문안.json>
+//   node scripts/roundtrip.mjs <문안.json> --v3   봉인한 12칸 트랙 렌더러
 //
 // 판면 규칙이나 inline 표기를 고칠 때마다 돌린다.
 // 하나라도 어긋나면 판면에서 그 자리에 고쳤을 때 문안이 깨진다는 뜻이다.
@@ -10,16 +11,19 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
-import { render } from '../render/index.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const src = process.argv[2] ?? 'content/sokcho/실행계획서.json';
+const argv = process.argv.slice(2);
+const v3 = argv.includes('--v3');      // 봉인본 · render/_v3/봉인.md
+const src = argv.find((a) => !a.startsWith('--')) ?? 'content/sokcho/실행계획서.json';
+
+const { render } = await import(v3 ? '../render/_v3/index.js' : '../render/index.js');
 const doc = JSON.parse(fs.readFileSync(path.join(root, src), 'utf8'));
 
 const css =
   fs.readFileSync(path.join(root, 'rules/fonts.css'), 'utf8')
     .replaceAll('../assets/fonts/', pathToFileURL(path.join(root, 'assets/fonts/')).href) +
-  '\n' + fs.readFileSync(path.join(root, 'rules/page.css'), 'utf8');
+  '\n' + fs.readFileSync(path.join(root, v3 ? 'rules/_v3/page.css' : 'rules/page.css'), 'utf8');
 
 const tmp = path.join(root, 'out/html/_roundtrip.html');
 fs.mkdirSync(path.dirname(tmp), { recursive: true });
