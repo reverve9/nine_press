@@ -171,6 +171,8 @@ export default function Shell({ docs, first }) {
   // 배율 · null 이면 창에 맞춘다. 숫자면 그 배율로 못박는다.
   // 키노트와 견주려면 못박아야 한다 — 키노트 50% 와 여기 50% 가 같은 크기다
   const [배율, set배율] = useState(null);
+  // 고른 자리 번호 · 골격 체계의 자리다(옛 12칸 트랙의 표적과 별개)
+  const [자리번호, set자리번호] = useState(null);
 
   const 판 = useRef(null);
   const 틀 = useRef(null);
@@ -210,6 +212,34 @@ export default function Shell({ docs, first }) {
     w.classList.toggle('bl', 자);
     w.classList.toggle('dbg', 외곽선);
   }, [자, 외곽선]);
+
+  /* 고른 자리에 테두리를 입힌다 */
+  useEffect(() => {
+    const d = 틀.current?.contentDocument;
+    d?.querySelectorAll('[data-자리]').forEach((el) =>
+      el.classList.toggle('pick', Number(el.getAttribute('data-자리')) === 자리번호));
+  }, [자리번호, 판본키]);
+
+  /* 면을 옮기거나 문안을 갈면 고르기를 푼다 */
+  useEffect(() => { set자리번호(null); }, [i, slug]);
+
+  /* 고른 자리를 비우거나 되돌린다.
+     비움은 내용과 함께 못 산다 — 렌더러가 오류를 던진다. 그래서 내용이 있으면 막는다. */
+  const 자리비움 = (값) => 바꾸기((d) => {
+    const z = d.면[i]?.자리?.[자리번호];
+    if (!z) return false;
+    if (값) {
+      const 있는것 = ['제목', '요약', '문단', '목록', '번호목록', '단계띠', '수치', '출처']
+        .filter((k) => z[k] != null);
+      if (있는것.length) {
+        set로그(`내용이 있어 못 비운다 · ${있는것.join(' · ')} 를 먼저 지운다`);
+        return false;
+      }
+      z.비움 = 값 === true ? true : 값;
+    } else {
+      delete z.비움;
+    }
+  }, { 그리기: true });
 
   useEffect(() => {
     const el = 판.current;
@@ -407,7 +437,10 @@ export default function Shell({ docs, first }) {
           '.row{position:relative}' +
           '.rz{position:absolute;top:0;bottom:0;width:calc(14.879*var(--u));' +
             'margin-left:calc(-7.44*var(--u));cursor:col-resize;z-index:50}' +
-          '.rz:hover,.rz.on{background:rgba(230,129,0,.22)}';
+          '.rz:hover,.rz.on{background:rgba(230,129,0,.22)}' +
+          // 고른 자리 — 편집기에서만 보인다
+          '[data-자리]{cursor:default}' +
+          '[data-자리].pick{outline:3px solid #E68100;outline-offset:3px}';
           // 기준선 자는 여기서 만들지 않는다 — rules/page.css 의 .wrap.bl 이 그린다.
           // 옛 12칸 트랙 격자(.gridov)는 걷어냈다. 걸음 92.73975 도 .row 도 이제 없다.
         d.head.appendChild(st);
@@ -461,6 +494,12 @@ export default function Shell({ docs, first }) {
 
         d.addEventListener('click', (e) => {
           if (e.target.closest?.('[data-p]')) return;
+          // 골격 체계 — 자리를 고른다. 빈 곳을 누르면 고르기를 푼다
+          const 자리 = e.target.closest?.('[data-자리]');
+          if (자리 || d.querySelector('[data-자리]')) {
+            set자리번호(자리 ? Number(자리.getAttribute('data-자리')) : null);
+            return;
+          }
           const t = e.target.closest?.('[data-b]');
           if (!t) return;
           const v = t.getAttribute('data-b');
@@ -664,6 +703,37 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
             ))}
           </div>
         </div>
+
+        {/* 고른 자리 — 판면에서 자리를 누르면 뜬다. 골격 체계 전용 */}
+        {자리번호 != null && (() => {
+          const z = 현재?.자리?.[자리번호];
+          if (!z) return null;
+          const 빔 = !!z.비움;
+          return (
+            <div className="ctl">
+              <div className="ctlrow">
+                <span className="ck">자리 {자리번호 + 1} / {현재?.자리?.length}</span>
+                <button className={'chip' + (빔 ? ' on' : '')}
+                        onClick={() => 자리비움(!빔)}
+                        title="비우면 출력에 아무것도 안 나간다 · 키노트에서 채운다">
+                  비움
+                </button>
+              </div>
+              {빔 && (
+                <input
+                  className="addln" style={{ cursor: 'text', textAlign: 'left' }}
+                  placeholder="무엇으로 채울지 적는다 · 예 : 지도 · 키노트에서"
+                  defaultValue={typeof z.비움 === 'string' ? z.비움 : ''}
+                  key={`${판본키}-${자리번호}`}
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    if ((typeof z.비움 === 'string' ? z.비움 : '') !== v) 자리비움(v || true);
+                  }}
+                />
+              )}
+            </div>
+          );
+        })()}
 
         {표적 ? (
           <>

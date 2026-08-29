@@ -178,7 +178,9 @@ function 블록(자리, r, i, 여백문서) {
   const st = `left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px` +
     (pad !== 여백기본 || 자리.여백 != null ? `;padding:${pad}px` : '');
   const P = ['자리', i];
-  const o = [`<div class="bx" style="${st}"${dk(자리.이름)}>`];
+  // 자리 번호는 도구 모드에서만 붙인다 — 편집기가 자리를 고르는 근거다. 출력에는 없다
+  const o = [`<div class="bx" style="${st}"${dk(자리.이름)}` +
+    (도구 ? ` data-자리="${i}"` : '') + `>`];
 
   /* 비워 두는 자리 — 키노트 · 파워포인트에서 채운다.
      판이 2339 × 1654 로 키노트 슬라이드와 같은 좌표계라 이 좌표를 그대로 쓸 수 있다.
