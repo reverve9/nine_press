@@ -105,36 +105,55 @@ const 도형배경들 = [
   ['블록배경', '블록배경 F4F6F8', '#F4F6F8'],
 ];
 const 도형테두리들 = [['', '없음', null], ['선', '선 E4E8EC', '#E4E8EC'], ['강조', '강조 2D4D6E', '#2D4D6E']];
-const 도형모서리들 = [[0, '0'], [10, '10'], [24, '24']];
 const 도형그림자들 = [['', '없음'], ['약', '약'], ['중', '중']];
-const 도형투명도들 = [[100, '100'], [60, '60'], [40, '40']];
-const 도형굵기들 = [[1, '1'], [2, '2'], [3, '3']];
 const HEX6 = /^#[0-9a-fA-F]{6}$/;
 
-/* 칩에 없는 값은 직접 적는다. 범위는 렌더러의 도형() 과 같아야 한다 —
-   여기서 막는 것은 편의고 · 진짜 계약은 렌더러가 지킨다.
-   자주 쓰는 값만 칩으로 두고 나머지는 이 칸으로 받는다. */
+/* ── 값 갈래 넷 · 화면 문법을 여기에 맞춘다 ────────────────
+     색     견본 줄 + hex 칸        배경 · 테두리
+     수     칸 하나                 모서리 · 투명도 · 굵기
+     이름   선택띠                  그림자 · 여럿 중 하나인데 수가 아니다
+     켜기   낱개 칩                 글자 반전
+   수에 자주 쓰는 값을 칩으로 박아 두면 그것만 쓰라는 뜻이 된다.
+   범위는 렌더러의 도형() 과 같아야 한다 — 여기서 막는 것은 편의고
+   진짜 계약은 렌더러가 지킨다. */
 const 수범위 = { 모서리: [0, 40], 투명도: [0, 100], 굵기: [1, 6] };
 
+/* 위 · 아래 화살표로 올리고 내린다 · ⇧ 를 누르면 열 걸음이다. 어도비 수치 칸 그대로다 */
 function 수칸({ 열쇠, 값, 기본, 놓기, 로그, 열림 = true }) {
   const [아래, 위] = 수범위[열쇠];
   const 지금 = 값 ?? 기본;
+  const [글, set글] = useState(String(지금));
+  useEffect(() => { set글(String(지금)); }, [지금]);
+
+  const 맞추기 = (t) => {
+    const s = String(t).trim();
+    const n = Number(s);
+    if (s === '' || !Number.isInteger(n) || n < 아래 || n > 위) {
+      set글(String(지금));
+      return 로그(`${열쇠} "${s}" · ${아래} ~ ${위} 사이 정수로 적는다`);
+    }
+    if (n !== 지금) 놓기(n);
+  };
+
   return (
-    <input
-      className="barin numin" type="text" inputMode="numeric"
-      key={`${열쇠}-${지금}`} defaultValue={지금} disabled={!열림}
-      title={`${아래} ~ ${위} 사이 정수를 적고 Enter`}
-      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
-      onBlur={(e) => {
-        const t = e.target.value.trim();
-        const n = Number(t);
-        if (t === '' || !Number.isInteger(n) || n < 아래 || n > 위) {
-          e.target.value = 지금;
-          return 로그(`${열쇠} "${t}" · ${아래} ~ ${위} 사이 정수로 적는다`);
-        }
-        if (n !== 지금) 놓기(n);
-      }}
-    />
+    <span className="numwrap">
+      <input
+        className="barin numin" type="text" inputMode="numeric"
+        value={글} disabled={!열림}
+        title={`${아래} ~ ${위} 사이 정수 · ↑↓ 로 한 걸음 · ⇧↑↓ 로 열 걸음`}
+        onChange={(e) => set글(e.target.value)}
+        onBlur={(e) => 맞추기(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') { 맞추기(e.currentTarget.value); return; }
+          if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+          e.preventDefault();
+          const 걸음 = (e.shiftKey ? 10 : 1) * (e.key === 'ArrowUp' ? 1 : -1);
+          const n = Math.min(위, Math.max(아래, 지금 + 걸음));
+          if (n !== 지금) 놓기(n);
+        }}
+      />
+      <span className="numrg">{아래}~{위}</span>
+    </span>
   );
 }
 
@@ -1166,15 +1185,6 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                     />
                   </줄>
                   <줄 이름="투명도" 곁={s.배경 ? null : '배경이 없으면 안 먹는다'}>
-                    <span className="seg">
-                      {도형투명도들.map(([v, 이름]) => (
-                        <button key={v}
-                                className={'chip' + ((s.투명도 ?? 100) === v ? ' on' : '')}
-                                disabled={!s.배경}
-                                title="배경에만 건다"
-                                onClick={() => 도형바꾸기('투명도', v)}>{이름}</button>
-                      ))}
-                    </span>
                     <수칸 열쇠="투명도" 값={s.투명도} 기본={100} 열림={!!s.배경}
                           로그={set로그} 놓기={(n) => 도형바꾸기('투명도', n)} />
                   </줄>
@@ -1214,27 +1224,11 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                       }}
                     />
                   </줄>
-                  <줄 이름="굵기" 곁={s.테두리 ? null : '테두리가 없으면 안 먹는다'}>
-                    <span className="seg">
-                      {도형굵기들.map(([v, 이름]) => (
-                        <button key={v}
-                                className={'chip' + ((s.굵기 ?? 1) === v ? ' on' : '')}
-                                disabled={!s.테두리}
-                                title="키노트 세팅 §5 도형표는 1 이다"
-                                onClick={() => 도형바꾸기('굵기', v)}>{이름}</button>
-                      ))}
-                    </span>
+                  <줄 이름="굵기" 곁={s.테두리 ? '세팅표는 1 이다' : '테두리가 없으면 안 먹는다'}>
                     <수칸 열쇠="굵기" 값={s.굵기} 기본={1} 열림={!!s.테두리}
                           로그={set로그} 놓기={(n) => 도형바꾸기('굵기', n)} />
                   </줄>
-                  <줄 이름="모서리">
-                    <span className="seg">
-                      {도형모서리들.map(([v, 이름]) => (
-                        <button key={v}
-                                className={'chip' + ((s.모서리 ?? 10) === v ? ' on' : '')}
-                                onClick={() => 도형바꾸기('모서리', v)}>{이름}</button>
-                      ))}
-                    </span>
+                  <줄 이름="모서리" 곁="세팅표는 10 이다">
                     <수칸 열쇠="모서리" 값={s.모서리} 기본={10}
                           로그={set로그} 놓기={(n) => 도형바꾸기('모서리', n)} />
                   </줄>

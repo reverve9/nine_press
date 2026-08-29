@@ -246,12 +246,15 @@ body.끄는중, body.끄는중 .fphd { cursor: grabbing }
   width: 84px; height: 22px; padding: 0 7px;
   font-size: 11px; font-variant-numeric: tabular-nums; text-transform: uppercase;
 }
-/* 칩에 없는 수를 직접 적는 칸. 선택띠와 높이를 맞춘다 */
+/* 수치 칸 — 수는 칩으로 박지 않는다. 칸 하나로 통일한다 */
+.numwrap { display: inline-flex; align-items: center; gap: 7px }
 .numin {
-  width: 44px; height: 24px; padding: 0 6px; text-align: center;
-  font-size: 11px; font-variant-numeric: tabular-nums;
+  width: 58px; height: 26px; padding: 0 8px; text-align: center;
+  font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--nv);
 }
 .numin:disabled { background: #f7f9fb; color: #b3bdc8; cursor: default }
+/* 받는 범위를 칸 옆에 적어 둔다 — 눌러 보고 알아내지 않게 한다 */
+.numrg { font-size: 10px; font-variant-numeric: tabular-nums; color: #b3bdc8 }
 
 .fphint {
   margin-top: 10px; padding: 7px 8px;
