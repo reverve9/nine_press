@@ -47,6 +47,33 @@ function 원문(node) {
   return s;   // NBSP 는 그대로 둔다
 }
 
+/* 렌더러가 던진 오류를 판 자리에 그린다 — 화면을 죽이지 않는다.
+   옛 12칸 트랙 문안 넷은 새 렌더러가 못 그린다. 골라도 앱이 살아 있어야 한다.
+   그리는 법은 봉인본으로만 된다 · node scripts/build.js <문안> --v3 */
+const esc = (s) => String(s ?? '')
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+function 오류판(doc, i, e) {
+  const 옛체계 = /구성에 띠가 없다|골격 "undefined"/.test(e.message);
+  return `<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><style>
+body{margin:0;padding:0;background:transparent;
+  font-family:'Pretendard Variable',Pretendard,'Noto Sans KR',sans-serif}
+.er{width:${W}px;height:${H}px;background:#fff;box-sizing:border-box;padding:120px 160px;
+  display:flex;flex-direction:column;justify-content:center;gap:34px;color:#1a1a1a}
+.er h1{margin:0;font-size:64px;font-weight:800;color:#E68100;letter-spacing:-.015em}
+.er p{margin:0;font-size:34px;line-height:1.6;color:#39434f}
+.er code{font-size:32px;background:#F4F6F8;border-radius:6px;padding:4px 12px;color:#131B2B}
+.er .m{font-size:41px;font-weight:700;color:#131B2B;line-height:1.5}
+.er .s{font-size:28px;color:#8792a0;letter-spacing:.06em}
+</style></head><body><div class="er">
+<h1>이 면은 못 그린다</h1>
+<div class="m">${esc(e.message)}</div>
+<p class="s">${esc(doc?.문서명 ?? '')} · ${i + 1}번째 면</p>
+${옛체계 ? `<p><b>옛 12칸 트랙 문안이다.</b> 새 렌더러가 못 읽는다.<br>
+봉인본으로만 그려진다 · <code>node scripts/build.js &lt;문안&gt; --v3</code></p>` : ''}
+</div></body></html>`;
+}
+
 const 줄여 = (s, n = 30) => {
   const t = String(s ?? '').replace(/\*\*/g, '').replace(/\{[^}]*\}/g, '').replace(/\s+/g, ' ').trim();
   return t.length > n ? t.slice(0, n) + '…' : (t || '(빈 줄)');
@@ -570,7 +597,16 @@ export default function Shell({ docs, first }) {
   const 판본 = useMemo(() => {
     const d = 문서ref.current;
     if (!d?.면?.[i]) return '';
-    return render({ ...d, 면: [d.면[i]] }, { cssBase: '/api/css', 도구: true })
+    let html;
+    try {
+      html = render({ ...d, 면: [d.면[i]] }, { cssBase: '/api/css', 도구: true });
+    } catch (e) {
+      // 렌더러는 계약을 어기면 오류를 던진다(자리 개수 · 모르는 골격 · 옛 열쇠).
+      // 그 오류를 그대로 터뜨리면 화면이 통째로 죽어 「빌드 에러」처럼 보인다.
+      // 판 자리에 메시지를 그려 무엇이 잘못됐는지 보이게 한다.
+      return 오류판(d, i, e);
+    }
+    return html
       // 그림은 /api/img 로 돌린다 — 정적 중복을 만들지 않는다
       .replaceAll('src="assets/', 'src="/api/img/')
       .replace(
