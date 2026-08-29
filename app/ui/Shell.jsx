@@ -166,7 +166,8 @@ export default function Shell({ docs, first }) {
   const [되돌림, set되돌림] = useState(0);
   const [충돌, set충돌] = useState(false);
   const [자, set자] = useState(false);      // 기준선 자 42px · rules/page.css .wrap.bl
-  const [블록, set블록] = useState(false);  // 자리 · 밴드 외곽선 · rules/page.css .wrap.dbg
+  // 이름을 「블록」 으로 두면 안 된다 — 옛 12칸 트랙의 `const 블록` 과 같은 스코프에서 부딪친다
+  const [외곽선, set외곽선] = useState(false);  // 자리 · 밴드 외곽선 · rules/page.css .wrap.dbg
   // 배율 · null 이면 창에 맞춘다. 숫자면 그 배율로 못박는다.
   // 키노트와 견주려면 못박아야 한다 — 키노트 50% 와 여기 50% 가 같은 크기다
   const [배율, set배율] = useState(null);
@@ -177,7 +178,7 @@ export default function Shell({ docs, first }) {
   const 면ref = useRef(0);
   const 시각ref = useRef(0);
   const 자ref = useRef(false);
-  const 블록ref = useRef(false);
+  const 외곽선ref = useRef(false);
   const 스택 = useRef([]);        // 되돌리기 — 문서 스냅샷
   const 앞스택 = useRef([]);      // 다시 하기
 
@@ -188,7 +189,7 @@ export default function Shell({ docs, first }) {
     문서ref.current = r.doc;   // 판본 useMemo 가 이 렌더에서 바로 읽는다
     setDoc(r.doc); setMtime(r.mtime); setI(0); set표적(null);
     set자(!!r.doc.기준선);           // 문안이 "기준선": true 면 켠 채로 연다
-    set블록(r.doc.판면 === 'dbg');   // 문안이 "판면": "dbg" 면 켠 채로 연다
+    set외곽선(r.doc.판면 === 'dbg'); // 문안이 "판면": "dbg" 면 켠 채로 연다
     set더러움(false); set판본키((n) => n + 1);
   }, []);
 
@@ -197,7 +198,7 @@ export default function Shell({ docs, first }) {
   useEffect(() => { 면ref.current = i; }, [i]);
   useEffect(() => { 시각ref.current = mtime; }, [mtime]);
   useEffect(() => { 자ref.current = 자; }, [자]);
-  useEffect(() => { 블록ref.current = 블록; }, [블록]);
+  useEffect(() => { 외곽선ref.current = 외곽선; }, [외곽선]);
 
   /* 켜고 끌 때 iframe 문서에 바로 입힌다.
      둘 다 rules/page.css 가 이미 갖고 있다 — .wrap.bl (기준선 자) · .wrap.dbg (외곽선).
@@ -207,8 +208,8 @@ export default function Shell({ docs, first }) {
     const w = 틀.current?.contentDocument?.querySelector('.wrap');
     if (!w) return;
     w.classList.toggle('bl', 자);
-    w.classList.toggle('dbg', 블록);
-  }, [자, 블록]);
+    w.classList.toggle('dbg', 외곽선);
+  }, [자, 외곽선]);
 
   useEffect(() => {
     const el = 판.current;
@@ -499,7 +500,7 @@ export default function Shell({ docs, first }) {
         // 패널이 정본이다 — 켬이든 끔이든 자ref 가 이긴다.
         const w = d.querySelector('.wrap');
         w?.classList.toggle('bl', 자ref.current);
-        w?.classList.toggle('dbg', 블록ref.current);
+        w?.classList.toggle('dbg', 외곽선ref.current);
 
         let 끌 = null;
         const 끝내기 = () => {
@@ -644,7 +645,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                     title="기준선 자 42px · ⌘\">
               기준선
             </button>
-            <button className={'chip' + (블록 ? ' on' : '')} onClick={() => set블록((v) => !v)}
+            <button className={'chip' + (외곽선 ? ' on' : '')} onClick={() => set외곽선((v) => !v)}
                     title="자리 · 밴드 · 안전영역 외곽선">
               블록
             </button>
