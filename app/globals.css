@@ -121,8 +121,10 @@ body {
    가운데 맞춤은 align-items 가 아니라 .frame 의 margin:auto 로 한다 —
    플렉스 가운데 맞춤은 넘칠 때 위·왼쪽을 잘라 먹어 그쪽을 볼 수 없다. */
 /* 판 자리 = 툴바 한 줄 + 판. 툴바가 먹은 만큼 .view 가 줄고
-   맞춤 배율은 .view 를 재므로 저절로 따라온다. */
-.stage { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0 }
+   맞춤 배율은 .view 를 재므로 저절로 따라온다.
+   속성 패널이 이 칸 안에 떠 있다 — 그래서 position:relative 다.
+   판이 스크롤해도 패널은 안 흐른다. */
+.stage { flex: 1; position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0 }
 
 .view {
   flex: 1; position: relative; min-width: 0; min-height: 0;
@@ -133,22 +135,106 @@ body {
 .frame { margin: auto; box-shadow: 0 2px 14px rgba(25, 41, 73, .13); background: #fff }
 .frame iframe { border: 0; display: block }
 
-/* ── 판 위 툴바 — 고른 것에 붙는 세부 편집 ──
-   고른 것이 없으면 무엇을 누르라고만 적는다. 줄이 넘치면 접힌다. */
+/* ── 판 위 툴바 — 한 줄로 고정한다 ──
+   왼쪽 : 무엇을 고르고 있는가.  가운데 : 그것에 바로 거는 손질.
+   오른쪽 : 패널 켜고 끄기 · 포토샵 「창」 메뉴 자리다.
+   속성은 여기 안 늘어놓는다. 전부 떠 있는 패널로 간다. */
 .bar {
   flex: 0 0 auto;
-  display: flex; align-items: center; flex-wrap: wrap; gap: 5px;
-  min-height: 44px; padding: 7px 14px;
+  display: flex; align-items: center; gap: 8px;
+  height: 42px; padding: 0 12px;
   background: #fff; border-bottom: 1px solid var(--ln);
 }
 .barh {
-  flex: 0 0 auto; margin-right: 4px;
-  font-size: 11px; font-weight: 800; letter-spacing: -.01em; color: var(--nv);
+  flex: 0 0 auto;
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11.5px; font-weight: 700; letter-spacing: -.01em; color: var(--nv);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* 지금 고른 것 — 골격은 회색 꼬리표 · 자리는 남색 알맹이 */
+.barh i {
+  font-style: normal; font-size: 10px; font-weight: 800; letter-spacing: .08em;
+  color: var(--mu); background: #f2f5f8; border-radius: 4px; padding: 3px 6px;
 }
 .barh b { color: var(--nv2) }
-/* 무리를 가르는 실선 하나. 이름표(.ck)가 무엇에 붙은 값인지 짚는다 */
-.barsp { flex: 0 0 auto; width: 1px; height: 16px; margin: 0 4px; background: var(--ln) }
-.bar .ck { flex: 0 0 auto; margin-right: 1px }
+.barh.dim { font-weight: 400; color: var(--mu) }
+.barh.dim b { color: var(--tx); font-weight: 700 }
+.barsp { flex: 0 0 auto; width: 1px; height: 18px; background: var(--ln) }
+.barfill { flex: 1 1 auto; min-width: 8px }
+.bar .ck { flex: 0 0 auto }
+
+/* ── 선택띠 — 「여럿 중 하나」는 낱개 토글로 안 낸다 ──
+   낱개로 늘어놓으면 서로 무관한 스위치로 읽혀 줄이 정신없어진다.
+   테두리 하나로 묶고 안에서 칸을 가르면 한 덩이 · 하나 고르기로 읽힌다. */
+.seg { display: inline-flex; border: 1px solid var(--ln); border-radius: 5px; overflow: hidden }
+.seg .chip {
+  border: 0; border-left: 1px solid var(--ln); border-radius: 0;
+  padding: 4px 9px; background: #fff;
+}
+.seg .chip:first-child { border-left: 0 }
+.seg .chip.on { background: var(--nv); color: #fff }
+.seg .chip:hover:not(:disabled):not(.on) { background: #f2f5f8; color: var(--nv) }
+
+/* ── 떠 있는 속성 패널 — 어도비 팔레트 ──
+   판 위에 뜬다. 머리를 잡아 끌고 · 두 번 누르면 접히고 · 누르면 앞으로 온다. */
+.fp {
+  position: absolute;
+  background: #fff; border: 1px solid #d7dee5; border-radius: 7px;
+  box-shadow: 0 6px 22px rgba(25, 41, 73, .16);
+  overflow: hidden;
+}
+.fphd {
+  display: flex; align-items: center; gap: 2px;
+  height: 30px; padding: 0 4px;
+  background: #f4f6f8; border-bottom: 1px solid var(--ln);
+  cursor: grab; user-select: none;
+}
+.fp.fold .fphd { border-bottom: 0 }
+body.끄는중, body.끄는중 .fphd { cursor: grabbing }
+.fpnm {
+  flex: 1; min-width: 0; padding-left: 2px;
+  font-size: 11px; font-weight: 800; letter-spacing: .08em; color: var(--nv);
+}
+.fpb {
+  flex: 0 0 auto; border: 0; background: transparent; cursor: pointer;
+  color: #93a0ae; font-size: 11px; line-height: 1; padding: 5px 6px;
+}
+.fpx { font-size: 15px }
+.fpb:hover { color: var(--nv) }
+.fpbd { padding: 10px 11px 12px }
+
+/* 패널 한 줄 — 이름표는 왼쪽에 폭을 맞춰 세운다. 값이 세로로 정렬돼 읽힌다 */
+.poprow { display: flex; align-items: center; gap: 8px; margin-bottom: 7px }
+.poprow:last-child { margin-bottom: 0 }
+.poprow .ck { flex: 0 0 38px; text-align: right }
+.popchips { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; min-width: 0 }
+/* 갈래를 가르는 실선 — 배경 · 테두리 · 글자를 눈으로 갈라 준다 */
+.popln { height: 1px; margin: 10px 0 9px -11px; width: calc(100% + 22px); background: var(--ln) }
+
+/* 색 견본 — 색은 이름이 아니라 색으로 고른다 */
+.sw {
+  flex: 0 0 auto; width: 21px; height: 21px;
+  border: 1px solid #cbd4dd; border-radius: 4px;
+  background: #fff; cursor: pointer; padding: 0;
+}
+.sw:hover { border-color: var(--nv2) }
+.sw.on { border-color: var(--nv); box-shadow: 0 0 0 2px rgba(25, 41, 73, .18) }
+/* 「없음」 은 빗금으로 낸다 */
+.sw.none {
+  background: linear-gradient(to top right,
+    #fff 0 45%, #d0424a 45% 55%, #fff 55% 100%);
+}
+.swnm {
+  font-size: 10.5px; color: var(--mu); margin-left: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.fphint {
+  margin-top: 10px; padding: 7px 8px;
+  font-size: 11px; line-height: 1.5; color: var(--mu);
+  background: #f7f9fb; border-radius: 5px;
+}
+.fphint b { color: var(--nv2); font-weight: 700 }
 
 .barin {
   font: inherit; font-size: 11.5px; color: var(--tx);

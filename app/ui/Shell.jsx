@@ -97,12 +97,106 @@ const 배경들 = [['', '없음'], ['or', '주황'], ['fill', '회색'], ['nv', 
    이름 셋(블록배경 · 선 · 강조) 밖의 색은 hex 로 준다. 여기 hex 는 전부
    키노트 세팅 §5 색표에 있는 값이다 — 없는 색을 새로 만들지 않는다(N2 §2⑤).
    그 밖의 색이 필요하면 「배경 hex」 칸에 #RRGGBB 로 직접 적는다. */
-const 도형배경들 = [['', '없음'], ['블록배경', '블록배경'], ['#2D4D6E', '강조'], ['#131B2B', '네이비']];
-const 도형테두리들 = [['', '없음'], ['선', '선'], ['강조', '강조']];
+const 도형배경들 = [
+  ['', '없음', null],
+  ['블록배경', '블록배경 F4F6F8', '#F4F6F8'],
+  ['#2D4D6E', '강조 2D4D6E', '#2D4D6E'],
+  ['#131B2B', '네이비 131B2B', '#131B2B'],
+];
+const 도형테두리들 = [['', '없음', null], ['선', '선 E4E8EC', '#E4E8EC'], ['강조', '강조 2D4D6E', '#2D4D6E']];
 const 도형모서리들 = [[0, '0'], [10, '10'], [24, '24']];
 const 도형그림자들 = [['', '없음'], ['약', '약'], ['중', '중']];
 const 도형투명도들 = [[100, '100'], [60, '60'], [40, '40']];
 const HEX6 = /^#[0-9a-fA-F]{6}$/;
+
+/* ── 떠 있는 속성 패널 ─────────────────────────────────────
+   포토샵 · 인디자인 · 일러스트레이터의 팔레트 짜임 그대로다.
+
+     · 판 위에 떠 있고 · 머리를 잡아 끌어 옮긴다
+     · 머리를 두 번 누르면 접힌다 · 머리만 남는다
+     · 겹치면 누른 것이 앞으로 온다
+     · × 로 닫고 · 툴바 「패널」 에서 다시 켠다 · 자리는 기억한다
+
+   속성을 툴바에 늘어놓지 않는 이유가 이것이다 — 개념마다 팔레트 하나를 두면
+   글자 · 표 패널이 붙어도 툴바가 안 늘어나고 판도 안 줄어든다.
+   여기 목록에 한 줄 더하면 패널이 하나 늘어난다.
+   앞으로 · 글자(계층 · 강조 · 표기) · 표(열 · 머리행 · 행 높이) · 면(골격 · 모드). */
+
+const 패널들 = [['도형', '도형']];
+const 패널폭 = 268;
+
+function 팔레트({ 이름, 열쇠, 자리, set자리, 접힘, set접힘, 차례, z, 앞으로, 끄기, children }) {
+  const 몸 = useRef(null);
+  const 접 = !!접힘[열쇠];
+  const 접기 = () => set접힘((f) => ({ ...f, [열쇠]: !접 }));
+
+  /* 머리를 잡아 끈다. 무대(.stage) 안을 벗어나지 않는다 —
+     머리가 밖으로 나가면 다시 잡을 방법이 없어진다. */
+  const 잡기 = (e) => {
+    if (e.button !== 0) return;
+    const el = 몸.current;
+    const 무대 = el?.offsetParent;
+    if (!무대) return;
+    const r = el.getBoundingClientRect();
+    const s = 무대.getBoundingClientRect();
+    const dx = e.clientX - r.left;
+    const dy = e.clientY - r.top;
+    앞으로();
+    const 움직 = (ev) => {
+      const x = Math.min(Math.max(ev.clientX - dx - s.left, 0), Math.max(0, s.width - r.width));
+      const y = Math.min(Math.max(ev.clientY - dy - s.top, 0), Math.max(0, s.height - 34));
+      set자리((p) => ({ ...p, [열쇠]: { x: Math.round(x), y: Math.round(y) } }));
+    };
+    const 놓기 = () => {
+      document.removeEventListener('mousemove', 움직);
+      document.removeEventListener('mouseup', 놓기);
+      document.body.classList.remove('끄는중');
+    };
+    document.addEventListener('mousemove', 움직);
+    document.addEventListener('mouseup', 놓기);
+    document.body.classList.add('끄는중');
+    e.preventDefault();
+  };
+
+  const p = 자리[열쇠];
+  // 처음에는 오른쪽 위에 계단으로 놓는다. 한 번 끌면 그 자리를 기억한다
+  const 놓임 = p ? { left: p.x, top: p.y } : { right: 16, top: 16 + 차례 * 34 };
+
+  return (
+    <section className={'fp' + (접 ? ' fold' : '')} ref={몸}
+             style={{ ...놓임, width: 패널폭, zIndex: 20 + z }}
+             onMouseDown={앞으로}>
+      <header className="fphd" onMouseDown={잡기} onDoubleClick={접기}>
+        <button className="fpb" onMouseDown={(e) => e.stopPropagation()} onClick={접기}
+                title={접 ? '편다' : '접는다'}>{접 ? '▸' : '▾'}</button>
+        <span className="fpnm">{이름}</span>
+        <button className="fpb fpx" onMouseDown={(e) => e.stopPropagation()} onClick={끄기}
+                title="닫는다 · 툴바에서 다시 켠다">×</button>
+      </header>
+      {!접 && <div className="fpbd">{children}</div>}
+    </section>
+  );
+}
+
+/* 패널 한 줄 — 이름표 + 값. 사이드패널의 .ctlrow 와 같은 문법이다 */
+function 줄({ 이름, children }) {
+  return (
+    <div className="poprow">
+      <span className="ck">{이름}</span>
+      <span className="popchips">{children}</span>
+    </div>
+  );
+}
+
+/* 색은 이름이 아니라 색으로 고른다 — 어도비 견본 칸 그대로다.
+   글자 칩으로 늘어놓으면 네 개만 돼도 줄이 접히고 무슨 색인지도 안 보인다. */
+function 색칸({ 색, 이름, 지금, 누르기 }) {
+  return (
+    <button className={'sw' + (지금 ? ' on' : '') + (색 ? '' : ' none')}
+            style={색 ? { background: 색 } : undefined}
+            title={이름} onClick={누르기} />
+  );
+}
 
 /* ── 구조 폼 항목 뽑기 ── */
 function 구조칸들(면, 표적) {
@@ -185,6 +279,14 @@ export default function Shell({ docs, first }) {
   const [배율, set배율] = useState(null);
   // 고른 자리 번호 · 골격 체계의 자리다(옛 12칸 트랙의 표적과 별개)
   const [자리번호, set자리번호] = useState(null);
+  // 떠 있는 속성 패널 — 켠 것 · 접은 것 · 끌어다 놓은 자리 · 앞뒤 차례
+  const [패널, set패널] = useState({ 도형: true });
+  const [접힘, set접힘] = useState({});
+  const [패널자리, set패널자리] = useState({});
+  const [앞뒤, set앞뒤] = useState(패널들.map(([k]) => k));
+  const 앞으로 = useCallback((열쇠) => {
+    set앞뒤((a) => (a[a.length - 1] === 열쇠 ? a : [...a.filter((k) => k !== 열쇠), 열쇠]));
+  }, []);
 
   const 판 = useRef(null);
   const 틀 = useRef(null);
@@ -854,31 +956,41 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
         </div>
       </aside>
 
-      {/* ── 판 위 툴바 — 고른 것에 붙는 세부 편집 ────────────────────
-          사이드패널은 문서 · 보기 · 이동만 맡는다. 세부 편집을 거기 쌓으면
-          패널이 좁아지고 무엇이 무엇에 붙은 것인지 안 보인다.
-          툴바는 **고른 것이 있을 때만** 뜨고 · 고른 것이 없으면 무엇을 누르라고만 적는다.
-          앞으로 표 · 글자 계층도 여기 같은 줄에 붙는다. */}
+      {/* ── 판 자리 = 툴바 한 줄 + 판 ────────────────────────────────
+          갈래를 셋으로 갈랐다. 인디자인 · 일러스트레이터가 쓰는 짜임이다.
+
+            왼쪽 사이드패널   문서 · 보기 · 이동      무엇을 여는가
+            가운데 판 + 툴바   고른 것 · 빠른 손질     무엇을 고르고 있는가
+            오른쪽 속성 도크   고른 것의 속성 패널     그것을 어떻게 고치는가
+
+          툴바는 **한 줄로 고정**이다. 속성을 여기 늘어놓으면 스무 개가 넘어
+          무엇이 무엇에 붙은 값인지 안 보인다. 속성은 전부 도크로 보낸다.
+          앞으로 글자 · 표 패널이 붙어도 툴바는 안 늘어난다. */}
       <div className="stage">
         <div className="bar">
           {(() => {
             const z = 자리번호 == null ? null : 현재?.자리?.[자리번호];
             if (!z) return (
-              <span className="barh">판면에서 <b>빈 곳</b>을 누르면 자리를 고른다 · <b>글자</b>를 누르면 그 자리에서 고친다</span>
+              <span className="barh dim">
+                판면에서 <b>빈 곳</b>을 누르면 자리를 고른다 · <b>글자</b>를 누르면 그 자리에서 고친다
+              </span>
             );
             const 빔 = !!z.비움;
-            const s = z.도형 ?? {};
             return (
               <>
-                <span className="barh">자리 {자리번호 + 1} / {현재?.자리?.length}</span>
+                <span className="barh">
+                  <i>{현재?.골격 ?? '구성'}</i>
+                  자리 <b>{자리번호 + 1}</b> / {현재?.자리?.length}
+                </span>
+                <span className="barsp" />
                 <button className={'chip' + (빔 ? ' on' : '')}
                         onClick={() => 자리비움(!빔)}
                         title="비우면 출력에 아무것도 안 나간다 · 키노트에서 채운다">
                   비움
                 </button>
-                {빔 ? (
+                {빔 && (
                   <input
-                    className="barin" style={{ flex: '1 1 260px' }}
+                    className="barin" style={{ flex: '1 1 240px', maxWidth: 420 }}
                     placeholder="무엇으로 채울지 적는다 · 예 : 지도 · 키노트에서"
                     defaultValue={typeof z.비움 === 'string' ? z.비움 : ''}
                     key={`빔-${판본키}-${자리번호}`}
@@ -887,21 +999,108 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                       if ((typeof z.비움 === 'string' ? z.비움 : '') !== v) 자리비움(v || true);
                     }}
                   />
-                ) : (
-                  <>
-                    <span className="barsp" />
-                    <span className="ck">배경</span>
-                    {도형배경들.map(([v, 이름]) => (
-                      <button key={v || 'n'}
-                              className={'chip' + ((s.배경 ?? '') === v ? ' on' : '')}
-                              onClick={() => 도형바꾸기('배경', v)}>{이름}</button>
+                )}
+              </>
+            );
+          })()}
+
+          {/* 패널 켜고 끄기 — 포토샵 「창」 메뉴 자리다. 켠 것만 판 위에 뜬다 */}
+          <span className="barfill" />
+          <span className="ck">패널</span>
+          <span className="seg">
+            {패널들.map(([열쇠, 이름]) => (
+              <button key={열쇠} className={'chip' + (패널[열쇠] ? ' on' : '')}
+                      onClick={() => set패널((p) => ({ ...p, [열쇠]: !p[열쇠] }))}
+                      title={`${이름} 패널을 켜고 끈다`}>
+                {이름}
+              </button>
+            ))}
+          </span>
+        </div>
+        <main className="view" ref={판}>
+          {현재 ? (
+            <div className="frame" style={{ width: W * 축척, height: H * 축척 }}>
+              <iframe
+                ref={틀}
+                key={`${slug}-${i}-${판본키}`}
+                srcDoc={판본}
+                onLoad={재기}
+                style={{ width: W, height: H, transform: `scale(${축척})`, transformOrigin: 'top left' }}
+              />
+            </div>
+          ) : (
+            <p className="empty">면이 없습니다.</p>
+          )}
+          {/* 배율 — 판 위에 얹는다. 사이드패널이 아니라 보는 자리 옆에 둔다.
+              못박으면 키노트와 같은 %로 견줄 수 있다. 판은 2339 × 1654 로 같다 */}
+          <div className="zoom">
+            <button className={'chip' + (배율 == null ? ' on' : '')} onClick={() => set배율(null)}
+                    title="창에 맞춘다">맞춤</button>
+            {[0.25, 0.5, 1].map((v) => (
+              <button key={v} className={'chip' + (배율 === v ? ' on' : '')}
+                      onClick={() => set배율(v)}
+                      title={`판 2339 × 1654 의 ${v * 100}% · 키노트 ${v * 100}% 와 같은 크기`}>
+                {v * 100}%
+              </button>
+            ))}
+            {/* 사용자 지정 — 키노트에서 쓰는 %를 그대로 적어 넣는다 */}
+            <input
+              className="barin zin" type="text" inputMode="numeric"
+              placeholder="%" key={`zoom-${배율}`}
+              defaultValue={배율 == null ? '' : Math.round(배율 * 100)}
+              title="10 ~ 400 사이 % 를 적고 Enter"
+              onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+              onBlur={(e) => {
+                const v = e.target.value.trim();
+                if (!v) return set배율(null);
+                const n = Number(v.replace('%', ''));
+                if (!Number.isFinite(n) || n < 10 || n > 400) {
+                  e.target.value = 배율 == null ? '' : Math.round(배율 * 100);
+                  return set로그(`배율 "${v}" · 10 ~ 400 사이 숫자로 적는다`);
+                }
+                set배율(n / 100);
+              }}
+            />
+            <span className="znow">{배율 == null ? '맞춤 ' : ''}{Math.round(축척 * 100)}%</span>
+          </div>
+        </main>
+
+        {/* 떠 있는 속성 패널 — 어도비 팔레트 짜임 · 머리를 잡아 끌고 · 두 번 누르면 접힌다.
+           고른 것이 패널과 안 맞아도 패널은 안 사라진다. 무엇을 고르라고만 적는다 —
+           패널이 없어졌다 나타났다 하면 어디에 있었는지 못 찾는다. */}
+        {패널.도형 && (() => {
+          const z = 자리번호 == null ? null : 현재?.자리?.[자리번호];
+          const s = z?.도형 ?? {};
+          const 켬 = !!z && !z.비움;
+          return (
+            <팔레트 이름="도형" 열쇠="도형" 차례={0}
+                    자리={패널자리} set자리={set패널자리}
+                    접힘={접힘} set접힘={set접힘}
+                    z={앞뒤.indexOf('도형')} 앞으로={() => 앞으로('도형')}
+                    끄기={() => set패널((p) => ({ ...p, 도형: false }))}>
+              {!켬 ? (
+                <p className="fphint">
+                  {z?.비움 ? '비운 자리다 · 출력에 아무것도 안 나가므로 도형도 못 준다'
+                    : '판면에서 자리의 빈 곳을 눌러 고른다'}
+                </p>
+              ) : (
+                <>
+                  <줄 이름="배경">
+                    {도형배경들.map(([v, 이름, 색]) => (
+                      <색칸 key={v || 'n'} 색={색} 이름={이름}
+                            지금={(s.배경 ?? '') === v}
+                            누르기={() => 도형바꾸기('배경', v)} />
                     ))}
+                    {/* 이름 셋 밖의 색 — 견본에 없는 색은 여기 적는다 */}
+                    {HEX6.test(s.배경 ?? '') && !도형배경들.some(([v]) => v === s.배경) && (
+                      <색칸 색={s.배경} 이름={s.배경} 지금 누르기={() => {}} />
+                    )}
                     <input
-                      className="barin" style={{ flex: '0 0 92px' }}
+                      className="barin" style={{ width: 78 }}
                       placeholder="#RRGGBB"
                       defaultValue={HEX6.test(s.배경 ?? '') ? s.배경 : ''}
                       key={`bg-${판본키}-${자리번호}`}
-                      title="이름 밖의 색은 여섯 자리 hex 로 준다"
+                      title="견본에 없는 색은 여섯 자리 hex 로 적는다"
                       onBlur={(e) => {
                         const v = e.target.value.trim();
                         if (!v) return;
@@ -909,94 +1108,69 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                         if (v !== s.배경) 도형바꾸기('배경', v);
                       }}
                     />
-                    <span className="barsp" />
-                    <span className="ck">테두리</span>
-                    {도형테두리들.map(([v, 이름]) => (
-                      <button key={v || 'n'}
-                              className={'chip' + ((s.테두리 ?? '') === v ? ' on' : '')}
-                              onClick={() => 도형바꾸기('테두리', v)}>{이름}</button>
+                  </줄>
+                  <줄 이름="투명도">
+                    <span className="seg">
+                      {도형투명도들.map(([v, 이름]) => (
+                        <button key={v}
+                                className={'chip' + ((s.투명도 ?? 100) === v ? ' on' : '')}
+                                disabled={!s.배경}
+                                title={s.배경 ? '배경에만 건다' : '배경이 없으면 투명도는 무시한다'}
+                                onClick={() => 도형바꾸기('투명도', v)}>{이름}</button>
+                      ))}
+                    </span>
+                  </줄>
+
+                  <div className="popln" />
+
+                  <줄 이름="테두리">
+                    {도형테두리들.map(([v, 이름, 색]) => (
+                      <색칸 key={v || 'n'} 색={색} 이름={이름}
+                            지금={(s.테두리 ?? '') === v}
+                            누르기={() => 도형바꾸기('테두리', v)} />
                     ))}
-                    <span className="barsp" />
-                    <span className="ck">모서리</span>
-                    {도형모서리들.map(([v, 이름]) => (
-                      <button key={v}
-                              className={'chip' + ((s.모서리 ?? 10) === v ? ' on' : '')}
-                              onClick={() => 도형바꾸기('모서리', v)}>{이름}</button>
-                    ))}
-                    <span className="barsp" />
-                    <span className="ck">그림자</span>
-                    {도형그림자들.map(([v, 이름]) => (
-                      <button key={v || 'n'}
-                              className={'chip' + ((s.그림자 ?? '') === v ? ' on' : '')}
-                              onClick={() => 도형바꾸기('그림자', v)}>{이름}</button>
-                    ))}
-                    <span className="barsp" />
-                    <span className="ck">투명도</span>
-                    {도형투명도들.map(([v, 이름]) => (
-                      <button key={v}
-                              className={'chip' + ((s.투명도 ?? 100) === v ? ' on' : '')}
-                              onClick={() => 도형바꾸기('투명도', v)}>{이름}</button>
-                    ))}
-                    <span className="barsp" />
+                    <span className="swnm">
+                      {(도형테두리들.find(([v]) => v === (s.테두리 ?? '')) ?? [])[1]?.split(' ')[0]}
+                    </span>
+                  </줄>
+                  <줄 이름="모서리">
+                    <span className="seg">
+                      {도형모서리들.map(([v, 이름]) => (
+                        <button key={v}
+                                className={'chip' + ((s.모서리 ?? 10) === v ? ' on' : '')}
+                                onClick={() => 도형바꾸기('모서리', v)}>{이름}</button>
+                      ))}
+                    </span>
+                  </줄>
+                  <줄 이름="그림자">
+                    <span className="seg">
+                      {도형그림자들.map(([v, 이름]) => (
+                        <button key={v || 'n'}
+                                className={'chip' + ((s.그림자 ?? '') === v ? ' on' : '')}
+                                onClick={() => 도형바꾸기('그림자', v)}>{이름}</button>
+                      ))}
+                    </span>
+                  </줄>
+
+                  <div className="popln" />
+
+                  <줄 이름="글자">
                     <button className={'chip' + (s.글자 === '반전' ? ' on' : '')}
                             onClick={() => 도형바꾸기('글자', s.글자 === '반전' ? '' : '반전')}
-                            title="어두운 배경 위에서 자리 안 글자를 통째로 뒤집는다 · 명시로만 켠다">
-                      글자 반전
+                            title="어두운 배경 위에서 자리 안 글자를 통째로 뒤집는다">
+                      반전
                     </button>
-                  </>
-                )}
-              </>
-            );
-          })()}
-        </div>
-
-      <main className="view" ref={판}>
-        {현재 ? (
-          <div className="frame" style={{ width: W * 축척, height: H * 축척 }}>
-            <iframe
-              ref={틀}
-              key={`${slug}-${i}-${판본키}`}
-              srcDoc={판본}
-              onLoad={재기}
-              style={{ width: W, height: H, transform: `scale(${축척})`, transformOrigin: 'top left' }}
-            />
-          </div>
-        ) : (
-          <p className="empty">면이 없습니다.</p>
-        )}
-        {/* 배율 — 판 위에 얹는다. 사이드패널이 아니라 보는 자리 옆에 둔다.
-            못박으면 키노트와 같은 %로 견줄 수 있다. 판은 2339 × 1654 로 같다 */}
-        <div className="zoom">
-          <button className={'chip' + (배율 == null ? ' on' : '')} onClick={() => set배율(null)}
-                  title="창에 맞춘다">맞춤</button>
-          {[0.25, 0.5, 1].map((v) => (
-            <button key={v} className={'chip' + (배율 === v ? ' on' : '')}
-                    onClick={() => set배율(v)}
-                    title={`판 2339 × 1654 의 ${v * 100}% · 키노트 ${v * 100}% 와 같은 크기`}>
-              {v * 100}%
-            </button>
-          ))}
-          {/* 사용자 지정 — 키노트에서 쓰는 %를 그대로 적어 넣는다 */}
-          <input
-            className="barin zin" type="text" inputMode="numeric"
-            placeholder="%" key={`zoom-${배율}`}
-            defaultValue={배율 == null ? '' : Math.round(배율 * 100)}
-            title="10 ~ 400 사이 % 를 적고 Enter"
-            onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
-            onBlur={(e) => {
-              const v = e.target.value.trim();
-              if (!v) return set배율(null);
-              const n = Number(v.replace('%', ''));
-              if (!Number.isFinite(n) || n < 10 || n > 400) {
-                e.target.value = 배율 == null ? '' : Math.round(배율 * 100);
-                return set로그(`배율 "${v}" · 10 ~ 400 사이 숫자로 적는다`);
-              }
-              set배율(n / 100);
-            }}
-          />
-          <span className="znow">{배율 == null ? '맞춤 ' : ''}{Math.round(축척 * 100)}%</span>
-        </div>
-      </main>
+                    <span className="swnm">어두운 배경에서만</span>
+                  </줄>
+                  <p className="fphint">
+                    반전은 <b>명시로만</b> 켠다 · 밝기를 계산해 자동으로 정하지 않는다.
+                    다 비우면 문안에서 <b>도형</b> 열쇠가 통째로 사라진다.
+                  </p>
+                </>
+              )}
+            </팔레트>
+          );
+        })()}
       </div>
     </div>
   );
