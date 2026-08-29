@@ -139,6 +139,9 @@ export default function Shell({ docs, first }) {
   const [되돌림, set되돌림] = useState(0);
   const [충돌, set충돌] = useState(false);
   const [자, set자] = useState(false);      // 기준선 자 42px · rules/page.css .wrap.bl
+  // 배율 · null 이면 창에 맞춘다. 숫자면 그 배율로 못박는다.
+  // 키노트와 견주려면 못박아야 한다 — 키노트 50% 와 여기 50% 가 같은 크기다
+  const [배율, set배율] = useState(null);
 
   const 판 = useRef(null);
   const 틀 = useRef(null);
@@ -175,6 +178,7 @@ export default function Shell({ docs, first }) {
   useEffect(() => {
     const el = 판.current;
     if (!el) return;
+    if (배율 != null) { set축척(배율); return; }      // 못박은 배율 · 창 크기를 안 듣는다
     const 맞춤 = () => {
       const { width, height } = el.getBoundingClientRect();
       set축척(Math.max(0.08, Math.min((width - 48) / W, (height - 72) / H)));
@@ -183,7 +187,7 @@ export default function Shell({ docs, first }) {
     const ro = new ResizeObserver(맞춤);
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [배율]);
 
   const 면 = doc?.면 ?? [];
   const 현재 = 면[i];
@@ -595,6 +599,19 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
               기준선
             </button>
           </div>
+          {/* 배율 — 못박으면 키노트와 같은 %로 견줄 수 있다. 판은 2339 × 1654 로 같다 */}
+          <div className="ctlrow">
+            <span className="ck">배율</span>
+            <button className={'chip' + (배율 == null ? ' on' : '')} onClick={() => set배율(null)}
+                    title="창에 맞춘다">맞춤</button>
+            {[0.25, 0.5, 1].map((v) => (
+              <button key={v} className={'chip' + (배율 === v ? ' on' : '')}
+                      onClick={() => set배율(v)}
+                      title={`판 2339 × 1654 의 ${v * 100}% · 키노트 ${v * 100}% 와 같은 크기`}>
+                {v * 100}%
+              </button>
+            ))}
+          </div>
         </div>
 
         {표적 ? (
@@ -746,7 +763,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
         ) : (
           <p className="empty">면이 없습니다.</p>
         )}
-        <div className="scale">{Math.round(축척 * 100)}%</div>
+        <div className="scale">{배율 == null ? '맞춤 ' : ''}{Math.round(축척 * 100)}%</div>
       </main>
     </div>
   );

@@ -115,13 +115,16 @@ body {
 }
 
 /* ── 판본 ── */
+/* 배율을 못박으면 판이 창보다 커진다. 그때 스크롤로 볼 수 있어야 한다.
+   가운데 맞춤은 align-items 가 아니라 .frame 의 margin:auto 로 한다 —
+   플렉스 가운데 맞춤은 넘칠 때 위·왼쪽을 잘라 먹어 그쪽을 볼 수 없다. */
 .view {
   flex: 1; position: relative; min-width: 0;
-  display: flex; align-items: center; justify-content: center;
+  display: flex; overflow: auto;
   background: var(--bg);
 }
 
-.frame { box-shadow: 0 2px 14px rgba(25, 41, 73, .13); background: #fff }
+.frame { margin: auto; box-shadow: 0 2px 14px rgba(25, 41, 73, .13); background: #fff }
 .frame iframe { border: 0; display: block }
 
 .scale {
