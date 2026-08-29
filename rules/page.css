@@ -43,6 +43,7 @@
   --출처:#8792a0;        /* 출처 · 라벨 */
   --블록배경:#F4F6F8;
   --선:#E4E8EC;
+  --구분선:rgba(19,27,43,.30);   /* 화면 전용 · 출력에 안 나간다 · N-배경 a2 */
 
   /* 미리보기 축소율 — 2339px 판을 화면에 얹는다 */
   --view:.42;
@@ -323,9 +324,34 @@ b{font-weight:700;color:var(--강조)}
   background:repeating-linear-gradient(45deg,
     rgba(230,129,0,.05) 0 14px, transparent 14px 28px)}
 
+/* ── 구분선 — 자리 테두리를 화면에서만 본다 · N-배경 a2 ─────
+   문서 JSON 에 "구분선":"네변" | "세로" | "가로" 를 주면 .wrap 에 sp4 · spv · sph 가 붙는다.
+   없으면 「끔」이고 · 그때 미리보기가 곧 출력본이다.
+
+   **켜면 도형을 죽인다.** 배경 · 테두리 · 반경 · 그림자를 전부 끄고 테두리만 남긴다.
+   그 보기는 골격 확인용이지 판면 보기가 아니다.
+   도형은 인라인 style 이라 !important 로 이긴다.
+
+   `::after` 로 그린다. `.bx` 에 직접 border 를 주면 도형 테두리와 자리를 다투고 ·
+   outline 은 모서리 반경을 따라가서 「반경 0」을 못 지킨다.
+
+   **검사용 외곽선(.dbg)과 다른 물건이다** — 그쪽은 자리 · 밴드 · 안전영역을 다 보는
+   편집기 토글이고 문안에 안 남는다. 이쪽은 자리 테두리만 보고 문서 열쇠로 남는다. */
+
+.wrap.sp4 .bx,.wrap.spv .bx,.wrap.sph .bx{
+  background:none!important;border:none!important;
+  border-radius:0!important;box-shadow:none!important}
+
+.wrap.sp4 .bx:after,.wrap.spv .bx:after,.wrap.sph .bx:after{
+  content:"";position:absolute;inset:0;pointer-events:none;border-radius:0}
+
+.wrap.sp4 .bx:after{border:1px solid var(--구분선)}
+.wrap.spv .bx:after{border-left:1px solid var(--구분선);border-right:1px solid var(--구분선)}
+.wrap.sph .bx:after{border-bottom:1px solid var(--구분선)}
+
 /* ── 검사용 임시 외곽선 · 기본 꺼 둠 — §2⑤
-   문서 JSON 에 "판면":"dbg" 를 주면 .wrap.dbg 가 붙어 켜진다.
-   구분선(N2)이 아니다. 출력에 나가지 않는다. */
+   편집기 사이드패널 [블록] 토글이 .wrap 에 dbg 를 붙였다 뗐다 한다.
+   구분선과 다른 물건이다. 둘 다 출력에 나가지 않는다. */
 
 .wrap.dbg .bx{outline:1px dashed rgba(45,77,110,.55);outline-offset:0}
 .wrap.dbg .hd,.wrap.dbg .cp,.wrap.dbg .tt,.wrap.dbg .ft{outline:1px dashed rgba(230,129,0,.5)}
@@ -352,4 +378,6 @@ b{font-weight:700;color:var(--강조)}
   .wrap.bl .bx:before{display:none!important}
   .wrap.dbg .bx,.wrap.dbg .hd,.wrap.dbg .cp,.wrap.dbg .tt,.wrap.dbg .ft{outline:none!important}
   .wrap.dbg .page:before{display:none!important}
+  /* 구분선은 화면 전용이다. 도형은 안 끈다 — 출력에 나가는 물건이다 */
+  .wrap.sp4 .bx:after,.wrap.spv .bx:after,.wrap.sph .bx:after{display:none!important}
 }

@@ -54,7 +54,7 @@ const esc = (s) => String(s ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 function 오류판(doc, i, e) {
-  const 옛체계 = /구성에 띠가 없다|골격 "undefined"/.test(e.message);
+  const 옛체계 = /구성에 띠가 없다|골격 "undefined"|옛 열쇠 "판면"/.test(e.message);
   return `<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><style>
 body{margin:0;padding:0;background:transparent;
   font-family:'Pretendard Variable',Pretendard,'Noto Sans KR',sans-serif}
@@ -368,8 +368,10 @@ export default function Shell({ docs, first }) {
     스택.current = []; 앞스택.current = []; set되돌림(0);
     문서ref.current = r.doc;   // 판본 useMemo 가 이 렌더에서 바로 읽는다
     setDoc(r.doc); setMtime(r.mtime); setI(0); set표적(null);
-    set자(!!r.doc.기준선);           // 문안이 "기준선": true 면 켠 채로 연다
-    set외곽선(r.doc.판면 === 'dbg'); // 문안이 "판면": "dbg" 면 켠 채로 연다
+    set자(!!r.doc.기준선);   // 문안이 "기준선": true 면 켠 채로 연다
+    // 외곽선은 문안에서 안 읽는다 — 검사용이라 문서에 남을 물건이 아니다.
+    // 문안에 남는 자리 테두리는 "구분선" 이고 그건 렌더러가 판면에 그린다
+    set외곽선(false);
     set더러움(false); set판본키((n) => n + 1);
   }, []);
 

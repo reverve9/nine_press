@@ -378,15 +378,41 @@ ${rects.map((r, i) => 블록(자리[i], r, i, 여백문서)).join('\n')}
 </div></div>`;
 }
 
+/* ─────────────────── §N-배경 a2 · 구분선 ───────────────────
+   자리 테두리를 화면에서만 본다. **출력에 안 나간다** · 인쇄에서 강제로 끈다.
+   켜면 도형을 죽이고 테두리만 남긴다 — 그 보기는 골격 확인용이다.
+   끄면(기본) 미리보기가 곧 출력본이다.
+
+   **검사용 외곽선(.dbg)과 다른 물건이다.** 목적이 갈린다 —
+     .dbg   자리 · 밴드 · 안전영역을 다 본다   편집기 [블록] 토글이 켠다 · 문안에 안 남는다
+     구분선  자리 테두리만 본다 · 도형을 죽인다  문서 열쇠다 · 문안에 남는다
+   N2 §1-4 는 .dbg 를 지우고 구분선으로 갈아타라고 썼지만 그때는 .dbg 에 UI 가 없었다.
+   지금은 사이드패널 토글로 쓰이고 있어 둘을 남긴다. 대신 N2 가 실제로 없애려던 것 —
+   아무 문자열이나 .wrap 에 꽂던 doc.판면 — 은 없앤다. */
+
+const 구분선갈래 = { 끔: '', 네변: 'sp4', 세로: 'spv', 가로: 'sph' };
+
+function 구분선(doc) {
+  const v = doc.구분선;
+  if (v == null) return '';
+  if (!Object.prototype.hasOwnProperty.call(구분선갈래, v)) throw new Error(
+    `문서 "구분선" 값 ${JSON.stringify(v)} 을 모른다. ` +
+    `쓸 수 있는 값은 ${Object.keys(구분선갈래).join(' · ')} 뿐이다`);
+  return 구분선갈래[v] ? ' ' + 구분선갈래[v] : '';
+}
+
 /* ─────────────────── 문서 ───────────────────
    css 를 주면 <style> 로 박는다 — 산출 HTML 이 자기완결이 되어
    파일을 옮기든 메일로 보내든 판면이 깨지지 않는다. 이것이 기본이다.
    css 를 안 주면 <link> 로 건다 (규칙을 고치며 새로고침하는 개발용).
 
-   doc.판면 은 .wrap 에 그대로 붙는다. "판면":"dbg" 로 검사용 외곽선을 켠다.
    기준선 자는 render(doc,{기준선:true}) 또는 doc.기준선 으로 켠다 → .wrap.bl */
 
 export function render(doc, { css, cssBase = '../../rules', 도구: 표식 = false, 기준선 = false } = {}) {
+  if (doc.판면 != null) throw new Error(
+    `문서가 옛 열쇠 "판면" 을 쓴다. 검사용 외곽선은 편집기 [블록] 토글로 옮겼고 · ` +
+    `자리 테두리는 "구분선" 이다 (끔 · 네변 · 세로 · 가로)`);
+  const 갈래 = 구분선(doc);
   도구 = 표식;
   let pages;
   try {
@@ -401,7 +427,7 @@ export function render(doc, { css, cssBase = '../../rules', 도구: 표식 = fal
   return `<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
 <title>${doc.문서명 ?? 'nine_press'}</title>
 ${head}
-</head><body><div class="wrap${doc.판면 ? ' ' + doc.판면 : ''}${기준선 || doc.기준선 ? ' bl' : ''}">
+</head><body><div class="wrap${갈래}${기준선 || doc.기준선 ? ' bl' : ''}">
 ${pages}
 </div></body></html>`;
 }
