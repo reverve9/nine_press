@@ -105,8 +105,10 @@ body{
    실측 비교 넷을 찍어 고른 결과다 · 제목 뒤 42 는 오히려 나빴다. */
 
 .bt + .sm,.lb + .bt,.lb + .bd{margin-top:0}
-.bt + .bd,.sm + .bd,.bt + .ls,.sm + .ls{margin-top:var(--머리뒤)}
-.bd + .bd,.bd + .ls,.ls + .bd,.ls + .ls{margin-top:var(--문단사이)}
+.bt + .bd,.sm + .bd,.bt + .ls,.sm + .ls,.bt + .ol,.sm + .ol{margin-top:var(--머리뒤)}
+.bd + .bd,
+.bd + .ls,.ls + .bd,.ls + .ls,
+.bd + .ol,.ol + .bd,.ol + .ol,.ls + .ol,.ol + .ls{margin-top:var(--문단사이)}
 
 /* ── 목록 — 항목 하나가 한 줄 42 · 항목 사이는 0 ────────────
    실물 69건 · 항목 2~8개(3~6이 흔하다) · 합 399개다.
@@ -125,6 +127,25 @@ body{
   font-size:24px;font-weight:400;letter-spacing:-.005em;color:var(--먹);line-height:42px}
 .ls li:before{content:"•";position:absolute;left:6px;color:var(--먹);font-weight:400}
 .ls li b{color:var(--강조)}
+
+/* ── 번호목록 — 목록과 같은 규칙 · 마커만 원형 배지다 ────────
+   실물 11건 · 항목 5~8개. 한 자리로 끝나지만 배지가 두 자리도 받는다.
+
+   배지는 절대 배치라 줄 상자에 안 낀다 — 격자와 무관하다(§5-8 과 반대 경우다).
+   세로 중심이 딱 떨어진다 · 줄 상자 42 · 배지 24 → (42 − 24) / 2 = 9.
+   v3 은 행간이 비율이라 이 값을 못 구하고 눈대중으로 두 번 틀렸다
+   (`rules/_v3/page.css` ⑭ 주석). 42 격자가 그 문제를 없앴다.
+
+   글자 들여쓰기 42 = 배지 24 + 사이 18. 목록(30)보다 넓다 · 마커가 크다. */
+
+.ol{list-style:none;counter-reset:ol}
+.ol li{position:relative;padding-left:42px;
+  font-size:24px;font-weight:400;letter-spacing:-.005em;color:var(--먹);line-height:42px}
+.ol li:before{counter-increment:ol;content:counter(ol);
+  position:absolute;left:0;top:9px;width:24px;height:24px;border-radius:50%;
+  background:var(--강조);color:#fff;
+  font-size:15px;font-weight:800;line-height:24px;letter-spacing:0;text-align:center}
+.ol li b{color:var(--강조)}
 
 b{font-weight:700;color:var(--강조)}
 .bd b{color:var(--강조)}

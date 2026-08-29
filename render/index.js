@@ -160,6 +160,11 @@ function 영역(page) {
   return out;
 }
 
+/* ─────────────────── 빈 값 ───────────────────
+   NBSP 를 공백으로 친다 — contenteditable 이 지우고 남기는 것이 이것이다. */
+
+const 빔 = (t) => t == null || String(t).replace(/ /g, ' ').trim() === '';
+
 /* ─────────────────── 도구 표식 ─────────────────── */
 
 let 도구 = false;
@@ -178,12 +183,20 @@ function 블록(자리, r, i, 여백문서) {
   if (자리.제목) o.push(`<div class="bt"${dp([...P, '제목'])}>${inline(자리.제목)}</div>`);
   if (자리.요약) o.push(`<div class="sm"${dp([...P, '요약'])}>${inline(자리.요약)}</div>`);
   const 문단 = 자리.문단 == null ? [] : Array.isArray(자리.문단) ? 자리.문단 : [자리.문단];
-  문단.forEach((t, j) => o.push(`<div class="bd"${dp([...P, '문단', j])}>${inline(t)}</div>`));
+  문단.forEach((t, j) => {
+    if (빔(t)) return;
+    o.push(`<div class="bd"${dp([...P, '문단', j])}>${inline(t)}</div>`);
+  });
   // 목록 — 항목 하나가 편집 잎사귀 하나다. data-p 는 li 에 붙는다
-  if (자리.목록 != null) {
-    if (!Array.isArray(자리.목록)) throw new Error(`자리 ${i} 의 "목록" 은 배열이어야 한다`);
-    o.push(`<ul class="ls">` + 자리.목록.map((t, j) =>
-      `<li${dp([...P, '목록', j])}>${inline(t)}</li>`).join('') + `</ul>`);
+  for (const [열쇠, 태그, cls] of [['목록', 'ul', 'ls'], ['번호목록', 'ol', 'ol']]) {
+    if (자리[열쇠] == null) continue;
+    if (!Array.isArray(자리[열쇠])) throw new Error(`자리 ${i} 의 "${열쇠}" 는 배열이어야 한다`);
+    // 빈 항목은 안 낸다 — 글자는 지웠는데 마커만 남는 유령 항목을 만들지 않는다.
+    // 인덱스는 원본 그대로 쓴다. 다시 매기면 data-p 가 배열과 어긋난다
+    const 항목 = 자리[열쇠]
+      .map((t, j) => (빔(t) ? '' : `<li${dp([...P, 열쇠, j])}>${inline(t)}</li>`))
+      .join('');
+    if (항목) o.push(`<${태그} class="${cls}">${항목}</${태그}>`);
   }
   if (자리.출처) o.push(`<div class="lb"${dp([...P, '출처'])}>${inline(자리.출처)}</div>`);
   if (자리.라벨 != null) throw new Error(

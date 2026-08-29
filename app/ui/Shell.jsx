@@ -7,11 +7,20 @@ import { render } from '../../render/index.js';
 const W = 2340;
 const H = 1654;
 
-/* ── 경로 유틸 ── */
+/* ── 경로 유틸 ──
+   NBSP 를 공백으로 친다 — contenteditable 이 다 지우고 남기는 것이 이것이다. */
 const 읽기 = (o, p) => p.reduce((a, k) => (a == null ? a : a[k]), o);
+const 빔 = (v) => v == null || String(v).replace(/ /g, ' ').trim() === '';
+
+/* 배열 잎사귀(문단 · 목록 항목)를 비우면 그 원소를 뺀다.
+   안 그러면 글자만 사라지고 마커와 빈 줄이 유령으로 남는다.
+   되돌리기 스택에는 그대로 쌓이므로 ⌘Z 로 되살릴 수 있다. */
 function 쓰기(o, p, v) {
   const 부모 = p.slice(0, -1).reduce((a, k) => a[k], o);
-  부모[p[p.length - 1]] = v;
+  const 열쇠 = p[p.length - 1];
+  // 값을 돌려주지 않는다 — 바꾸기() 가 false 를 「취소」로 읽는다
+  if (Array.isArray(부모) && 빔(v)) { 부모.splice(열쇠, 1); return; }
+  부모[열쇠] = v;
 }
 
 /* ── 고친 DOM 을 원문 표기로 되돌린다 ──
@@ -379,7 +388,9 @@ export default function Shell({ docs, first }) {
           t.contentEditable = 'false';
           const 뒤 = 원문(t);
           if (뒤 === t.dataset.전) return;
-          바꾸기((dd) => 쓰기(dd.면[면ref.current], JSON.parse(t.dataset.p), 뒤));
+          // 배열 원소가 빠지면 뒤 인덱스가 전부 당겨진다. 판면을 다시 그려야 맞는다
+          바꾸기((dd) => { 쓰기(dd.면[면ref.current], JSON.parse(t.dataset.p), 뒤); },
+                { 그리기: 빔(뒤) });
         }, true);
 
         d.addEventListener('keydown', (e) => {
