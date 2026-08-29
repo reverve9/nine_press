@@ -170,16 +170,105 @@ const 빔 = (t) => t == null || String(t).replace(/ /g, ' ').trim() === '';
 let 도구 = false;
 const dp = (p) => (도구 && p ? ` data-p='${JSON.stringify(p)}'` : '');
 
+/* ─────────────────── §N-배경 a1 · 도형 ───────────────────
+   설계 §4-2 · **도형은 배경이다.** 텍스트가 먼저 있고 그 밑에 깔린다.
+   그래서 도형은 글줄 자리에 개입하면 안 된다 — 테두리를 `border` 로 안 그리는 이유다 · 아래.
+
+   색 이름은 키노트 세팅 §5 에 있는 것만 쓴다(N2 §2⑤). 그 밖의 색은 #RRGGBB 로 직접 준다.
+   자유 hex 는 정규식으로 막는다 — 이 값이 style 속성 안으로 그대로 들어가기 때문이다. */
+
+const 배경이름 = { 없음: null, 블록배경: '#F4F6F8' };
+const 테두리이름 = { 없음: null, 선: '#E4E8EC', 강조: '#2D4D6E' };
+// 그림자 · 투명도는 키노트 세팅 §5 도형표에 근거가 없다. 잠정값이다 · N2 §3-3
+const 그림자이름 = {
+  없음: null,
+  약: '0 1px 3px rgba(19,27,43,.10)',
+  중: '0 4px 16px rgba(19,27,43,.14)',
+};
+const HEX6 = /^#[0-9a-fA-F]{6}$/;
+
+function 색(값, 표, 열쇠, i) {
+  if (값 == null || 값 === '없음') return null;
+  if (Object.prototype.hasOwnProperty.call(표, 값)) return 표[값];
+  if (typeof 값 === 'string' && HEX6.test(값)) return 값;
+  throw new Error(
+    `자리 ${i} 의 도형 "${열쇠}" 값 ${JSON.stringify(값)} 을 모른다. ` +
+    `쓸 수 있는 이름은 ${Object.keys(표).join(' · ')} 이고 · ` +
+    `그 밖의 색은 #RRGGBB 여섯 자리로 준다 (#abc · rgb() · 색 이름은 안 된다)`);
+}
+
+// 그림자는 이름만 받는다 — 값이 색이 아니라 style 조각이라 hex 를 열어 줄 자리가 없다
+function 이름만(값, 표, 열쇠, i) {
+  if (값 == null || 값 === '없음') return null;
+  if (Object.prototype.hasOwnProperty.call(표, 값)) return 표[값];
+  throw new Error(
+    `자리 ${i} 의 도형 "${열쇠}" 값 ${JSON.stringify(값)} 을 모른다. ` +
+    `쓸 수 있는 이름은 ${Object.keys(표).join(' · ')} 뿐이다`);
+}
+
+function 정수(값, 기본, 아래, 위, 열쇠, i) {
+  if (값 == null) return 기본;
+  if (!Number.isInteger(값) || 값 < 아래 || 값 > 위) throw new Error(
+    `자리 ${i} 의 도형 "${열쇠}" 값 ${JSON.stringify(값)} 은 ${아래} ~ ${위} 사이 정수여야 한다`);
+  return 값;
+}
+
+/* 도형 style 조각. 아무것도 안 보이면 빈 문자열이다 — 안 보이는 반경을 적을 이유가 없다.
+
+   **테두리를 `border` 로 안 그린다.** N2 §1-2 는 `border:1px solid` 로 지시했지만
+   `.bx` 는 box-sizing:border-box 에 높이가 못박혀 있어 border 를 주면
+   **안쪽 글줄이 통째로 1px 내려앉는다** · 실측 : 02면 세 자리의 제목 top 이 252 → 253.
+   테두리를 준 자리만 이웃 자리와 첫 줄이 어긋나 · 설계 §4-3 이 담보하는
+   「표 안 글줄과 표 밖 글줄이 가로로 맞는다」가 깨진다. 도형은 배경이지 상자가 아니다.
+   `기준선.mjs` 는 자리 안쪽 여백을 원점으로 재므로 이 어긋남을 못 잡는다 · 눈과 자로 잡았다.
+   `box-shadow: inset` 은 레이아웃을 안 건드리고 모서리 반경을 그대로 따라간다. */
+
+function 도형(자리, i) {
+  const s = 자리.도형;
+  if (s == null) return '';
+  if (typeof s !== 'object' || Array.isArray(s)) throw new Error(
+    `자리 ${i} 의 "도형" 은 객체여야 한다`);
+
+  const 배경 = 색(s.배경, 배경이름, '배경', i);
+  const 테두리 = 색(s.테두리, 테두리이름, '테두리', i);
+  const 그림자 = 이름만(s.그림자, 그림자이름, '그림자', i);
+  const 모서리 = 정수(s.모서리, 10, 0, 40, '모서리', i);
+  const 투명도 = 정수(s.투명도, 100, 0, 100, '투명도', i);
+
+  if (!배경 && !테두리 && !그림자) return '';
+
+  const out = [];
+  if (배경) {
+    // opacity 를 쓰지 않는다 — 자손까지 흐려져 24px 본문이 같이 죽는다.
+    // 배경색 hex 에 알파 두 자리를 붙인다. 100 이면 안 붙인다
+    const a = 투명도 === 100 ? '' :
+      반올림(투명도 * 255 / 100).toString(16).toUpperCase().padStart(2, '0');
+    out.push(`;background:${배경}${a}`);
+  }
+  if (모서리) out.push(`;border-radius:${모서리}px`);
+  const 그늘 = [];
+  if (테두리) 그늘.push(`inset 0 0 0 1px ${테두리}`);
+  if (그림자) 그늘.push(그림자);
+  if (그늘.length) out.push(`;box-shadow:${그늘.join(',')}`);
+  return out.join('');
+}
+
 /* ─────────────────── 블록 ───────────────────
    제목 · 요약 · 문단 · 목록 · 출처. 표 · 수치 · 지도는 뒤 페이즈다. */
 
 function 블록(자리, r, i, 여백문서) {
   const pad = 자리.여백 ?? 여백문서;
+  // 좌표 뒤에 도형을 이어 붙인다 · 순서 고정 · 도형이 없으면 좌표만 나온다
   const st = `left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px` +
-    (pad !== 여백기본 || 자리.여백 != null ? `;padding:${pad}px` : '');
+    (pad !== 여백기본 || 자리.여백 != null ? `;padding:${pad}px` : '') + 도형(자리, i);
   const P = ['자리', i];
+  // 글자 반전은 명시로만 켠다 — 밝기를 계산해 자동 판정하면 작성자가 결과를 못 읽는다
+  if (자리.도형?.글자 != null && 자리.도형.글자 !== '반전') throw new Error(
+    `자리 ${i} 의 도형 "글자" 값 ${JSON.stringify(자리.도형.글자)} 을 모른다. ` +
+    `쓸 수 있는 값은 "반전" 뿐이다`);
   // 자리 번호는 도구 모드에서만 붙인다 — 편집기가 자리를 고르는 근거다. 출력에는 없다
-  const o = [`<div class="bx" style="${st}"${dk(자리.이름)}` +
+  const o = [`<div class="bx" style="${st}"` +
+    (자리.도형?.글자 === '반전' ? ` data-글자="반전"` : '') + dk(자리.이름) +
     (도구 ? ` data-자리="${i}"` : '') + `>`];
 
   /* 비워 두는 자리 — 키노트 · 파워포인트에서 채운다.
@@ -189,7 +278,8 @@ function 블록(자리, r, i, 여백문서) {
      그래야 산출 HTML · PDF 가 진짜로 비어 그 위에 덮어쓸 수 있다.
      좌표는 `node scripts/비움.mjs <문안>` 으로 표를 뽑는다. */
   if (자리.비움) {
-    const 있는것 = ['제목', '요약', '문단', '목록', '번호목록', '단계띠', '수치', '출처']
+    // 도형도 못 산다 — 비움은 「출력에 아무것도 안 나간다」가 계약이다 · 설계 §5-11
+    const 있는것 = ['제목', '요약', '문단', '목록', '번호목록', '단계띠', '수치', '출처', '도형']
       .filter((k) => 자리[k] != null);
     if (있는것.length) throw new Error(
       `자리 ${i} 가 "비움" 인데 ${있는것.join(' · ')} 를 갖고 있다. 비울 거면 내용을 지운다`);
