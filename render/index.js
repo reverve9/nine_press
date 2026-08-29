@@ -187,12 +187,12 @@ const 그림자이름 = {
 };
 const HEX6 = /^#[0-9a-fA-F]{6}$/;
 
-function 색(값, 표, 열쇠, i) {
+function 색(값, 표, 열쇠, i, 갈래 = '도형') {
   if (값 == null || 값 === '없음') return null;
   if (Object.prototype.hasOwnProperty.call(표, 값)) return 표[값];
   if (typeof 값 === 'string' && HEX6.test(값)) return 값;
   throw new Error(
-    `자리 ${i} 의 도형 "${열쇠}" 값 ${JSON.stringify(값)} 을 모른다. ` +
+    `자리 ${i} 의 ${갈래} "${열쇠}" 값 ${JSON.stringify(값)} 을 모른다. ` +
     `쓸 수 있는 이름은 ${Object.keys(표).join(' · ')} 이고 · ` +
     `그 밖의 색은 #RRGGBB 여섯 자리로 준다 (#abc · rgb() · 색 이름은 안 된다)`);
 }
@@ -256,8 +256,145 @@ function 도형(자리, i) {
   return out.join('');
 }
 
+/* ─────────────────── §N-배경 b · 표 ───────────────────
+   설계 §4-2 · **표는 배경이다.** 글자가 먼저 있고 그 밑에 선과 칠이 깔린다.
+   그래서 표는 「칸 안에 글자를 넣는 상자」가 아니라
+   **글자 격자 + 그 사이에 놓인 선**이다 · 구조화된 구분선인 셈이다.
+
+   ① 선은 **칸 사이**에만 놓는다. 칸 테두리가 아니다 — 구분선에서 배운 그대로다.
+      바깥 테두리를 두르고 싶으면 그건 자리 「도형」이 할 일이다.
+   ② 열은 골격이 쓰는 split() 을 그대로 쓴다. 거터 21 을 두고 **선은 그 한가운데**다.
+      첫 열은 x 0 에서 시작하므로 표 밖 글줄과 왼쪽이 맞는다.
+   ③ 행 높이는 42 의 배수다. 칸 안 글자가 표 밖 글줄과 같은 기준선에 앉는다.
+   ④ 칠(셀 배경)은 「도형」과 같은 색 어휘를 쓴다. 새 색을 만들지 않는다.
+
+   실물 50건 · 2열 21 · 3열 20 · 4열 8 · 9열 1 · 설계 §5-4.
+   49건이 4열 이하라 split() 재사용으로 끝난다. 9열 1건은 예외로 따로 본다. */
+
+const 표거터 = 21;
+const 표선갈래 = { 가로: 'x', 격자: 'xy', 없음: '' };
+
+/* 열 폭 — 「폭」은 균등 트랙 몇 개를 먹느냐다. 폭 [2,1,1] 이면 4트랙을 나눠
+   첫 열이 둘을 먹는다. 골격의 열자리() 가 2:1 을 다루는 방식과 같다.
+   split() 밖에 새 계산식을 만들지 않는다 · 파일 머리 규칙. */
+function 표열(폭, n, 표폭, i) {
+  if (폭 == null) return split(0, 표폭, n, 표거터);
+  if (!Array.isArray(폭) || 폭.length !== n) throw new Error(
+    `자리 ${i} 의 표 "폭" 은 열 수(${n})와 같은 길이의 배열이어야 한다`);
+  if (!폭.every((v) => Number.isInteger(v) && v >= 1 && v <= 8)) throw new Error(
+    `자리 ${i} 의 표 "폭" 은 1 ~ 8 사이 정수만 받는다 (받은 값 ${JSON.stringify(폭)})`);
+  const 트랙 = split(0, 표폭, 폭.reduce((a, b) => a + b, 0), 표거터);
+  const out = [];
+  let k = 0;
+  for (const w of 폭) {
+    const a = 트랙[k], b = 트랙[k + w - 1];
+    out.push({ x: a.x, w: b.x + b.w - a.x });
+    k += w;
+  }
+  return out;
+}
+
+function 표그리기(자리, i, 안폭, 안높이, 앞높이, P) {
+  const t = 자리.표;
+  if (t == null) return '';
+  if (typeof t !== 'object' || Array.isArray(t)) throw new Error(
+    `자리 ${i} 의 "표" 는 객체여야 한다`);
+  if (!Array.isArray(t.행) || !t.행.length) throw new Error(
+    `자리 ${i} 의 표에 "행" 배열이 없다`);
+  if (t.머리 != null && !Array.isArray(t.머리)) throw new Error(
+    `자리 ${i} 의 표 "머리" 는 배열이어야 한다`);
+
+  const n = t.머리?.length ?? t.행[0].length;
+  for (const [j, 행] of t.행.entries()) {
+    if (!Array.isArray(행)) throw new Error(`자리 ${i} 의 표 ${j + 1}행이 배열이 아니다`);
+    if (행.length !== n) throw new Error(
+      `자리 ${i} 의 표 ${j + 1}행이 ${행.length}칸이다. 열 수 ${n} 과 맞춘다`);
+  }
+
+  const 선 = t.선 ?? '가로';
+  if (!Object.prototype.hasOwnProperty.call(표선갈래, 선)) throw new Error(
+    `자리 ${i} 의 표 "선" 값 ${JSON.stringify(선)} 을 모른다. ` +
+    `쓸 수 있는 값은 ${Object.keys(표선갈래).join(' · ')} 뿐이다`);
+  const 축 = 표선갈래[선];
+
+  const 열 = 표열(t.폭, n, 안폭, i);
+  const 칸수 = t.행.length + (t.머리 ? 1 : 0);
+
+  /* 행 높이 — 기본은 한 줄 42 다.
+     "채움" 이면 자리에 남은 높이를 칸들이 나눠 갖는다 · 설계 §5-3.
+     그때도 **42 의 배수로만** 나눈다. 설계는 남는 높이로 표를 세로 가운데에 민다고
+     썼지만 그러면 표 top 이 42 배수를 벗어나 격자가 깨진다(남음 69 → 34.5).
+     그래서 **42 걸음으로만** 내린다 — 격자 위에서 가운데에 가장 가까운 자리다. */
+  let 행높이 = 42, 위로 = 0;
+  if (t.채움) {
+    const 남은 = 안높이 - 앞높이;
+    행높이 = Math.floor(남은 / 칸수 / 42) * 42;
+    if (행높이 < 42) throw new Error(
+      `자리 ${i} 의 표가 "채움" 인데 칸 ${칸수}개가 들어갈 높이가 없다 ` +
+      `(남은 높이 ${남은} · 칸마다 42 는 있어야 한다)`);
+    위로 = Math.floor((남은 - 행높이 * 칸수) / 2 / 42) * 42;
+  }
+  const 높이 = 행높이 * 칸수;
+
+  /* 칠 — 셀 배경. **도형과 같은 색 어휘를 쓴다.** 새 색을 만들지 않는다.
+     글자 밑에 깔리는 사각형이라 글줄 자리에 개입하지 않는다 · 설계 §4-2.
+       "칠": { "머리": "블록배경", "행": [null, "#FDF6EC"] }
+     행 배열은 짧아도 된다 — 없는 자리는 안 칠한다. */
+  const 칠 = t.칠 ?? {};
+  if (typeof 칠 !== 'object' || Array.isArray(칠)) throw new Error(
+    `자리 ${i} 의 표 "칠" 은 객체여야 한다`);
+  if (칠.행 != null && !Array.isArray(칠.행)) throw new Error(
+    `자리 ${i} 의 표 "칠.행" 은 배열이어야 한다`);
+  const 머리칠 = 색(칠.머리, 배경이름, '칠.머리', i, '표');
+  const 행칠 = (칠.행 ?? []).map((v, j) => 색(v, 배경이름, `칠.행[${j}]`, i, '표'));
+
+  const 칸 = [];
+  const 줄 = [];
+  const 바탕 = [];
+  const 칠하기 = (c, y) => {
+    if (!c) return;
+    바탕.push(`<div class="tf" style="left:0;top:${y}px;width:${안폭}px;` +
+      `height:${행높이}px;background:${c}"></div>`);
+  };
+  const 셀 = (글, 경로, x, w, y, 머리) =>
+    `<div class="tc${머리 ? ' th' : ''}" style="left:${x}px;top:${y}px;width:${w}px;height:${행높이}px"` +
+    `${dp(경로)}>${inline(글)}</div>`;
+
+  let y = 0;
+  if (t.머리) {
+    칠하기(머리칠, y);
+    t.머리.forEach((글, c) => 칸.push(셀(글, [...P, '표', '머리', c], 열[c].x, 열[c].w, y, true)));
+    y += 행높이;
+  }
+  t.행.forEach((행, ri) => {
+    칠하기(행칠[ri], y);
+    행.forEach((글, c) => 칸.push(셀(글, [...P, '표', '행', ri, c], 열[c].x, 열[c].w, y, false)));
+    y += 행높이;
+  });
+
+  // 가로선 — 칸 사이에만. 표 위와 아래에는 안 긋는다
+  if (축.includes('x')) {
+    for (let k = 1; k < 칸수; k++) {
+      const 굵 = t.머리 && k === 1;   // 머리행 아래만 진하게
+      줄.push(`<div class="tl${굵 ? ' hd' : ''}" ` +
+        `style="left:0;top:${k * 행높이}px;width:${안폭}px;height:1px"></div>`);
+    }
+  }
+  // 세로선 — 열 사이 거터 한가운데. 바깥쪽 끝에는 없다
+  if (축.includes('y')) {
+    for (let k = 1; k < 열.length; k++) {
+      const x = 열[k - 1].x + 열[k - 1].w + Math.floor((표거터 - 1) / 2);
+      줄.push(`<div class="tl" style="left:${x}px;top:0;width:1px;height:${높이}px"></div>`);
+    }
+  }
+
+  return `<div class="tb" style="height:${높이}px` +
+    (위로 ? `;margin-top:${위로}px` : '') +
+    `">${바탕.join('')}${줄.join('')}${칸.join('')}</div>`;
+}
+
 /* ─────────────────── 블록 ───────────────────
-   제목 · 요약 · 문단 · 목록 · 출처. 표 · 수치 · 지도는 뒤 페이즈다. */
+   제목 · 요약 · 문단 · 목록 · 표 · 단계띠 · 수치 · 출처. */
 
 function 블록(자리, r, i, 여백문서) {
   const pad = 자리.여백 ?? 여백문서;
@@ -282,7 +419,7 @@ function 블록(자리, r, i, 여백문서) {
      좌표는 `node scripts/비움.mjs <문안>` 으로 표를 뽑는다. */
   if (자리.비움) {
     // 도형도 못 산다 — 비움은 「출력에 아무것도 안 나간다」가 계약이다 · 설계 §5-11
-    const 있는것 = ['제목', '요약', '문단', '목록', '번호목록', '단계띠', '수치', '출처', '도형']
+    const 있는것 = ['제목', '요약', '문단', '목록', '번호목록', '표', '단계띠', '수치', '출처', '도형']
       .filter((k) => 자리[k] != null);
     if (있는것.length) throw new Error(
       `자리 ${i} 가 "비움" 인데 ${있는것.join(' · ')} 를 갖고 있다. 비울 거면 내용을 지운다`);
@@ -310,6 +447,22 @@ function 블록(자리, r, i, 여백문서) {
       .map((t, j) => (빔(t) ? '' : `<li${dp([...P, 열쇠, j])}>${inline(t)}</li>`))
       .join('');
     if (항목) o.push(`<${태그} class="${cls}">${항목}</${태그}>`);
+  }
+  /* 표 — 「채움」을 계산하려면 앞에 놓인 것들의 높이를 알아야 한다.
+     제목 · 요약 · 머리뒤는 42 로 확정이지만 문단 · 목록은 줄 수가 글자에 달렸다.
+     그래서 채움은 **앞이 제목 · 요약뿐일 때만** 받는다. 나머지는 오류로 막는다 —
+     모르는 값을 어림해서 격자를 깨뜨리느니 안 된다고 말하는 쪽이 낫다. */
+  if (자리.표) {
+    const 앞 = (자리.제목 ? 42 : 0) + (자리.요약 ? 42 : 0) +
+      (자리.제목 || 자리.요약 ? 42 : 0);          // 머리뒤 한 칸
+    if (자리.표.채움) {
+      const 막는것 = ['문단', '목록', '번호목록', '단계띠', '수치']
+        .filter((k) => 자리[k] != null);
+      if (막는것.length) throw new Error(
+        `자리 ${i} 의 표가 "채움" 인데 앞에 ${막는것.join(' · ')} 가 있다. ` +
+        `줄 수를 미리 못 세서 남는 높이를 못 나눈다. 채움을 끄거나 제목 · 요약만 둔다`);
+    }
+    o.push(표그리기(자리, i, r.w - pad * 2, r.h - pad * 2, 앞, P));
   }
   // 단계띠 — 칸이 가로로 나뉘고 칸마다 「라벨 + 내용」이 세로로 앉는다.
   // "현재" 는 활성 칸 번호다 · 글자가 아니라 표식이라 data-p 를 안 붙인다

@@ -113,15 +113,16 @@ body{
 .bt + .sm,.lb + .bt,.lb + .bd{margin-top:0}
 /* 머리(제목 · 요약) 뒤에 몸이 오면 한 칸.  몸끼리도 한 칸.
    몸 = 문단 .bd · 목록 .ls · 번호목록 .ol · 단계띠 .sp · 수치 .nm */
-.bt + .bd,.bt + .ls,.bt + .ol,.bt + .sp,.bt + .nm,
-.sm + .bd,.sm + .ls,.sm + .ol,.sm + .sp,.sm + .nm{margin-top:var(--머리뒤)}
+.bt + .bd,.bt + .ls,.bt + .ol,.bt + .tb,.bt + .sp,.bt + .nm,
+.sm + .bd,.sm + .ls,.sm + .ol,.sm + .tb,.sm + .sp,.sm + .nm{margin-top:var(--머리뒤)}
 
 .bd + .bd,
-.bd + .ls,.bd + .ol,.bd + .sp,.bd + .nm,
-.ls + .bd,.ls + .ls,.ls + .ol,.ls + .sp,.ls + .nm,
-.ol + .bd,.ol + .ls,.ol + .ol,.ol + .sp,.ol + .nm,
-.sp + .bd,.sp + .ls,.sp + .ol,.sp + .sp,.sp + .nm,
-.nm + .bd,.nm + .ls,.nm + .ol,.nm + .sp,.nm + .nm{margin-top:var(--문단사이)}
+.bd + .ls,.bd + .ol,.bd + .tb,.bd + .sp,.bd + .nm,
+.ls + .bd,.ls + .ls,.ls + .ol,.ls + .tb,.ls + .sp,.ls + .nm,
+.ol + .bd,.ol + .ls,.ol + .ol,.ol + .tb,.ol + .sp,.ol + .nm,
+.tb + .bd,.tb + .ls,.tb + .ol,.tb + .tb,.tb + .sp,.tb + .nm,
+.sp + .bd,.sp + .ls,.sp + .ol,.sp + .tb,.sp + .sp,.sp + .nm,
+.nm + .bd,.nm + .ls,.nm + .ol,.nm + .tb,.nm + .sp,.nm + .nm{margin-top:var(--문단사이)}
 
 /* ── 목록 — 항목 하나가 한 줄 42 · 항목 사이는 0 ────────────
    실물 69건 · 항목 2~8개(3~6이 흔하다) · 합 399개다.
@@ -159,6 +160,37 @@ body{
   background:var(--강조);color:#fff;
   font-size:15px;font-weight:800;line-height:24px;letter-spacing:0;text-align:center}
 .ol li b{color:var(--강조)}
+
+/* ── 표 — N-배경 b ─────────────────────────────────────────
+   설계 §4-2 · **표는 배경이다.** 글자가 먼저 있고 그 밑에 선과 칠이 깔린다.
+   그래서 여기엔 좌표가 없다 — 칸 · 선 · 칠의 자리는 전부 렌더러가 인라인으로 박는다.
+
+   칸 안 글자는 표 밖 글줄과 **같은 기준선**에 앉는다 · 행간 42 · 여백 0.
+   선은 칸 **사이**에만 놓인다. 칸 테두리가 아니다 —
+   테두리로 그리면 열 거터 양쪽에 선이 둘 생기고 바깥 끝에도 그어진다.
+   바깥 테두리가 필요하면 그건 자리 「도형」이 할 일이다.
+
+   층 순서는 칠 → 선 → 글자다. 앞의 둘은 pointer-events 를 안 받는다 —
+   편집기에서 칸을 누를 때 배경이 가로채면 안 된다. */
+
+.tb{position:relative}
+/* 칸 — 머리행만 라벨 계층(20 · 700 · 자간 +180)이다. 나머지는 본문 24 */
+.tb .tc{position:absolute;font-size:var(--본문);font-weight:400;letter-spacing:-.005em;
+  color:var(--먹);line-height:42px;overflow:hidden}
+.tb .tc.th{font-size:20px;font-weight:700;letter-spacing:.180em;color:var(--출처);
+  line-height:28px;padding:7px 0}
+.tb .tc b{color:var(--강조)}
+/* 선 · 칠 — 배경 층 */
+.tb .tl{position:absolute;background:var(--선);pointer-events:none}
+.tb .tl.hd{background:var(--강조)}        /* 머리행 아래만 진하게 */
+.tb .tf{position:absolute;pointer-events:none}
+
+/* 반전 자리 안의 표 — 글자와 선을 함께 뒤집는다 */
+.bx[data-글자="반전"] .tb .tc{color:rgba(255,255,255,.88)}
+.bx[data-글자="반전"] .tb .tc.th{color:rgba(255,255,255,.72)}
+.bx[data-글자="반전"] .tb .tc b{color:#fff}
+.bx[data-글자="반전"] .tb .tl{background:rgba(255,255,255,.22)}
+.bx[data-글자="반전"] .tb .tl.hd{background:rgba(255,255,255,.45)}
 
 /* ── 단계띠 — N-글자 d ─────────────────────────────────────
    칸이 가로로 나뉘고 칸마다 「라벨 + 내용」이 세로로 앉는다.
