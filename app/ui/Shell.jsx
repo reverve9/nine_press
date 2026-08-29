@@ -127,14 +127,14 @@ export default function Shell({ docs, first }) {
   const [검사, set검사] = useState(null);
   const [되돌림, set되돌림] = useState(0);
   const [충돌, set충돌] = useState(false);
-  const [격자, set격자] = useState(false);
+  const [자, set자] = useState(false);      // 기준선 자 42px · rules/page.css .wrap.bl
 
   const 판 = useRef(null);
   const 틀 = useRef(null);
   const 문서ref = useRef(null);
   const 면ref = useRef(0);
   const 시각ref = useRef(0);
-  const 격자ref = useRef(false);
+  const 자ref = useRef(false);
   const 스택 = useRef([]);        // 되돌리기 — 문서 스냅샷
   const 앞스택 = useRef([]);      // 다시 하기
 
@@ -144,6 +144,7 @@ export default function Shell({ docs, first }) {
     스택.current = []; 앞스택.current = []; set되돌림(0);
     문서ref.current = r.doc;   // 판본 useMemo 가 이 렌더에서 바로 읽는다
     setDoc(r.doc); setMtime(r.mtime); setI(0); set표적(null);
+    set자(!!r.doc.기준선);           // 문안이 "기준선": true 면 켠 채로 연다
     set더러움(false); set판본키((n) => n + 1);
   }, []);
 
@@ -151,13 +152,14 @@ export default function Shell({ docs, first }) {
   useEffect(() => { 문서ref.current = doc; }, [doc]);
   useEffect(() => { 면ref.current = i; }, [i]);
   useEffect(() => { 시각ref.current = mtime; }, [mtime]);
-  useEffect(() => { 격자ref.current = 격자; }, [격자]);
+  useEffect(() => { 자ref.current = 자; }, [자]);
 
-  /* 켜고 끌 때 iframe 문서에 바로 입힌다 */
+  /* 켜고 끌 때 iframe 문서에 바로 입힌다.
+     자는 rules/page.css 가 이미 갖고 있다 — .wrap.bl .bx:before.
+     클래스만 껐다 켜므로 판면을 다시 그리지 않는다. 제자리 편집이 안 끊긴다. */
   useEffect(() => {
-    const d = 틀.current?.contentDocument;
-    if (d) d.documentElement.classList.toggle('gridon', 격자);
-  }, [격자]);
+    틀.current?.contentDocument?.querySelector('.wrap')?.classList.toggle('bl', 자);
+  }, [자]);
 
   useEffect(() => {
     const el = 판.current;
@@ -327,7 +329,7 @@ export default function Shell({ docs, first }) {
       if (!(e.metaKey || e.ctrlKey)) return;
       if (e.key === 'z') { e.preventDefault(); e.shiftKey ? 다시하기() : 되돌리기(); }
       if (e.key === 's') { e.preventDefault(); 저장(); }
-      if (e.key === '\\') { e.preventDefault(); set격자((v) => !v); }
+      if (e.key === '\\') { e.preventDefault(); set자((v) => !v); }
     };
     window.addEventListener('keydown', on);
     return () => window.removeEventListener('keydown', on);
@@ -354,15 +356,9 @@ export default function Shell({ docs, first }) {
           '.row{position:relative}' +
           '.rz{position:absolute;top:0;bottom:0;width:calc(14.879*var(--u));' +
             'margin-left:calc(-7.44*var(--u));cursor:col-resize;z-index:50}' +
-          '.rz:hover,.rz.on{background:rgba(230,129,0,.22)}' +
-          // 격자 — 자홍. 판면이 안 쓰는 색이라 판면 요소로 오인되지 않는다.
-          // 선을 3px 로 둔다 — 축척 30% 에서 화면 0.9px 이다. 1px 이면 사라진다
-          '.gridov{position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;z-index:40;display:none}' +
-          'html.gridon .gridov{display:block}' +
-          '.gridov .c{position:absolute;top:0;bottom:0;background:rgba(200,0,120,.07)}' +
-          '.gridov .v{position:absolute;top:0;bottom:0;width:3px;background:rgba(200,0,120,.5)}' +
-          '.gridov .h{position:absolute;left:0;right:0;height:3px;background:rgba(200,0,120,.5)}' +
-          '.gridov .r{position:absolute;left:0;right:0;height:2px;background:rgba(200,0,120,.28)}';
+          '.rz:hover,.rz.on{background:rgba(230,129,0,.22)}';
+          // 기준선 자는 여기서 만들지 않는다 — rules/page.css 의 .wrap.bl 이 그린다.
+          // 옛 12칸 트랙 격자(.gridov)는 걷어냈다. 걸음 92.73975 도 .row 도 이제 없다.
         d.head.appendChild(st);
         d.execCommand?.('defaultParagraphSeparator', false, 'br');
 
@@ -400,7 +396,7 @@ export default function Shell({ docs, first }) {
               e.preventDefault(); e.shiftKey ? 다시하기() : 되돌리기();
             }
             // 제자리 편집 중에도 듣는다 — \ 는 글자 입력과 겹치지 않는다
-            if (e.key === '\\') { e.preventDefault(); set격자((v) => !v); }
+            if (e.key === '\\') { e.preventDefault(); set자((v) => !v); }
           }
         });
 
@@ -446,61 +442,10 @@ export default function Shell({ docs, first }) {
           });
         }
 
-        // 격자 — 도구 전용. 판면에는 아무 영향이 없다.
-        //   .c 12칸 세로 띠   .v 좌우 여백   .h 본문 상하   .r 행 경계
-        // 페이지 전면에 깔아 헤더 · 쪽번호 자리와의 세로 정렬까지 본다.
-        const page = d.querySelector('.page');
-        const bd = d.querySelector('.page .bd');
-        if (page && !page.querySelector('.gridov')) {
-          const ov = d.createElement('div');
-          ov.className = 'gridov';
-          if (bd) {
-            const L = bd.offsetLeft, W = bd.offsetWidth;
-            const T = bd.offsetTop,  H = bd.offsetHeight;
-            const 걸음 = 92.73975 * uu;              // 180.75px
-            const 칸폭 = (92.73975 - 14.879) * uu;   // 151.75px
-            for (let k = 0; k < 12; k++) {
-              const c = d.createElement('i');
-              c.className = 'c';
-              c.style.left = (L + k * 걸음) + 'px';
-              c.style.width = 칸폭 + 'px';
-              ov.appendChild(c);
-            }
-            for (const x of [L, L + W]) {
-              const v = d.createElement('i');
-              v.className = 'v';
-              v.style.left = (x - 1.5) + 'px';
-              ov.appendChild(v);
-            }
-            for (const y of [T, T + H]) {
-              const h = d.createElement('i');
-              h.className = 'h';
-              h.style.top = (y - 1.5) + 'px';
-              ov.appendChild(h);
-            }
-          }
-          page.appendChild(ov);
-        }
-
-        // 행 경계는 콘텐츠가 정하므로 폰트가 앉은 뒤에 잰다.
-        // 행 하나에 위·아래 두 줄이 그어져 그 사이가 행 간격(29px)으로 보인다.
-        const 행선 = () => {
-          const ov = d.querySelector('.gridov');
-          const bd2 = d.querySelector('.page .bd');
-          if (!ov || !bd2) return;
-          ov.querySelectorAll('.r').forEach((x) => x.remove());
-          bd2.querySelectorAll(':scope > .row, :scope > .foot').forEach((el) => {
-            for (const y of [el.offsetTop, el.offsetTop + el.offsetHeight]) {
-              const r = d.createElement('i');
-              r.className = 'r';
-              r.style.top = (bd2.offsetTop + y - 1) + 'px';
-              ov.appendChild(r);
-            }
-          });
-        };
-        (d.fonts?.ready ?? Promise.resolve()).then(행선);
-        // srcdoc 이 갈리면 문서가 새로 만들어져 클래스가 날아간다. 다시 입힌다
-        d.documentElement.classList.toggle('gridon', 격자ref.current);
+        // srcdoc 이 갈리면 문서가 새로 만들어져 클래스가 날아간다. 다시 입힌다.
+        // 문안에 "기준선": true 가 있으면 render 가 이미 .bl 을 붙여 놓지만
+        // 패널이 정본이다 — 켬이든 끔이든 자ref 가 이긴다.
+        d.querySelector('.wrap')?.classList.toggle('bl', 자ref.current);
 
         let 끌 = null;
         const 끝내기 = () => {
@@ -632,9 +577,9 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
 
         <div className="ctl">
           <div className="ctlrow">
-            <span className="ck">격자</span>
-            <button className={'chip' + (격자 ? ' on' : '')} onClick={() => set격자((v) => !v)}>
-              {격자 ? '켬' : '끔'}
+            <button className={'chip' + (자 ? ' on' : '')} onClick={() => set자((v) => !v)}
+                    title="기준선 자 42px · ⌘\">
+              기준선
             </button>
           </div>
         </div>
