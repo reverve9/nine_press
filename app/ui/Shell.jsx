@@ -123,7 +123,7 @@ const HEX6 = /^#[0-9a-fA-F]{6}$/;
    앞으로 · 글자(계층 · 강조 · 표기) · 표(열 · 머리행 · 행 높이) · 면(골격 · 모드). */
 
 const 패널들 = [['도형', '도형']];
-const 패널폭 = 268;
+const 패널폭 = 280;
 
 function 팔레트({ 이름, 열쇠, 자리, set자리, 접힘, set접힘, 차례, z, 앞으로, 끄기, children }) {
   const 몸 = useRef(null);
@@ -178,12 +178,14 @@ function 팔레트({ 이름, 열쇠, 자리, set자리, 접힘, set접힘, 차�
   );
 }
 
-/* 패널 한 줄 — 이름표 + 값. 사이드패널의 .ctlrow 와 같은 문법이다 */
-function 줄({ 이름, children }) {
+/* 패널 한 칸 — 이름표를 값 **위**에 둔다.
+   왼쪽에 이름표를 세우면 이름 길이만큼 값이 밀려 칸마다 시작점이 어긋난다.
+   위로 올리면 값이 전부 같은 x 에서 시작해 세로로 줄이 선다. */
+function 줄({ 이름, 곁, children }) {
   return (
-    <div className="poprow">
-      <span className="ck">{이름}</span>
-      <span className="popchips">{children}</span>
+    <div className="fld">
+      <span className="fldnm">{이름}{곁 ? <em>{곁}</em> : null}</span>
+      <span className="fldv">{children}</span>
     </div>
   );
 }
@@ -283,6 +285,20 @@ export default function Shell({ docs, first }) {
   const [패널, set패널] = useState({ 도형: true });
   const [접힘, set접힘] = useState({});
   const [패널자리, set패널자리] = useState({});
+  /* 최근 쓴 색 — 견본에 없는 색은 hex 로 적어야 하는데 같은 색을 여러 자리에 줄 때
+     매번 여섯 자리를 다시 친다. 쓴 것을 남겨 두고 눌러 쓴다. 브라우저에 남는다 */
+  const [최근색, set최근색] = useState([]);
+  useEffect(() => {
+    try {
+      const v = JSON.parse(localStorage.getItem('나인_최근색') ?? '[]');
+      if (Array.isArray(v)) set최근색(v.filter((x) => HEX6.test(x)).slice(0, 8));
+    } catch { /* 저장소가 막힌 브라우저면 그냥 빈 채로 간다 */ }
+  }, []);
+  const 색기억 = useCallback((색) => set최근색((a) => {
+    const n = [색, ...a.filter((x) => x !== 색)].slice(0, 8);
+    try { localStorage.setItem('나인_최근색', JSON.stringify(n)); } catch { /* 무시 */ }
+    return n;
+  }), []);
   const [앞뒤, set앞뒤] = useState(패널들.map(([k]) => k));
   const 앞으로 = useCallback((열쇠) => {
     set앞뒤((a) => (a[a.length - 1] === 열쇠 ? a : [...a.filter((k) => k !== 열쇠), 열쇠]));
@@ -1085,30 +1101,42 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                 </p>
               ) : (
                 <>
-                  <줄 이름="배경">
+                  <줄 이름="배경"
+                      곁={도형배경들.find(([v]) => v === (s.배경 ?? ''))?.[1]
+                        ?? (HEX6.test(s.배경 ?? '') ? s.배경 : null)}>
                     {도형배경들.map(([v, 이름, 색]) => (
                       <색칸 key={v || 'n'} 색={색} 이름={이름}
                             지금={(s.배경 ?? '') === v}
                             누르기={() => 도형바꾸기('배경', v)} />
                     ))}
-                    {/* 이름 셋 밖의 색 — 견본에 없는 색은 여기 적는다 */}
-                    {HEX6.test(s.배경 ?? '') && !도형배경들.some(([v]) => v === s.배경) && (
-                      <색칸 색={s.배경} 이름={s.배경} 지금 누르기={() => {}} />
-                    )}
+                    {/* 견본에 없는 색은 여기 적는다 · 적은 것은 아래 「최근」 에 남는다 */}
                     <input
-                      className="barin" style={{ width: 78 }}
+                      className="barin hexin"
                       placeholder="#RRGGBB"
                       defaultValue={HEX6.test(s.배경 ?? '') ? s.배경 : ''}
                       key={`bg-${판본키}-${자리번호}`}
                       title="견본에 없는 색은 여섯 자리 hex 로 적는다"
+                      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
                       onBlur={(e) => {
                         const v = e.target.value.trim();
                         if (!v) return;
                         if (!HEX6.test(v)) return set로그(`배경 "${v}" · #RRGGBB 여섯 자리로 적는다`);
-                        if (v !== s.배경) 도형바꾸기('배경', v);
+                        if (v === s.배경) return;
+                        도형바꾸기('배경', v);
+                        색기억(v);
                       }}
                     />
                   </줄>
+                  {최근색.length > 0 && (
+                    <div className="recent">
+                      <span className="recentnm">최근</span>
+                      {최근색.map((색) => (
+                        <색칸 key={색} 색={색} 이름={색}
+                              지금={s.배경 === 색}
+                              누르기={() => 도형바꾸기('배경', 색)} />
+                      ))}
+                    </div>
+                  )}
                   <줄 이름="투명도">
                     <span className="seg">
                       {도형투명도들.map(([v, 이름]) => (
@@ -1123,15 +1151,13 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
 
                   <div className="popln" />
 
-                  <줄 이름="테두리">
+                  <줄 이름="테두리"
+                      곁={도형테두리들.find(([v]) => v === (s.테두리 ?? ''))?.[1]}>
                     {도형테두리들.map(([v, 이름, 색]) => (
                       <색칸 key={v || 'n'} 색={색} 이름={이름}
                             지금={(s.테두리 ?? '') === v}
                             누르기={() => 도형바꾸기('테두리', v)} />
                     ))}
-                    <span className="swnm">
-                      {(도형테두리들.find(([v]) => v === (s.테두리 ?? '')) ?? [])[1]?.split(' ')[0]}
-                    </span>
                   </줄>
                   <줄 이름="모서리">
                     <span className="seg">
@@ -1154,13 +1180,12 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
 
                   <div className="popln" />
 
-                  <줄 이름="글자">
+                  <줄 이름="글자" 곁="어두운 배경에서만">
                     <button className={'chip' + (s.글자 === '반전' ? ' on' : '')}
                             onClick={() => 도형바꾸기('글자', s.글자 === '반전' ? '' : '반전')}
                             title="어두운 배경 위에서 자리 안 글자를 통째로 뒤집는다">
                       반전
                     </button>
-                    <span className="swnm">어두운 배경에서만</span>
                   </줄>
                   <p className="fphint">
                     반전은 <b>명시로만</b> 켠다 · 밝기를 계산해 자동으로 정하지 않는다.

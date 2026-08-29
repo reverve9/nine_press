@@ -141,8 +141,8 @@ body {
    속성은 여기 안 늘어놓는다. 전부 떠 있는 패널로 간다. */
 .bar {
   flex: 0 0 auto;
-  display: flex; align-items: center; gap: 8px;
-  height: 42px; padding: 0 12px;
+  display: flex; align-items: center; gap: 11px;
+  height: 46px; padding: 0 16px;
   background: #fff; border-bottom: 1px solid var(--ln);
 }
 .barh {
@@ -167,9 +167,10 @@ body {
    낱개로 늘어놓으면 서로 무관한 스위치로 읽혀 줄이 정신없어진다.
    테두리 하나로 묶고 안에서 칸을 가르면 한 덩이 · 하나 고르기로 읽힌다. */
 .seg { display: inline-flex; border: 1px solid var(--ln); border-radius: 5px; overflow: hidden }
+/* 칸 폭을 맞춘다 — 100/60/40 과 0/10/24 가 세로로 줄이 서야 한다 */
 .seg .chip {
   border: 0; border-left: 1px solid var(--ln); border-radius: 0;
-  padding: 4px 9px; background: #fff;
+  min-width: 46px; padding: 5px 8px; text-align: center; background: #fff;
 }
 .seg .chip:first-child { border-left: 0 }
 .seg .chip.on { background: var(--nv); color: #fff }
@@ -201,19 +202,36 @@ body.끄는중, body.끄는중 .fphd { cursor: grabbing }
 }
 .fpx { font-size: 15px }
 .fpb:hover { color: var(--nv) }
-.fpbd { padding: 10px 11px 12px }
+.fpbd { padding: 14px 14px 15px }
 
-/* 패널 한 줄 — 이름표는 왼쪽에 폭을 맞춰 세운다. 값이 세로로 정렬돼 읽힌다 */
-.poprow { display: flex; align-items: center; gap: 8px; margin-bottom: 7px }
-.poprow:last-child { margin-bottom: 0 }
-.poprow .ck { flex: 0 0 38px; text-align: right }
-.popchips { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; min-width: 0 }
+/* 패널 한 칸 — 이름표를 값 위에 둔다.
+   왼쪽 이름표는 길이만큼 값을 밀어 칸마다 시작점이 어긋난다.
+   위에 두면 값이 전부 왼쪽 끝에서 시작해 세로로 줄이 선다. */
+.fld { margin-bottom: 14px }
+.fld:last-child { margin-bottom: 0 }
+.fldnm {
+  display: flex; align-items: baseline; gap: 7px; margin-bottom: 7px;
+  font-size: 10px; font-weight: 800; letter-spacing: .11em; color: var(--mu);
+}
+/* 곁말 — 지금 고른 값의 이름. 눈으로 확인하는 자리다 */
+.fldnm em {
+  font-style: normal; font-weight: 600; letter-spacing: 0; font-size: 10.5px;
+  color: #a7b2be; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.fldv { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; min-width: 0 }
+
 /* 갈래를 가르는 실선 — 배경 · 테두리 · 글자를 눈으로 갈라 준다 */
-.popln { height: 1px; margin: 10px 0 9px -11px; width: calc(100% + 22px); background: var(--ln) }
+.popln { height: 1px; margin: 17px -14px 16px; background: var(--ln) }
+
+/* 최근 쓴 색 — hex 칸 바로 밑에 남는다. 브라우저에 저장된다 */
+.recent { display: flex; align-items: center; gap: 6px; margin: -6px 0 14px }
+.recentnm {
+  flex: 0 0 auto; font-size: 9.5px; font-weight: 800; letter-spacing: .1em; color: #b3bdc8;
+}
 
 /* 색 견본 — 색은 이름이 아니라 색으로 고른다 */
 .sw {
-  flex: 0 0 auto; width: 21px; height: 21px;
+  flex: 0 0 auto; width: 22px; height: 22px;
   border: 1px solid #cbd4dd; border-radius: 4px;
   background: #fff; cursor: pointer; padding: 0;
 }
@@ -224,9 +242,10 @@ body.끄는중, body.끄는중 .fphd { cursor: grabbing }
   background: linear-gradient(to top right,
     #fff 0 45%, #d0424a 45% 55%, #fff 55% 100%);
 }
-.swnm {
-  font-size: 10.5px; color: var(--mu); margin-left: 2px;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+/* hex 칸 — 견본과 같은 높이로 맞춘다 */
+.hexin {
+  width: 84px; height: 22px; padding: 0 7px;
+  font-size: 11px; font-variant-numeric: tabular-nums; text-transform: uppercase;
 }
 
 .fphint {
