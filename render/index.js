@@ -166,7 +166,7 @@ let 도구 = false;
 const dp = (p) => (도구 && p ? ` data-p='${JSON.stringify(p)}'` : '');
 
 /* ─────────────────── 블록 ───────────────────
-   라벨 · 제목 · 문단 셋만. 표 · 목록 · 수치 · 지도는 N3 이후다. */
+   제목 · 요약 · 문단 · 목록 · 출처. 표 · 수치 · 지도는 뒤 페이즈다. */
 
 function 블록(자리, r, i, 여백문서) {
   const pad = 자리.여백 ?? 여백문서;
@@ -174,11 +174,17 @@ function 블록(자리, r, i, 여백문서) {
     (pad !== 여백기본 || 자리.여백 != null ? `;padding:${pad}px` : '');
   const P = ['자리', i];
   const o = [`<div class="bx" style="${st}"${dk(자리.이름)}>`];
-  // 순서 고정 — 제목(박스 타이틀) → 요약문 → 문단 → 출처
+  // 순서 고정 — 제목(박스 타이틀) → 요약문 → 문단 → 목록 → 출처
   if (자리.제목) o.push(`<div class="bt"${dp([...P, '제목'])}>${inline(자리.제목)}</div>`);
   if (자리.요약) o.push(`<div class="sm"${dp([...P, '요약'])}>${inline(자리.요약)}</div>`);
   const 문단 = 자리.문단 == null ? [] : Array.isArray(자리.문단) ? 자리.문단 : [자리.문단];
   문단.forEach((t, j) => o.push(`<div class="bd"${dp([...P, '문단', j])}>${inline(t)}</div>`));
+  // 목록 — 항목 하나가 편집 잎사귀 하나다. data-p 는 li 에 붙는다
+  if (자리.목록 != null) {
+    if (!Array.isArray(자리.목록)) throw new Error(`자리 ${i} 의 "목록" 은 배열이어야 한다`);
+    o.push(`<ul class="ls">` + 자리.목록.map((t, j) =>
+      `<li${dp([...P, '목록', j])}>${inline(t)}</li>`).join('') + `</ul>`);
+  }
   if (자리.출처) o.push(`<div class="lb"${dp([...P, '출처'])}>${inline(자리.출처)}</div>`);
   if (자리.라벨 != null) throw new Error(
     `자리 ${i} 가 옛 열쇠 "라벨" 을 쓴다. 박스 타이틀이면 "제목" · 출처 표기면 "출처" 로 바꾼다`);

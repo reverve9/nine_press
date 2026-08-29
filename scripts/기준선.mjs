@@ -42,7 +42,9 @@ const 결과 = await pg.evaluate(() => {
     page.querySelectorAll('.bx').forEach((bx, bi) => {
       // 원점은 그 자리의 실제 안쪽 여백이다. 자리마다 다를 수 있다
       const 여백 = parseFloat(getComputedStyle(bx).paddingTop) || 0;
-      bx.querySelectorAll(':scope > .bt, :scope > .sm, :scope > .bd, :scope > .lb, :scope > .nm').forEach((el) => {
+      bx.querySelectorAll(
+        ':scope > .bt, :scope > .sm, :scope > .bd, :scope > .lb, :scope > .nm, :scope > .ls'
+      ).forEach((el) => {
         out.push({
           면: pi + 1, 자리: bi, 여백, 계층: el.className,
           top: el.offsetTop - 여백, 높이: el.offsetHeight,

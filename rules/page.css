@@ -105,15 +105,38 @@ body{
    실측 비교 넷을 찍어 고른 결과다 · 제목 뒤 42 는 오히려 나빴다. */
 
 .bt + .sm,.lb + .bt,.lb + .bd{margin-top:0}
-.bt + .bd,.sm + .bd{margin-top:var(--머리뒤)}
-.bd + .bd{margin-top:var(--문단사이)}
+.bt + .bd,.sm + .bd,.bt + .ls,.sm + .ls{margin-top:var(--머리뒤)}
+.bd + .bd,.bd + .ls,.ls + .bd,.ls + .ls{margin-top:var(--문단사이)}
+
+/* ── 목록 — 항목 하나가 한 줄 42 · 항목 사이는 0 ────────────
+   실물 69건 · 항목 2~8개(3~6이 흔하다) · 합 399개다.
+   항목마다 42 를 더 주면 여섯 항목짜리 목록 하나가 G9 자리를 통째로 먹는다.
+   그래서 항목 사이는 0 이고 · 가르는 일은 마커와 매달린 들여쓰기가 맡는다.
+
+   매달린 들여쓰기 = 마커는 왼쪽에 절대 배치하고 글자만 30 들여쓴다.
+   두 줄짜리 항목의 둘째 줄이 마커가 아니라 글자에 맞춰 앉아
+   어디서 끊겼는지가 보인다. 가로 치수라 42 와 무관하다 · §4-4 가로 자유.
+
+   목록은 배경이 아니다 — 항목 399개 중 「|」 를 쓰는 것이 105개(26%)뿐이라
+   표로 안 묶인다 · 설계 §5-3. 글자 층에 그대로 둔다. */
+
+.ls{list-style:none}
+.ls li{position:relative;padding-left:30px;
+  font-size:24px;font-weight:400;letter-spacing:-.005em;color:var(--먹);line-height:42px}
+.ls li:before{content:"•";position:absolute;left:6px;color:var(--먹);font-weight:400}
+.ls li b{color:var(--강조)}
 
 b{font-weight:700;color:var(--강조)}
 .bd b{color:var(--강조)}
 
 /* 인라인 표기 — render/inline.js 가 내는 조각 */
+/* 배지는 inline-block 이라 제 높이로 줄 상자를 밀어 올린다.
+   행간 42 를 그대로 물려받으면 상자가 42 + 테두리 2 = 44 가 되어
+   그 줄만 42 격자에서 2px 밀린다. 실제로 목록에서 172 · 212 · 298 이 나왔다.
+   그래서 배지에만 제 행간을 준다 — 24 + 테두리 2 = 26 이면 42 안에 들어앉는다. */
 .tbd{display:inline-block;border:1px dashed var(--출처);color:var(--출처);
-  border-radius:4px;padding:0 8px;font-size:.85em;font-weight:700;letter-spacing:0}
+  border-radius:4px;padding:0 8px;font-size:.85em;font-weight:700;letter-spacing:0;
+  line-height:24px}
 .tbd.co{border-color:var(--결론);color:var(--결론)}
 .ar{color:var(--강조);font-weight:700;letter-spacing:0}
 
