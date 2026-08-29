@@ -97,17 +97,46 @@ const 배경들 = [['', '없음'], ['or', '주황'], ['fill', '회색'], ['nv', 
    이름 셋(블록배경 · 선 · 강조) 밖의 색은 hex 로 준다. 여기 hex 는 전부
    키노트 세팅 §5 색표에 있는 값이다 — 없는 색을 새로 만들지 않는다(N2 §2⑤).
    그 밖의 색이 필요하면 「배경 hex」 칸에 #RRGGBB 로 직접 적는다. */
+/* 배경 견본은 둘뿐이다. **키노트 세팅 §5 가 배경색으로 지정한 것은 「블록 배경」 하나다** —
+   네이비 · 강조는 §5 에서 글자색이지 배경색이 아니다. 박아 두면 배경으로 쓰라는 뜻이 된다.
+   그 밖의 색은 hex 로 한 번 적으면 「최근」 에 남아 그 다음부터는 눌러 쓴다. */
 const 도형배경들 = [
   ['', '없음', null],
   ['블록배경', '블록배경 F4F6F8', '#F4F6F8'],
-  ['#2D4D6E', '강조 2D4D6E', '#2D4D6E'],
-  ['#131B2B', '네이비 131B2B', '#131B2B'],
 ];
 const 도형테두리들 = [['', '없음', null], ['선', '선 E4E8EC', '#E4E8EC'], ['강조', '강조 2D4D6E', '#2D4D6E']];
 const 도형모서리들 = [[0, '0'], [10, '10'], [24, '24']];
 const 도형그림자들 = [['', '없음'], ['약', '약'], ['중', '중']];
 const 도형투명도들 = [[100, '100'], [60, '60'], [40, '40']];
+const 도형굵기들 = [[1, '1'], [2, '2'], [3, '3']];
 const HEX6 = /^#[0-9a-fA-F]{6}$/;
+
+/* 칩에 없는 값은 직접 적는다. 범위는 렌더러의 도형() 과 같아야 한다 —
+   여기서 막는 것은 편의고 · 진짜 계약은 렌더러가 지킨다.
+   자주 쓰는 값만 칩으로 두고 나머지는 이 칸으로 받는다. */
+const 수범위 = { 모서리: [0, 40], 투명도: [0, 100], 굵기: [1, 6] };
+
+function 수칸({ 열쇠, 값, 기본, 놓기, 로그, 열림 = true }) {
+  const [아래, 위] = 수범위[열쇠];
+  const 지금 = 값 ?? 기본;
+  return (
+    <input
+      className="barin numin" type="text" inputMode="numeric"
+      key={`${열쇠}-${지금}`} defaultValue={지금} disabled={!열림}
+      title={`${아래} ~ ${위} 사이 정수를 적고 Enter`}
+      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+      onBlur={(e) => {
+        const t = e.target.value.trim();
+        const n = Number(t);
+        if (t === '' || !Number.isInteger(n) || n < 아래 || n > 위) {
+          e.target.value = 지금;
+          return 로그(`${열쇠} "${t}" · ${아래} ~ ${위} 사이 정수로 적는다`);
+        }
+        if (n !== 지금) 놓기(n);
+      }}
+    />
+  );
+}
 
 /* ── 떠 있는 속성 패널 ─────────────────────────────────────
    포토샵 · 인디자인 · 일러스트레이터의 팔레트 짜임 그대로다.
@@ -1109,12 +1138,21 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                             지금={(s.배경 ?? '') === v}
                             누르기={() => 도형바꾸기('배경', v)} />
                     ))}
-                    {/* 견본에 없는 색은 여기 적는다 · 적은 것은 아래 「최근」 에 남는다 */}
+                    {/* 최근 쓴 색이 견본과 한 줄에 선다 — 실제로 고르는 자리가 여기다 */}
+                    {최근색.length > 0 && <span className="swsp" />}
+                    {최근색.map((색) => (
+                      <색칸 key={색} 색={색} 이름={`최근 ${색}`}
+                            지금={s.배경 === 색}
+                            누르기={() => 도형바꾸기('배경', 색)} />
+                    ))}
+                    {/* 견본에 없는 색은 아래 칸에 적는다. 적으면 위 「최근」 에 붙는다 */}
+                    <span className="brk" />
                     <input
                       className="barin hexin"
-                      placeholder="#RRGGBB"
+                      placeholder="#RRGGBB 로 적으면 위에 남는다"
                       defaultValue={HEX6.test(s.배경 ?? '') ? s.배경 : ''}
                       key={`bg-${판본키}-${자리번호}`}
+                      style={{ width: '100%' }}
                       title="견본에 없는 색은 여섯 자리 hex 로 적는다"
                       onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
                       onBlur={(e) => {
@@ -1127,37 +1165,67 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                       }}
                     />
                   </줄>
-                  {최근색.length > 0 && (
-                    <div className="recent">
-                      <span className="recentnm">최근</span>
-                      {최근색.map((색) => (
-                        <색칸 key={색} 색={색} 이름={색}
-                              지금={s.배경 === 색}
-                              누르기={() => 도형바꾸기('배경', 색)} />
-                      ))}
-                    </div>
-                  )}
-                  <줄 이름="투명도">
+                  <줄 이름="투명도" 곁={s.배경 ? null : '배경이 없으면 안 먹는다'}>
                     <span className="seg">
                       {도형투명도들.map(([v, 이름]) => (
                         <button key={v}
                                 className={'chip' + ((s.투명도 ?? 100) === v ? ' on' : '')}
                                 disabled={!s.배경}
-                                title={s.배경 ? '배경에만 건다' : '배경이 없으면 투명도는 무시한다'}
+                                title="배경에만 건다"
                                 onClick={() => 도형바꾸기('투명도', v)}>{이름}</button>
                       ))}
                     </span>
+                    <수칸 열쇠="투명도" 값={s.투명도} 기본={100} 열림={!!s.배경}
+                          로그={set로그} 놓기={(n) => 도형바꾸기('투명도', n)} />
                   </줄>
 
                   <div className="popln" />
 
                   <줄 이름="테두리"
-                      곁={도형테두리들.find(([v]) => v === (s.테두리 ?? ''))?.[1]}>
+                      곁={도형테두리들.find(([v]) => v === (s.테두리 ?? ''))?.[1]
+                        ?? (HEX6.test(s.테두리 ?? '') ? s.테두리 : null)}>
                     {도형테두리들.map(([v, 이름, 색]) => (
                       <색칸 key={v || 'n'} 색={색} 이름={이름}
                             지금={(s.테두리 ?? '') === v}
                             누르기={() => 도형바꾸기('테두리', v)} />
                     ))}
+                    {최근색.length > 0 && <span className="swsp" />}
+                    {최근색.map((색) => (
+                      <색칸 key={색} 색={색} 이름={`최근 ${색}`}
+                            지금={s.테두리 === 색}
+                            누르기={() => 도형바꾸기('테두리', 색)} />
+                    ))}
+                    <span className="brk" />
+                    <input
+                      className="barin hexin"
+                      placeholder="#RRGGBB 로 적으면 위에 남는다"
+                      defaultValue={HEX6.test(s.테두리 ?? '') ? s.테두리 : ''}
+                      key={`bd-${판본키}-${자리번호}`}
+                      style={{ width: '100%' }}
+                      title="견본에 없는 색은 여섯 자리 hex 로 적는다"
+                      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+                      onBlur={(e) => {
+                        const v = e.target.value.trim();
+                        if (!v) return;
+                        if (!HEX6.test(v)) return set로그(`테두리 "${v}" · #RRGGBB 여섯 자리로 적는다`);
+                        if (v === s.테두리) return;
+                        도형바꾸기('테두리', v);
+                        색기억(v);
+                      }}
+                    />
+                  </줄>
+                  <줄 이름="굵기" 곁={s.테두리 ? null : '테두리가 없으면 안 먹는다'}>
+                    <span className="seg">
+                      {도형굵기들.map(([v, 이름]) => (
+                        <button key={v}
+                                className={'chip' + ((s.굵기 ?? 1) === v ? ' on' : '')}
+                                disabled={!s.테두리}
+                                title="키노트 세팅 §5 도형표는 1 이다"
+                                onClick={() => 도형바꾸기('굵기', v)}>{이름}</button>
+                      ))}
+                    </span>
+                    <수칸 열쇠="굵기" 값={s.굵기} 기본={1} 열림={!!s.테두리}
+                          로그={set로그} 놓기={(n) => 도형바꾸기('굵기', n)} />
                   </줄>
                   <줄 이름="모서리">
                     <span className="seg">
@@ -1167,6 +1235,8 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                                 onClick={() => 도형바꾸기('모서리', v)}>{이름}</button>
                       ))}
                     </span>
+                    <수칸 열쇠="모서리" 값={s.모서리} 기본={10}
+                          로그={set로그} 놓기={(n) => 도형바꾸기('모서리', n)} />
                   </줄>
                   <줄 이름="그림자">
                     <span className="seg">

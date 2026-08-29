@@ -234,6 +234,9 @@ function 도형(자리, i) {
   const 그림자 = 이름만(s.그림자, 그림자이름, '그림자', i);
   const 모서리 = 정수(s.모서리, 10, 0, 40, '모서리', i);
   const 투명도 = 정수(s.투명도, 100, 0, 100, '투명도', i);
+  // 키노트 세팅 §5 도형표는 선 굵기를 1 로 못박는다. 기본값이 그 1 이다.
+  // 굵혀도 글줄이 안 밀린다 — inset 그림자로 그리기 때문이다. 그래서 열어 둔다
+  const 굵기 = 정수(s.굵기, 1, 1, 6, '굵기', i);
 
   if (!배경 && !테두리 && !그림자) return '';
 
@@ -247,7 +250,7 @@ function 도형(자리, i) {
   }
   if (모서리) out.push(`;border-radius:${모서리}px`);
   const 그늘 = [];
-  if (테두리) 그늘.push(`inset 0 0 0 1px ${테두리}`);
+  if (테두리) 그늘.push(`inset 0 0 0 ${굵기}px ${테두리}`);
   if (그림자) 그늘.push(그림자);
   if (그늘.length) out.push(`;box-shadow:${그늘.join(',')}`);
   return out.join('');

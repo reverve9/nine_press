@@ -223,11 +223,10 @@ body.끄는중, body.끄는중 .fphd { cursor: grabbing }
 /* 갈래를 가르는 실선 — 배경 · 테두리 · 글자를 눈으로 갈라 준다 */
 .popln { height: 1px; margin: 17px -14px 16px; background: var(--ln) }
 
-/* 최근 쓴 색 — hex 칸 바로 밑에 남는다. 브라우저에 저장된다 */
-.recent { display: flex; align-items: center; gap: 6px; margin: -6px 0 14px }
-.recentnm {
-  flex: 0 0 auto; font-size: 9.5px; font-weight: 800; letter-spacing: .1em; color: #b3bdc8;
-}
+/* 줄 바꿈 — hex 칸을 견본 아래로 내린다. 견본 줄이 색만으로 읽힌다 */
+.brk { flex: 1 0 100%; height: 0; margin: 0 }
+/* 견본과 최근 색을 가르는 실선 */
+.swsp { flex: 0 0 auto; width: 1px; height: 18px; margin: 0 1px; background: #dbe2e9 }
 
 /* 색 견본 — 색은 이름이 아니라 색으로 고른다 */
 .sw {
@@ -247,6 +246,12 @@ body.끄는중, body.끄는중 .fphd { cursor: grabbing }
   width: 84px; height: 22px; padding: 0 7px;
   font-size: 11px; font-variant-numeric: tabular-nums; text-transform: uppercase;
 }
+/* 칩에 없는 수를 직접 적는 칸. 선택띠와 높이를 맞춘다 */
+.numin {
+  width: 44px; height: 24px; padding: 0 6px; text-align: center;
+  font-size: 11px; font-variant-numeric: tabular-nums;
+}
+.numin:disabled { background: #f7f9fb; color: #b3bdc8; cursor: default }
 
 .fphint {
   margin-top: 10px; padding: 7px 8px;
