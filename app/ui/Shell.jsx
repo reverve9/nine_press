@@ -208,7 +208,7 @@ function 팔레트({ 이름, 열쇠, 자리, set자리, 접힘, set접힘, 차�
 
   const p = 자리[열쇠];
   // 처음에는 오른쪽 위에 계단으로 놓는다. 한 번 끌면 그 자리를 기억한다
-  const 놓임 = p ? { left: p.x, top: p.y } : { right: 16, top: 16 + 차례 * 34 };
+  const 놓임 = p ? { left: p.x, top: p.y } : { right: 16, top: 62 + 차례 * 34 };
 
   return (
     <section className={'fp' + (접 ? ' fold' : '')} ref={몸}
@@ -235,6 +235,34 @@ function 줄({ 이름, 곁, children }) {
       <span className="fldnm">{이름}{곁 ? <em>{곁}</em> : null}</span>
       <span className="fldv">{children}</span>
     </div>
+  );
+}
+
+/* hex 칸 — **문안을 따라간다.** defaultValue 로 두면 안 된다.
+   defaultValue 는 제 값을 따로 들고 있다가 칸을 벗어날 때 그 옛 값을 다시 밀어 넣는다.
+   그래서 다른 속성을 고치면 방금 고친 것이 되돌아갔다. 수치 칸(수칸)과 같은 방식으로 맞춘다. */
+function 색입력({ 값, 이름, 놓기, 로그 }) {
+  const 현 = HEX6.test(값 ?? '') ? 값 : '';
+  const [글, set글] = useState(현);
+  useEffect(() => { set글(현); }, [현]);
+
+  const 맞추기 = () => {
+    const v = 글.trim();
+    if (v === '') return;                 // 비워 두는 것은 「안 고친다」는 뜻이다
+    if (!HEX6.test(v)) { set글(현); return 로그(`${이름} "${v}" · #RRGGBB 여섯 자리로 적는다`); }
+    if (v !== 값) 놓기(v);
+  };
+
+  return (
+    <input
+      className="barin hexin" style={{ width: '100%' }}
+      placeholder="#RRGGBB 로 적으면 위에 남는다"
+      value={글}
+      title="견본에 없는 색은 여섯 자리 hex 로 적는다"
+      onChange={(e) => set글(e.target.value)}
+      onBlur={맞추기}
+      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+    />
   );
 }
 
@@ -1059,7 +1087,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                     className="barin" style={{ flex: '1 1 240px', maxWidth: 420 }}
                     placeholder="무엇으로 채울지 적는다 · 예 : 지도 · 키노트에서"
                     defaultValue={typeof z.비움 === 'string' ? z.비움 : ''}
-                    key={`빔-${판본키}-${자리번호}`}
+                    key={`빔-${slug}-${i}-${자리번호}`}
                     onBlur={(e) => {
                       const v = e.target.value.trim();
                       if ((typeof z.비움 === 'string' ? z.비움 : '') !== v) 자리비움(v || true);
@@ -1097,171 +1125,146 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
           ) : (
             <p className="empty">면이 없습니다.</p>
           )}
-          {/* 배율 — 판 위에 얹는다. 사이드패널이 아니라 보는 자리 옆에 둔다.
-              못박으면 키노트와 같은 %로 견줄 수 있다. 판은 2339 × 1654 로 같다 */}
-          <div className="zoom">
-            <button className={'chip' + (배율 == null ? ' on' : '')} onClick={() => set배율(null)}
-                    title="창에 맞춘다">맞춤</button>
-            {[0.25, 0.5, 1].map((v) => (
-              <button key={v} className={'chip' + (배율 === v ? ' on' : '')}
-                      onClick={() => set배율(v)}
-                      title={`판 2339 × 1654 의 ${v * 100}% · 키노트 ${v * 100}% 와 같은 크기`}>
-                {v * 100}%
-              </button>
-            ))}
-            {/* 사용자 지정 — 키노트에서 쓰는 %를 그대로 적어 넣는다 */}
-            <input
-              className="barin zin" type="text" inputMode="numeric"
-              placeholder="%" key={`zoom-${배율}`}
-              defaultValue={배율 == null ? '' : Math.round(배율 * 100)}
-              title="10 ~ 400 사이 % 를 적고 Enter"
-              onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
-              onBlur={(e) => {
-                const v = e.target.value.trim();
-                if (!v) return set배율(null);
-                const n = Number(v.replace('%', ''));
-                if (!Number.isFinite(n) || n < 10 || n > 400) {
-                  e.target.value = 배율 == null ? '' : Math.round(배율 * 100);
-                  return set로그(`배율 "${v}" · 10 ~ 400 사이 숫자로 적는다`);
-                }
-                set배율(n / 100);
-              }}
-            />
-            <span className="znow">{배율 == null ? '맞춤 ' : ''}{Math.round(축척 * 100)}%</span>
-          </div>
-        </main>
+          </main>
 
+        {/* 뜨는 것들은 툴바 아래 층에 산다 — 이 층이 위치 기준이다.
+           .stage 기준으로 두면 top:0 이 툴바를 덮고 · .view 기준으로 두면
+           판을 키웠을 때 스크롤에 딸려 흘러간다. 층은 스크롤하지 않는다. */}
+        <div className="floats">
         {/* 떠 있는 속성 패널 — 어도비 팔레트 짜임 · 머리를 잡아 끌고 · 두 번 누르면 접힌다.
-           고른 것이 패널과 안 맞아도 패널은 안 사라진다. 무엇을 고르라고만 적는다 —
-           패널이 없어졌다 나타났다 하면 어디에 있었는지 못 찾는다. */}
-        {패널.도형 && (() => {
-          const z = 자리번호 == null ? null : 현재?.자리?.[자리번호];
-          const s = z?.도형 ?? {};
-          const 켬 = !!z && !z.비움;
-          return (
-            <팔레트 이름="도형" 열쇠="도형" 차례={0}
-                    자리={패널자리} set자리={set패널자리}
-                    접힘={접힘} set접힘={set접힘}
-                    z={앞뒤.indexOf('도형')} 앞으로={() => 앞으로('도형')}
-                    끄기={() => set패널((p) => ({ ...p, 도형: false }))}>
-              {!켬 ? (
-                <p className="fphint">
-                  {z?.비움 ? '비운 자리다 · 출력에 아무것도 안 나가므로 도형도 못 준다'
-                    : '판면에서 자리의 빈 곳을 눌러 고른다'}
-                </p>
-              ) : (
-                <>
-                  <줄 이름="배경"
-                      곁={도형배경들.find(([v]) => v === (s.배경 ?? ''))?.[1]
-                        ?? (HEX6.test(s.배경 ?? '') ? s.배경 : null)}>
-                    {도형배경들.map(([v, 이름, 색]) => (
-                      <색칸 key={v || 'n'} 색={색} 이름={이름}
-                            지금={(s.배경 ?? '') === v}
-                            누르기={() => 도형바꾸기('배경', v)} />
-                    ))}
-                    {/* 최근 쓴 색이 견본과 한 줄에 선다 — 실제로 고르는 자리가 여기다 */}
-                    {최근색.length > 0 && <span className="swsp" />}
-                    {최근색.map((색) => (
-                      <색칸 key={색} 색={색} 이름={`최근 ${색}`}
-                            지금={s.배경 === 색}
-                            누르기={() => 도형바꾸기('배경', 색)} />
-                    ))}
-                    {/* 견본에 없는 색은 아래 칸에 적는다. 적으면 위 「최근」 에 붙는다 */}
-                    <span className="brk" />
-                    <input
-                      className="barin hexin"
-                      placeholder="#RRGGBB 로 적으면 위에 남는다"
-                      defaultValue={HEX6.test(s.배경 ?? '') ? s.배경 : ''}
-                      key={`bg-${판본키}-${자리번호}`}
-                      style={{ width: '100%' }}
-                      title="견본에 없는 색은 여섯 자리 hex 로 적는다"
-                      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
-                      onBlur={(e) => {
-                        const v = e.target.value.trim();
-                        if (!v) return;
-                        if (!HEX6.test(v)) return set로그(`배경 "${v}" · #RRGGBB 여섯 자리로 적는다`);
-                        if (v === s.배경) return;
-                        도형바꾸기('배경', v);
-                        색기억(v);
-                      }}
-                    />
-                  </줄>
-                  <줄 이름="투명도" 곁={s.배경 ? null : '배경이 없으면 안 먹는다'}>
-                    <수칸 열쇠="투명도" 값={s.투명도} 기본={100} 열림={!!s.배경}
-                          로그={set로그} 놓기={(n) => 도형바꾸기('투명도', n)} />
-                  </줄>
-
-                  <div className="popln" />
-
-                  <줄 이름="테두리"
-                      곁={도형테두리들.find(([v]) => v === (s.테두리 ?? ''))?.[1]
-                        ?? (HEX6.test(s.테두리 ?? '') ? s.테두리 : null)}>
-                    {도형테두리들.map(([v, 이름, 색]) => (
-                      <색칸 key={v || 'n'} 색={색} 이름={이름}
-                            지금={(s.테두리 ?? '') === v}
-                            누르기={() => 도형바꾸기('테두리', v)} />
-                    ))}
-                    {최근색.length > 0 && <span className="swsp" />}
-                    {최근색.map((색) => (
-                      <색칸 key={색} 색={색} 이름={`최근 ${색}`}
-                            지금={s.테두리 === 색}
-                            누르기={() => 도형바꾸기('테두리', 색)} />
-                    ))}
-                    <span className="brk" />
-                    <input
-                      className="barin hexin"
-                      placeholder="#RRGGBB 로 적으면 위에 남는다"
-                      defaultValue={HEX6.test(s.테두리 ?? '') ? s.테두리 : ''}
-                      key={`bd-${판본키}-${자리번호}`}
-                      style={{ width: '100%' }}
-                      title="견본에 없는 색은 여섯 자리 hex 로 적는다"
-                      onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
-                      onBlur={(e) => {
-                        const v = e.target.value.trim();
-                        if (!v) return;
-                        if (!HEX6.test(v)) return set로그(`테두리 "${v}" · #RRGGBB 여섯 자리로 적는다`);
-                        if (v === s.테두리) return;
-                        도형바꾸기('테두리', v);
-                        색기억(v);
-                      }}
-                    />
-                  </줄>
-                  <줄 이름="굵기" 곁={s.테두리 ? '세팅표는 1 이다' : '테두리가 없으면 안 먹는다'}>
-                    <수칸 열쇠="굵기" 값={s.굵기} 기본={1} 열림={!!s.테두리}
-                          로그={set로그} 놓기={(n) => 도형바꾸기('굵기', n)} />
-                  </줄>
-                  <줄 이름="모서리" 곁="세팅표는 10 이다">
-                    <수칸 열쇠="모서리" 값={s.모서리} 기본={10}
-                          로그={set로그} 놓기={(n) => 도형바꾸기('모서리', n)} />
-                  </줄>
-                  <줄 이름="그림자">
-                    <span className="seg">
-                      {도형그림자들.map(([v, 이름]) => (
-                        <button key={v || 'n'}
-                                className={'chip' + ((s.그림자 ?? '') === v ? ' on' : '')}
-                                onClick={() => 도형바꾸기('그림자', v)}>{이름}</button>
-                      ))}
-                    </span>
-                  </줄>
-
-                  <div className="popln" />
-
-                  <줄 이름="글자" 곁="어두운 배경에서만">
-                    <button className={'chip' + (s.글자 === '반전' ? ' on' : '')}
-                            onClick={() => 도형바꾸기('글자', s.글자 === '반전' ? '' : '반전')}
-                            title="어두운 배경 위에서 자리 안 글자를 통째로 뒤집는다">
-                      반전
-                    </button>
-                  </줄>
+             고른 것이 패널과 안 맞아도 패널은 안 사라진다. 무엇을 고르라고만 적는다 —
+             패널이 없어졌다 나타났다 하면 어디에 있었는지 못 찾는다. */}
+          {패널.도형 && (() => {
+            const z = 자리번호 == null ? null : 현재?.자리?.[자리번호];
+            const s = z?.도형 ?? {};
+            const 켬 = !!z && !z.비움;
+            return (
+              <팔레트 이름="도형" 열쇠="도형" 차례={0}
+                      자리={패널자리} set자리={set패널자리}
+                      접힘={접힘} set접힘={set접힘}
+                      z={앞뒤.indexOf('도형')} 앞으로={() => 앞으로('도형')}
+                      끄기={() => set패널((p) => ({ ...p, 도형: false }))}>
+                {!켬 ? (
                   <p className="fphint">
-                    반전은 <b>명시로만</b> 켠다 · 밝기를 계산해 자동으로 정하지 않는다.
-                    다 비우면 문안에서 <b>도형</b> 열쇠가 통째로 사라진다.
+                    {z?.비움 ? '비운 자리다 · 출력에 아무것도 안 나가므로 도형도 못 준다'
+                      : '판면에서 자리의 빈 곳을 눌러 고른다'}
                   </p>
-                </>
-              )}
-            </팔레트>
-          );
-        })()}
+                ) : (
+                  <>
+                    <줄 이름="배경"
+                        곁={도형배경들.find(([v]) => v === (s.배경 ?? ''))?.[1]
+                          ?? (HEX6.test(s.배경 ?? '') ? s.배경 : null)}>
+                      {도형배경들.map(([v, 이름, 색]) => (
+                        <색칸 key={v || 'n'} 색={색} 이름={이름}
+                              지금={(s.배경 ?? '') === v}
+                              누르기={() => 도형바꾸기('배경', v)} />
+                      ))}
+                      {/* 최근 쓴 색이 견본과 한 줄에 선다 — 실제로 고르는 자리가 여기다 */}
+                      {최근색.length > 0 && <span className="swsp" />}
+                      {최근색.map((색) => (
+                        <색칸 key={색} 색={색} 이름={`최근 ${색}`}
+                              지금={s.배경 === 색}
+                              누르기={() => 도형바꾸기('배경', 색)} />
+                      ))}
+                      {/* 견본에 없는 색은 아래 칸에 적는다. 적으면 위 「최근」 에 붙는다 */}
+                      <span className="brk" />
+                      <색입력 값={s.배경} 이름="배경" 로그={set로그}
+                                놓기={(v) => { 도형바꾸기('배경', v); 색기억(v); }} />
+                    </줄>
+                    <줄 이름="투명도" 곁={s.배경 ? null : '배경이 없으면 안 먹는다'}>
+                      <수칸 열쇠="투명도" 값={s.투명도} 기본={100} 열림={!!s.배경}
+                            로그={set로그} 놓기={(n) => 도형바꾸기('투명도', n)} />
+                    </줄>
+
+                    <div className="popln" />
+
+                    <줄 이름="테두리"
+                        곁={도형테두리들.find(([v]) => v === (s.테두리 ?? ''))?.[1]
+                          ?? (HEX6.test(s.테두리 ?? '') ? s.테두리 : null)}>
+                      {도형테두리들.map(([v, 이름, 색]) => (
+                        <색칸 key={v || 'n'} 색={색} 이름={이름}
+                              지금={(s.테두리 ?? '') === v}
+                              누르기={() => 도형바꾸기('테두리', v)} />
+                      ))}
+                      {최근색.length > 0 && <span className="swsp" />}
+                      {최근색.map((색) => (
+                        <색칸 key={색} 색={색} 이름={`최근 ${색}`}
+                              지금={s.테두리 === 색}
+                              누르기={() => 도형바꾸기('테두리', 색)} />
+                      ))}
+                      <span className="brk" />
+                      <색입력 값={s.테두리} 이름="테두리" 로그={set로그}
+                                놓기={(v) => { 도형바꾸기('테두리', v); 색기억(v); }} />
+                    </줄>
+                    <줄 이름="굵기" 곁={s.테두리 ? '세팅표는 1 이다' : '테두리가 없으면 안 먹는다'}>
+                      <수칸 열쇠="굵기" 값={s.굵기} 기본={1} 열림={!!s.테두리}
+                            로그={set로그} 놓기={(n) => 도형바꾸기('굵기', n)} />
+                    </줄>
+                    <줄 이름="모서리" 곁="세팅표는 10 이다">
+                      <수칸 열쇠="모서리" 값={s.모서리} 기본={10}
+                            로그={set로그} 놓기={(n) => 도형바꾸기('모서리', n)} />
+                    </줄>
+                    <줄 이름="그림자">
+                      <span className="seg">
+                        {도형그림자들.map(([v, 이름]) => (
+                          <button key={v || 'n'}
+                                  className={'chip' + ((s.그림자 ?? '') === v ? ' on' : '')}
+                                  onClick={() => 도형바꾸기('그림자', v)}>{이름}</button>
+                        ))}
+                      </span>
+                    </줄>
+
+                    <div className="popln" />
+
+                    <줄 이름="글자" 곁="어두운 배경에서만">
+                      <button className={'chip' + (s.글자 === '반전' ? ' on' : '')}
+                              onClick={() => 도형바꾸기('글자', s.글자 === '반전' ? '' : '반전')}
+                              title="어두운 배경 위에서 자리 안 글자를 통째로 뒤집는다">
+                        반전
+                      </button>
+                    </줄>
+                    <p className="fphint">
+                      반전은 <b>명시로만</b> 켠다 · 밝기를 계산해 자동으로 정하지 않는다.
+                      다 비우면 문안에서 <b>도형</b> 열쇠가 통째로 사라진다.
+                    </p>
+                  </>
+                )}
+              </팔레트>
+            );
+          })()}
+        {/* 배율 — 판 위에 얹는다. 사이드패널이 아니라 보는 자리 옆에 둔다.
+                못박으면 키노트와 같은 %로 견줄 수 있다. 판은 2339 × 1654 로 같다 */}
+            <div className="zoom">
+              <button className={'chip' + (배율 == null ? ' on' : '')} onClick={() => set배율(null)}
+                      title="창에 맞춘다">맞춤</button>
+              {[0.25, 0.5, 1].map((v) => (
+                <button key={v} className={'chip' + (배율 === v ? ' on' : '')}
+                        onClick={() => set배율(v)}
+                        title={`판 2339 × 1654 의 ${v * 100}% · 키노트 ${v * 100}% 와 같은 크기`}>
+                  {v * 100}%
+                </button>
+              ))}
+              {/* 사용자 지정 — 키노트에서 쓰는 %를 그대로 적어 넣는다 */}
+              <input
+                className="barin zin" type="text" inputMode="numeric"
+                placeholder="%" key={`zoom-${배율}`}
+                defaultValue={배율 == null ? '' : Math.round(배율 * 100)}
+                title="10 ~ 400 사이 % 를 적고 Enter"
+                onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+                onBlur={(e) => {
+                  const v = e.target.value.trim();
+                  if (!v) return set배율(null);
+                  const n = Number(v.replace('%', ''));
+                  if (!Number.isFinite(n) || n < 10 || n > 400) {
+                    e.target.value = 배율 == null ? '' : Math.round(배율 * 100);
+                    return set로그(`배율 "${v}" · 10 ~ 400 사이 숫자로 적는다`);
+                  }
+                  set배율(n / 100);
+                }}
+              />
+              <span className="znow">{배율 == null ? '맞춤 ' : ''}{Math.round(축척 * 100)}%</span>
+            </div>
+        </div>
       </div>
     </div>
   );

@@ -124,7 +124,14 @@ body {
    맞춤 배율은 .view 를 재므로 저절로 따라온다.
    속성 패널이 이 칸 안에 떠 있다 — 그래서 position:relative 다.
    판이 스크롤해도 패널은 안 흐른다. */
-.stage { flex: 1; position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0 }
+.stage { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0 }
+
+/* 뜨는 것들이 사는 층 — 창 전체다.
+   .stage 기준으로 두면 툴바를 덮고 · .view 기준으로 두면 판을 키웠을 때
+   스크롤에 딸려 흘러간다. 창 기준이면 사이드패널 위로도 끌어 옮길 수 있다.
+   **창 밖으로는 못 나간다** — 웹 페이지가 제 창을 벗어날 방법이 없다. */
+.floats { position: fixed; inset: 0; z-index: 30; pointer-events: none }
+.floats > * { pointer-events: auto }
 
 .view {
   flex: 1; position: relative; min-width: 0; min-height: 0;
@@ -272,7 +279,7 @@ body.끄는중, body.끄는중 .fphd { cursor: grabbing }
 
 /* ── 배율 — 판 오른쪽 아래에 얹는다 ── */
 .zoom {
-  position: absolute; right: 14px; bottom: 12px;
+  position: absolute; right: 14px; bottom: 12px;   /* 창 기준 층(.floats) 안이다 */
   display: flex; align-items: center; gap: 4px;
   padding: 5px 7px;
   background: #fff; border: 1px solid var(--ln);
