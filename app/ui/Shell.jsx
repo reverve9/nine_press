@@ -92,6 +92,18 @@ const 새덩이 = (유형) =>
 
 const 배경들 = [['', '없음'], ['or', '주황'], ['fill', '회색'], ['nv', '남색']];
 
+/* ── 도형 칩 — N-배경 a1 ──────────────────────────────────
+   값은 render/index.js 의 도형() 이 받는 것과 같아야 한다.
+   이름 셋(블록배경 · 선 · 강조) 밖의 색은 hex 로 준다. 여기 hex 는 전부
+   키노트 세팅 §5 색표에 있는 값이다 — 없는 색을 새로 만들지 않는다(N2 §2⑤).
+   그 밖의 색이 필요하면 「배경 hex」 칸에 #RRGGBB 로 직접 적는다. */
+const 도형배경들 = [['', '없음'], ['블록배경', '블록배경'], ['#2D4D6E', '강조'], ['#131B2B', '네이비']];
+const 도형테두리들 = [['', '없음'], ['선', '선'], ['강조', '강조']];
+const 도형모서리들 = [[0, '0'], [10, '10'], [24, '24']];
+const 도형그림자들 = [['', '없음'], ['약', '약'], ['중', '중']];
+const 도형투명도들 = [[100, '100'], [60, '60'], [40, '40']];
+const HEX6 = /^#[0-9a-fA-F]{6}$/;
+
 /* ── 구조 폼 항목 뽑기 ── */
 function 구조칸들(면, 표적) {
   const out = [];
@@ -229,7 +241,8 @@ export default function Shell({ docs, first }) {
     const z = d.면[i]?.자리?.[자리번호];
     if (!z) return false;
     if (값) {
-      const 있는것 = ['제목', '요약', '문단', '목록', '번호목록', '단계띠', '수치', '출처']
+      // 도형도 함께 못 산다 — 비움은 「출력에 아무것도 안 나간다」가 계약이다
+      const 있는것 = ['제목', '요약', '문단', '목록', '번호목록', '단계띠', '수치', '출처', '도형']
         .filter((k) => z[k] != null);
       if (있는것.length) {
         set로그(`내용이 있어 못 비운다 · ${있는것.join(' · ')} 를 먼저 지운다`);
@@ -239,6 +252,18 @@ export default function Shell({ docs, first }) {
     } else {
       delete z.비움;
     }
+  }, { 그리기: true });
+
+  /* 고른 자리의 도형을 고친다 — 배경 · 테두리 · 모서리 · 그림자 · 투명도 · 글자 반전.
+     빈 값을 주면 그 열쇠를 지우고 · 남는 열쇠가 없으면 "도형" 을 통째로 없앤다.
+     안 보이는 값을 문안에 남기지 않는다 — 렌더러가 도형 문자열을 안 내는 것과 같은 규칙이다. */
+  const 도형바꾸기 = (열쇠, 값) => 바꾸기((d) => {
+    const z = d.면[i]?.자리?.[자리번호];
+    if (!z) return false;
+    if (z.비움) { set로그('비운 자리에는 도형을 못 준다 · 비움을 먼저 푼다'); return false; }
+    const s = { ...(z.도형 ?? {}) };
+    if (값 === '' || 값 == null) delete s[열쇠]; else s[열쇠] = 값;
+    if (Object.keys(s).length) z.도형 = s; else delete z.도형;
   }, { 그리기: true });
 
   useEffect(() => {
@@ -689,51 +714,10 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
               블록
             </button>
           </div>
-          {/* 배율 — 못박으면 키노트와 같은 %로 견줄 수 있다. 판은 2339 × 1654 로 같다 */}
-          <div className="ctlrow">
-            <span className="ck">배율</span>
-            <button className={'chip' + (배율 == null ? ' on' : '')} onClick={() => set배율(null)}
-                    title="창에 맞춘다">맞춤</button>
-            {[0.25, 0.5, 1].map((v) => (
-              <button key={v} className={'chip' + (배율 === v ? ' on' : '')}
-                      onClick={() => set배율(v)}
-                      title={`판 2339 × 1654 의 ${v * 100}% · 키노트 ${v * 100}% 와 같은 크기`}>
-                {v * 100}%
-              </button>
-            ))}
-          </div>
+          {/* 배율은 판 위로 옮겼다 · 아래 .zoom */}
         </div>
 
-        {/* 고른 자리 — 판면에서 자리를 누르면 뜬다. 골격 체계 전용 */}
-        {자리번호 != null && (() => {
-          const z = 현재?.자리?.[자리번호];
-          if (!z) return null;
-          const 빔 = !!z.비움;
-          return (
-            <div className="ctl">
-              <div className="ctlrow">
-                <span className="ck">자리 {자리번호 + 1} / {현재?.자리?.length}</span>
-                <button className={'chip' + (빔 ? ' on' : '')}
-                        onClick={() => 자리비움(!빔)}
-                        title="비우면 출력에 아무것도 안 나간다 · 키노트에서 채운다">
-                  비움
-                </button>
-              </div>
-              {빔 && (
-                <input
-                  className="addln" style={{ cursor: 'text', textAlign: 'left' }}
-                  placeholder="무엇으로 채울지 적는다 · 예 : 지도 · 키노트에서"
-                  defaultValue={typeof z.비움 === 'string' ? z.비움 : ''}
-                  key={`${판본키}-${자리번호}`}
-                  onBlur={(e) => {
-                    const v = e.target.value.trim();
-                    if ((typeof z.비움 === 'string' ? z.비움 : '') !== v) 자리비움(v || true);
-                  }}
-                />
-              )}
-            </div>
-          );
-        })()}
+        {/* 고른 자리의 세부 편집은 사이드패널이 아니라 판 위 툴바에 있다 · 아래 .bar */}
 
         {표적 ? (
           <>
@@ -870,6 +854,102 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
         </div>
       </aside>
 
+      {/* ── 판 위 툴바 — 고른 것에 붙는 세부 편집 ────────────────────
+          사이드패널은 문서 · 보기 · 이동만 맡는다. 세부 편집을 거기 쌓으면
+          패널이 좁아지고 무엇이 무엇에 붙은 것인지 안 보인다.
+          툴바는 **고른 것이 있을 때만** 뜨고 · 고른 것이 없으면 무엇을 누르라고만 적는다.
+          앞으로 표 · 글자 계층도 여기 같은 줄에 붙는다. */}
+      <div className="stage">
+        <div className="bar">
+          {(() => {
+            const z = 자리번호 == null ? null : 현재?.자리?.[자리번호];
+            if (!z) return (
+              <span className="barh">판면에서 <b>빈 곳</b>을 누르면 자리를 고른다 · <b>글자</b>를 누르면 그 자리에서 고친다</span>
+            );
+            const 빔 = !!z.비움;
+            const s = z.도형 ?? {};
+            return (
+              <>
+                <span className="barh">자리 {자리번호 + 1} / {현재?.자리?.length}</span>
+                <button className={'chip' + (빔 ? ' on' : '')}
+                        onClick={() => 자리비움(!빔)}
+                        title="비우면 출력에 아무것도 안 나간다 · 키노트에서 채운다">
+                  비움
+                </button>
+                {빔 ? (
+                  <input
+                    className="barin" style={{ flex: '1 1 260px' }}
+                    placeholder="무엇으로 채울지 적는다 · 예 : 지도 · 키노트에서"
+                    defaultValue={typeof z.비움 === 'string' ? z.비움 : ''}
+                    key={`빔-${판본키}-${자리번호}`}
+                    onBlur={(e) => {
+                      const v = e.target.value.trim();
+                      if ((typeof z.비움 === 'string' ? z.비움 : '') !== v) 자리비움(v || true);
+                    }}
+                  />
+                ) : (
+                  <>
+                    <span className="barsp" />
+                    <span className="ck">배경</span>
+                    {도형배경들.map(([v, 이름]) => (
+                      <button key={v || 'n'}
+                              className={'chip' + ((s.배경 ?? '') === v ? ' on' : '')}
+                              onClick={() => 도형바꾸기('배경', v)}>{이름}</button>
+                    ))}
+                    <input
+                      className="barin" style={{ flex: '0 0 92px' }}
+                      placeholder="#RRGGBB"
+                      defaultValue={HEX6.test(s.배경 ?? '') ? s.배경 : ''}
+                      key={`bg-${판본키}-${자리번호}`}
+                      title="이름 밖의 색은 여섯 자리 hex 로 준다"
+                      onBlur={(e) => {
+                        const v = e.target.value.trim();
+                        if (!v) return;
+                        if (!HEX6.test(v)) return set로그(`배경 "${v}" · #RRGGBB 여섯 자리로 적는다`);
+                        if (v !== s.배경) 도형바꾸기('배경', v);
+                      }}
+                    />
+                    <span className="barsp" />
+                    <span className="ck">테두리</span>
+                    {도형테두리들.map(([v, 이름]) => (
+                      <button key={v || 'n'}
+                              className={'chip' + ((s.테두리 ?? '') === v ? ' on' : '')}
+                              onClick={() => 도형바꾸기('테두리', v)}>{이름}</button>
+                    ))}
+                    <span className="barsp" />
+                    <span className="ck">모서리</span>
+                    {도형모서리들.map(([v, 이름]) => (
+                      <button key={v}
+                              className={'chip' + ((s.모서리 ?? 10) === v ? ' on' : '')}
+                              onClick={() => 도형바꾸기('모서리', v)}>{이름}</button>
+                    ))}
+                    <span className="barsp" />
+                    <span className="ck">그림자</span>
+                    {도형그림자들.map(([v, 이름]) => (
+                      <button key={v || 'n'}
+                              className={'chip' + ((s.그림자 ?? '') === v ? ' on' : '')}
+                              onClick={() => 도형바꾸기('그림자', v)}>{이름}</button>
+                    ))}
+                    <span className="barsp" />
+                    <span className="ck">투명도</span>
+                    {도형투명도들.map(([v, 이름]) => (
+                      <button key={v}
+                              className={'chip' + ((s.투명도 ?? 100) === v ? ' on' : '')}
+                              onClick={() => 도형바꾸기('투명도', v)}>{이름}</button>
+                    ))}
+                    <span className="barsp" />
+                    <button className={'chip' + (s.글자 === '반전' ? ' on' : '')}
+                            onClick={() => 도형바꾸기('글자', s.글자 === '반전' ? '' : '반전')}
+                            title="어두운 배경 위에서 자리 안 글자를 통째로 뒤집는다 · 명시로만 켠다">
+                      글자 반전
+                    </button>
+                  </>
+                )}
+              </>
+            );
+          })()}
+        </div>
+
       <main className="view" ref={판}>
         {현재 ? (
           <div className="frame" style={{ width: W * 축척, height: H * 축척 }}>
@@ -884,8 +964,40 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
         ) : (
           <p className="empty">면이 없습니다.</p>
         )}
-        <div className="scale">{배율 == null ? '맞춤 ' : ''}{Math.round(축척 * 100)}%</div>
+        {/* 배율 — 판 위에 얹는다. 사이드패널이 아니라 보는 자리 옆에 둔다.
+            못박으면 키노트와 같은 %로 견줄 수 있다. 판은 2339 × 1654 로 같다 */}
+        <div className="zoom">
+          <button className={'chip' + (배율 == null ? ' on' : '')} onClick={() => set배율(null)}
+                  title="창에 맞춘다">맞춤</button>
+          {[0.25, 0.5, 1].map((v) => (
+            <button key={v} className={'chip' + (배율 === v ? ' on' : '')}
+                    onClick={() => set배율(v)}
+                    title={`판 2339 × 1654 의 ${v * 100}% · 키노트 ${v * 100}% 와 같은 크기`}>
+              {v * 100}%
+            </button>
+          ))}
+          {/* 사용자 지정 — 키노트에서 쓰는 %를 그대로 적어 넣는다 */}
+          <input
+            className="barin zin" type="text" inputMode="numeric"
+            placeholder="%" key={`zoom-${배율}`}
+            defaultValue={배율 == null ? '' : Math.round(배율 * 100)}
+            title="10 ~ 400 사이 % 를 적고 Enter"
+            onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+            onBlur={(e) => {
+              const v = e.target.value.trim();
+              if (!v) return set배율(null);
+              const n = Number(v.replace('%', ''));
+              if (!Number.isFinite(n) || n < 10 || n > 400) {
+                e.target.value = 배율 == null ? '' : Math.round(배율 * 100);
+                return set로그(`배율 "${v}" · 10 ~ 400 사이 숫자로 적는다`);
+              }
+              set배율(n / 100);
+            }}
+          />
+          <span className="znow">{배율 == null ? '맞춤 ' : ''}{Math.round(축척 * 100)}%</span>
+        </div>
       </main>
+      </div>
     </div>
   );
 }

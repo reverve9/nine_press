@@ -23,8 +23,10 @@ body {
 .shell { display: flex; height: 100vh }
 
 /* ── 사이드패널 ── */
+/* 사이드패널은 문서 · 보기 · 이동만 맡는다. 세부 편집은 판 위 툴바(.bar)로 뺐다 —
+   여기에 다 쌓으면 패널이 좁아지고 무엇이 무엇에 붙은 것인지 안 보인다. */
 .side {
-  flex: 0 0 260px;
+  flex: 0 0 300px;
   display: flex;
   flex-direction: column;
   background: #fff;
@@ -118,8 +120,12 @@ body {
 /* 배율을 못박으면 판이 창보다 커진다. 그때 스크롤로 볼 수 있어야 한다.
    가운데 맞춤은 align-items 가 아니라 .frame 의 margin:auto 로 한다 —
    플렉스 가운데 맞춤은 넘칠 때 위·왼쪽을 잘라 먹어 그쪽을 볼 수 없다. */
+/* 판 자리 = 툴바 한 줄 + 판. 툴바가 먹은 만큼 .view 가 줄고
+   맞춤 배율은 .view 를 재므로 저절로 따라온다. */
+.stage { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0 }
+
 .view {
-  flex: 1; position: relative; min-width: 0;
+  flex: 1; position: relative; min-width: 0; min-height: 0;
   display: flex; overflow: auto;
   background: var(--bg);
 }
@@ -127,11 +133,43 @@ body {
 .frame { margin: auto; box-shadow: 0 2px 14px rgba(25, 41, 73, .13); background: #fff }
 .frame iframe { border: 0; display: block }
 
-.scale {
+/* ── 판 위 툴바 — 고른 것에 붙는 세부 편집 ──
+   고른 것이 없으면 무엇을 누르라고만 적는다. 줄이 넘치면 접힌다. */
+.bar {
+  flex: 0 0 auto;
+  display: flex; align-items: center; flex-wrap: wrap; gap: 5px;
+  min-height: 44px; padding: 7px 14px;
+  background: #fff; border-bottom: 1px solid var(--ln);
+}
+.barh {
+  flex: 0 0 auto; margin-right: 4px;
+  font-size: 11px; font-weight: 800; letter-spacing: -.01em; color: var(--nv);
+}
+.barh b { color: var(--nv2) }
+/* 무리를 가르는 실선 하나. 이름표(.ck)가 무엇에 붙은 값인지 짚는다 */
+.barsp { flex: 0 0 auto; width: 1px; height: 16px; margin: 0 4px; background: var(--ln) }
+.bar .ck { flex: 0 0 auto; margin-right: 1px }
+
+.barin {
+  font: inherit; font-size: 11.5px; color: var(--tx);
+  border: 1px solid var(--ln); border-radius: 5px; padding: 4px 7px;
+  background: #fff; min-width: 0;
+}
+.barin:focus { outline: 0; border-color: var(--nv2) }
+
+/* ── 배율 — 판 오른쪽 아래에 얹는다 ── */
+.zoom {
   position: absolute; right: 14px; bottom: 12px;
-  font-size: 11px; font-weight: 700; color: var(--mu);
+  display: flex; align-items: center; gap: 4px;
+  padding: 5px 7px;
   background: #fff; border: 1px solid var(--ln);
-  border-radius: 5px; padding: 3px 8px;
+  border-radius: 7px; box-shadow: 0 2px 8px rgba(25, 41, 73, .10);
+}
+.zoom .zin { width: 52px; text-align: center }
+.znow {
+  min-width: 44px; text-align: right;
+  font-size: 11px; font-weight: 700; color: var(--mu);
+  font-variant-numeric: tabular-nums;
 }
 
 .empty { color: var(--mu) }
