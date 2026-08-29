@@ -179,6 +179,24 @@ function 블록(자리, r, i, 여백문서) {
     (pad !== 여백기본 || 자리.여백 != null ? `;padding:${pad}px` : '');
   const P = ['자리', i];
   const o = [`<div class="bx" style="${st}"${dk(자리.이름)}>`];
+
+  /* 비워 두는 자리 — 키노트 · 파워포인트에서 채운다.
+     판이 2339 × 1654 로 키노트 슬라이드와 같은 좌표계라 이 좌표를 그대로 쓸 수 있다.
+
+     **출력에는 아무것도 안 나간다.** 표식은 도구 모드(편집기)에서만 그린다.
+     그래야 산출 HTML · PDF 가 진짜로 비어 그 위에 덮어쓸 수 있다.
+     좌표는 `node scripts/비움.mjs <문안>` 으로 표를 뽑는다. */
+  if (자리.비움) {
+    const 있는것 = ['제목', '요약', '문단', '목록', '번호목록', '단계띠', '수치', '출처']
+      .filter((k) => 자리[k] != null);
+    if (있는것.length) throw new Error(
+      `자리 ${i} 가 "비움" 인데 ${있는것.join(' · ')} 를 갖고 있다. 비울 거면 내용을 지운다`);
+    if (도구) o.push(
+      `<div class="emp"><span>${inline(typeof 자리.비움 === 'string' ? 자리.비움 : '비움')}</span>` +
+      `<i>x ${r.x} · y ${r.y} · ${r.w} × ${r.h}</i></div>`);
+    o.push('</div>');
+    return o.join('');
+  }
   // 순서 고정 — 제목(박스 타이틀) → 요약문 → 문단 → 목록 → 출처
   if (자리.제목) o.push(`<div class="bt"${dp([...P, '제목'])}>${inline(자리.제목)}</div>`);
   if (자리.요약) o.push(`<div class="sm"${dp([...P, '요약'])}>${inline(자리.요약)}</div>`);
@@ -228,6 +246,9 @@ function 블록(자리, r, i, 여백문서) {
   if (자리.출처) o.push(`<div class="lb"${dp([...P, '출처'])}>${inline(자리.출처)}</div>`);
   if (자리.라벨 != null) throw new Error(
     `자리 ${i} 가 옛 열쇠 "라벨" 을 쓴다. 박스 타이틀이면 "제목" · 출처 표기면 "출처" 로 바꾼다`);
+  // 표식 없이 빈 자리 — 일부러 비운 것과 가른다. 도구 모드에서만 보인다
+  if (도구 && o.length === 1) o.push(
+    `<div class="emp warn"><span>빈 자리</span><i>일부러 비울 거면 "비움" 을 준다</i></div>`);
   o.push('</div>');
   return o.join('');
 }

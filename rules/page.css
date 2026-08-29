@@ -277,6 +277,26 @@ b{font-weight:700;color:var(--강조)}
     repeating-linear-gradient(to bottom,
       rgba(200,0,120,.17) 0 1px, transparent 1px var(--기준선));}
 
+/* ── 비워 두는 자리 — 키노트 · 파워포인트에서 채운다 ──
+   렌더러가 **도구 모드에서만** 이 조각을 낸다. 산출 HTML · PDF 에는 아예 없다.
+   그래야 그 자리가 진짜로 비어 다른 도구가 덮어쓸 수 있다.
+
+   판이 2339 × 1654 로 키노트 슬라이드와 같은 좌표계다 — 여기 적힌 x · y · 폭 · 높이를
+   키노트에서 그대로 쓰면 자리가 정확히 맞는다. 표는 `scripts/비움.mjs` 가 뽑는다. */
+
+.emp{position:absolute;left:0;top:0;right:0;bottom:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  border:2px dashed rgba(45,77,110,.38);border-radius:6px;
+  background:repeating-linear-gradient(45deg,
+    rgba(45,77,110,.035) 0 14px, transparent 14px 28px);
+  color:var(--강조);font-size:26px;font-weight:700;letter-spacing:-.005em;
+  text-align:center;padding:0 20px;pointer-events:none}
+.emp i{font-style:normal;font-size:20px;font-weight:400;letter-spacing:.06em;color:var(--출처)}
+/* 표식 없이 빈 자리 — 실수인지 일부러인지 가른다 */
+.emp.warn{border-color:rgba(230,129,0,.55);color:var(--결론);
+  background:repeating-linear-gradient(45deg,
+    rgba(230,129,0,.05) 0 14px, transparent 14px 28px)}
+
 /* ── 검사용 임시 외곽선 · 기본 꺼 둠 — §2⑤
    문서 JSON 에 "판면":"dbg" 를 주면 .wrap.dbg 가 붙어 켜진다.
    구분선(N2)이 아니다. 출력에 나가지 않는다. */
