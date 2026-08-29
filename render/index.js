@@ -198,6 +198,33 @@ function 블록(자리, r, i, 여백문서) {
       .join('');
     if (항목) o.push(`<${태그} class="${cls}">${항목}</${태그}>`);
   }
+  // 단계띠 — 칸이 가로로 나뉘고 칸마다 「라벨 + 내용」이 세로로 앉는다.
+  // "현재" 는 활성 칸 번호다 · 글자가 아니라 표식이라 data-p 를 안 붙인다
+  if (자리.단계띠) {
+    const 칸 = 자리.단계띠.칸 ?? [];
+    if (칸.length) o.push(`<div class="sp">` + 칸.map((c, j) => {
+      const [머리, 내용] = Array.isArray(c) ? c : [c, ''];
+      return `<div class="s${j === 자리.단계띠.현재 ? ' on' : ''}">` +
+        `<div class="sk"${dp([...P, '단계띠', '칸', j, 0])}>${inline(머리)}</div>` +
+        (빔(내용) ? '' : `<div class="st"${dp([...P, '단계띠', '칸', j, 1])}>${inline(내용)}</div>`) +
+        `</div>`;
+    }).join('') + `</div>`);
+  }
+  // 수치 — 값(강조 수치 52) + 단위 한 줄 84 · 그 아래 라벨 42 → 한 칸 126
+  if (자리.수치) {
+    if (!Array.isArray(자리.수치)) throw new Error(`자리 ${i} 의 "수치" 는 배열이어야 한다`);
+    const 칸 = 자리.수치.map((c, j) => {
+      const [값, 단위, 라벨] = Array.isArray(c) ? c : [c, '', ''];
+      if (빔(값)) return '';
+      return `<div class="n"><div class="nv">` +
+        `<span class="val"${dp([...P, '수치', j, 0])}>${inline(값)}</span>` +
+        (빔(단위) ? '' : `<span class="unit"${dp([...P, '수치', j, 1])}>${inline(단위)}</span>`) +
+        `</div>` +
+        (빔(라벨) ? '' : `<div class="nk"${dp([...P, '수치', j, 2])}>${inline(라벨)}</div>`) +
+        `</div>`;
+    }).join('');
+    if (칸) o.push(`<div class="nm">${칸}</div>`);
+  }
   if (자리.출처) o.push(`<div class="lb"${dp([...P, '출처'])}>${inline(자리.출처)}</div>`);
   if (자리.라벨 != null) throw new Error(
     `자리 ${i} 가 옛 열쇠 "라벨" 을 쓴다. 박스 타이틀이면 "제목" · 출처 표기면 "출처" 로 바꾼다`);

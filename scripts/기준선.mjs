@@ -43,8 +43,8 @@ const 결과 = await pg.evaluate(() => {
       // 원점은 그 자리의 실제 안쪽 여백이다. 자리마다 다를 수 있다
       const 여백 = parseFloat(getComputedStyle(bx).paddingTop) || 0;
       bx.querySelectorAll(
-        ':scope > .bt, :scope > .sm, :scope > .bd, :scope > .lb, :scope > .nm,' +
-        ':scope > .ls, :scope > .ol'
+        ':scope > .bt, :scope > .sm, :scope > .bd, :scope > .lb,' +
+        ':scope > .ls, :scope > .ol, :scope > .sp, :scope > .nm'
       ).forEach((el) => {
         out.push({
           면: pi + 1, 자리: bi, 여백, 계층: el.className,
