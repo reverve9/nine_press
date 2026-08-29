@@ -4,7 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { 빌드, PDF, 문안저장, 문안불러오기 } from '../actions.js';
 import { render } from '../../render/index.js';
 
-const W = 2340;
+// 판면 픽셀 — render/index.js 의 판 · rules/page.css 의 --판W/--판H 와 같은 값이어야 한다.
+// 2340 으로 1px 넓게 잡혀 있어 미리보기 오른쪽에 투명 띠 1px 이 남았다.
+const W = 2339;
 const H = 1654;
 
 /* ── 경로 유틸 ──
@@ -561,8 +563,8 @@ export default function Shell({ docs, first }) {
       '</head>',
       `<style>
 body{padding:0;margin:0;background:transparent;overflow:hidden}
-.wrap{width:2340px;margin:0}
-.sheet{width:2340px;height:1654px;margin:0;overflow:hidden}
+.wrap{width:${W}px;margin:0}
+.sheet{width:${W}px;height:${H}px;margin:0;overflow:hidden}
 .sheet .page{transform:none;box-shadow:none}
 </style></head>`,
     );
