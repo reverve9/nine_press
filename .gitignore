@@ -5,3 +5,8 @@ out/
 .next/
 *.tmp
 _DEV/_to_delete/
+
+# _DEV 자료 — 키노트 꾸러미와 큰 PDF 는 레포에 안 넣는다.
+# save.sh 에 _DEV 를 통째로 넘기면 이것들이 딸려 들어간다(+218MB 사고 있었음).
+_DEV/*.key/
+_DEV/*.pdf
