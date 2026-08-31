@@ -20,358 +20,142 @@ body {
   overflow: hidden;
 }
 
-.shell { display: flex; height: 100vh }
-
-/* ── 사이드패널 ── */
-/* 사이드패널은 문서 · 보기 · 이동만 맡는다. 세부 편집은 판 위 툴바(.bar)로 뺐다 —
-   여기에 다 쌓으면 패널이 좁아지고 무엇이 무엇에 붙은 것인지 안 보인다. */
-.side {
-  flex: 0 0 300px;
-  display: flex;
-  flex-direction: column;
-  background: #fff;
-  border-right: 1px solid var(--ln);
-  min-height: 0;
+/* ── 골격 · 상단바 / 면 미리보기 | 판 | 속성 도크 ── */
+.shell {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr) 300px;
+  grid-template-rows: 46px minmax(0, 1fr);
+  height: 100vh;
 }
 
+/* ── 상단바 ── */
+.top {
+  grid-column: 1 / -1;
+  display: flex; align-items: center; gap: 7px;
+  padding: 0 12px;
+  background: #fff; border-bottom: 1px solid var(--ln);
+  overflow: hidden;
+}
 .brand {
-  padding: 16px 18px 12px;
-  font-size: 15px; font-weight: 800; letter-spacing: -.02em;
-  color: var(--nv);
+  flex: 0 0 auto; margin-right: 3px;
+  font-size: 13px; font-weight: 800; letter-spacing: -.02em; color: var(--nv);
 }
-
 .pick {
-  margin: 0 14px 12px;
-  padding: 7px 9px;
-  font: inherit; font-size: 13px;
-  border: 1px solid var(--ln); border-radius: 6px;
-  background: #fff; color: var(--tx);
+  flex: 0 0 auto; max-width: 190px;
+  padding: 5px 7px; font: inherit; font-size: 12px;
+  border: 1px solid var(--ln); border-radius: 6px; background: #fff; color: var(--tx);
 }
-
-.lbl {
-  padding: 0 18px 8px;
-  font-size: 10.5px; font-weight: 800; letter-spacing: .12em;
-  color: var(--mu);
+.undo { display: flex; gap: 1px }
+.undo button {
+  border: 0; background: transparent; cursor: pointer;
+  font-size: 14px; line-height: 1; color: var(--mu); padding: 3px 5px; border-radius: 4px;
 }
-
-.list { flex: 1; overflow-y: auto; padding: 0 8px 8px; min-height: 0 }
-
-.row {
-  display: flex; align-items: baseline; gap: 9px; width: 100%;
-  padding: 7px 10px; border: 0; border-radius: 6px;
-  background: transparent; text-align: left; cursor: pointer;
-  font: inherit; color: var(--tx);
+.undo button:hover:not(:disabled) { background: #f4f6f8; color: var(--nv) }
+.undo button:disabled { opacity: .3; cursor: default }
+.bsp { flex: 0 0 auto; width: 1px; height: 18px; background: var(--ln); margin: 0 2px }
+.bfill { flex: 1 1 auto; min-width: 6px }
+.zin { width: 48px; text-align: center }
+.znow {
+  min-width: 38px; text-align: right;
+  font-size: 11px; font-weight: 700; color: var(--mu); font-variant-numeric: tabular-nums;
 }
-.row:hover { background: #f4f6f8 }
-.row.on { background: var(--nv); color: #fff }
-.row.blk { cursor: default }
-.row.blk:hover { background: #f4f6f8 }
-
-.no {
-  flex: 0 0 22px; font-size: 11.5px; font-weight: 800;
-  color: var(--mu); font-variant-numeric: tabular-nums;
+.log1 {
+  max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 11px; color: var(--mu);
 }
-.row.on .no { color: #f1b03c }
-
-.col {
-  flex: 0 0 34px; font-size: 10px; font-weight: 800;
-  color: var(--mu); letter-spacing: .04em;
+.chk {
+  flex: 0 0 auto; padding: 3px 8px; border-radius: 5px;
+  font-size: 11px; font-weight: 700;
+  background: #f2f7f4; color: #3f6f6a;
 }
-
-.tt { font-size: 13px; letter-spacing: -.01em; line-height: 1.4 }
-
-.drill, .back {
-  margin: 0 14px 10px; padding: 7px;
-  font: inherit; font-size: 12px;
-  border: 1px solid var(--ln); border-radius: 6px;
-  background: #fff; color: var(--mu); cursor: pointer;
+.chk.bad { background: #fdf0e6; color: #b45309 }
+.save {
+  flex: 0 0 auto; padding: 6px 12px;
+  font: inherit; font-size: 12px; font-weight: 700;
+  border: 0; border-radius: 6px; background: var(--or); color: #fff; cursor: pointer;
 }
-.drill:hover, .back:hover { border-color: var(--nv2); color: var(--nv) }
-.drill:disabled { opacity: .4; cursor: default }
+.save:hover { background: #cf7400 }
+.save:disabled { background: #eef1f4; color: var(--mu); cursor: default }
 
-.note {
-  margin: 0 18px 12px; font-size: 11.5px; line-height: 1.65;
-  color: var(--mu);
-  padding: 9px 11px; background: #f7f9fb; border-radius: 6px;
+/* ── 면 미리보기 — 키노트 네비게이터 ── */
+.pages {
+  display: flex; flex-direction: column; min-height: 0;
+  background: #fff; border-right: 1px solid var(--ln);
 }
-
-/* ── 하단 ── */
-.foot { border-top: 1px solid var(--ln); padding: 12px 14px 14px }
-.btns { display: flex; gap: 8px }
-.foot button {
-  flex: 1; padding: 8px; font: inherit; font-size: 13px; font-weight: 700;
-  border: 0; border-radius: 6px; background: var(--nv); color: #fff; cursor: pointer;
+.pgs { flex: 1; overflow-y: auto; padding: 10px 8px 8px }
+.pg {
+  display: block; width: 100%; margin-bottom: 10px; padding: 0;
+  border: 0; background: transparent; cursor: pointer; font: inherit;
+  position: relative; text-align: left;
 }
-.foot button:hover { background: var(--nv2) }
-.foot button:disabled { background: #c3ccd6; cursor: default }
-.foot .thin {
-  margin-top: 8px; width: 100%; font-weight: 400; font-size: 12px;
-  background: #f4f6f8; color: var(--mu);
+.pgno {
+  position: absolute; left: -2px; top: 0;
+  font-size: 10px; font-weight: 800; color: var(--mu); font-variant-numeric: tabular-nums;
 }
-.foot .thin:hover { background: #e9edf1; color: var(--nv) }
-
-.log {
-  margin-top: 10px; max-height: 120px; overflow: auto;
-  font: 11px/1.55 ui-monospace, SFMono-Regular, monospace;
-  color: var(--mu); white-space: pre-wrap; word-break: break-all;
+.pgsh {
+  display: block; margin-left: 16px; overflow: hidden;
+  background: #fff; border: 1px solid var(--ln); border-radius: 3px;
 }
+.pg:hover .pgsh { border-color: var(--nv2) }
+.pg.on .pgsh { border-color: var(--or); box-shadow: 0 0 0 2px rgba(230, 129, 0, .35) }
+.pgsh iframe { border: 0; display: block; transform-origin: top left; pointer-events: none }
+.pgtt {
+  display: block; margin: 3px 0 0 16px;
+  font-size: 11px; line-height: 1.35; color: var(--mu);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pg.on .pgtt { color: var(--nv); font-weight: 700 }
+.pgbar {
+  flex: 0 0 auto; display: flex; gap: 4px; padding: 8px;
+  border-top: 1px solid var(--ln);
+}
+.pgbar .chip { flex: 1; padding: 4px 0; text-align: center }
 
-/* ── 판본 ── */
-/* 배율을 못박으면 판이 창보다 커진다. 그때 스크롤로 볼 수 있어야 한다.
-   가운데 맞춤은 align-items 가 아니라 .frame 의 margin:auto 로 한다 —
-   플렉스 가운데 맞춤은 넘칠 때 위·왼쪽을 잘라 먹어 그쪽을 볼 수 없다. */
-/* 판 자리 = 툴바 한 줄 + 판. 툴바가 먹은 만큼 .view 가 줄고
-   맞춤 배율은 .view 를 재므로 저절로 따라온다.
-   속성 패널이 이 칸 안에 떠 있다 — 그래서 position:relative 다.
-   판이 스크롤해도 패널은 안 흐른다. */
-.stage { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0 }
-
-/* 뜨는 것들이 사는 층 — 창 전체다.
-   .stage 기준으로 두면 툴바를 덮고 · .view 기준으로 두면 판을 키웠을 때
-   스크롤에 딸려 흘러간다. 창 기준이면 사이드패널 위로도 끌어 옮길 수 있다.
-   **창 밖으로는 못 나간다** — 웹 페이지가 제 창을 벗어날 방법이 없다. */
-.floats { position: fixed; inset: 0; z-index: 30; pointer-events: none }
-.floats > * { pointer-events: auto }
-
+/* ── 판 ── */
 .view {
-  flex: 1; position: relative; min-width: 0; min-height: 0;
-  display: flex; overflow: auto;
-  background: var(--bg);
+  position: relative; min-width: 0; min-height: 0;
+  display: flex; overflow: auto; background: var(--bg);
 }
-
 .frame { margin: auto; box-shadow: 0 2px 14px rgba(25, 41, 73, .13); background: #fff }
 .frame iframe { border: 0; display: block }
+.empty { margin: auto; color: var(--mu) }
 
-/* ── 판 위 툴바 — 한 줄로 고정한다 ──
-   왼쪽 : 무엇을 고르고 있는가.  가운데 : 그것에 바로 거는 손질.
-   오른쪽 : 패널 켜고 끄기 · 포토샵 「창」 메뉴 자리다.
-   속성은 여기 안 늘어놓는다. 전부 떠 있는 패널로 간다. */
-.bar {
-  flex: 0 0 auto;
-  display: flex; align-items: center; gap: 11px;
-  height: 46px; padding: 0 16px;
-  background: #fff; border-bottom: 1px solid var(--ln);
+/* ── 속성 도크 ── */
+.dock {
+  display: flex; flex-direction: column; min-height: 0;
+  background: #fff; border-left: 1px solid var(--ln);
 }
-.barh {
-  flex: 0 0 auto;
-  display: flex; align-items: center; gap: 7px;
-  font-size: 11.5px; font-weight: 700; letter-spacing: -.01em; color: var(--nv);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+.dkhd {
+  flex: 0 0 auto; display: flex; align-items: center; gap: 6px;
+  height: 40px; padding: 0 12px; border-bottom: 1px solid var(--ln);
+  font-size: 11.5px; font-weight: 700; color: var(--nv); white-space: nowrap;
 }
-/* 지금 고른 것 — 골격은 회색 꼬리표 · 자리는 남색 알맹이 */
-.barh i {
+.dkhd i {
   font-style: normal; font-size: 10px; font-weight: 800; letter-spacing: .08em;
   color: var(--mu); background: #f2f5f8; border-radius: 4px; padding: 3px 6px;
 }
-.barh b { color: var(--nv2) }
-.barh.dim { font-weight: 400; color: var(--mu) }
-.barh.dim b { color: var(--tx); font-weight: 700 }
-.barsp { flex: 0 0 auto; width: 1px; height: 18px; background: var(--ln) }
-.barfill { flex: 1 1 auto; min-width: 8px }
-.bar .ck { flex: 0 0 auto }
+.dkhd b { color: var(--nv2) }
+.dkln { flex: 0 0 auto; padding: 8px 12px; border-bottom: 1px solid var(--ln) }
+.tabs { flex: 0 0 auto; display: flex; border-bottom: 1px solid var(--ln) }
+.tab {
+  flex: 1; padding: 9px 0; border: 0; border-bottom: 2px solid transparent;
+  background: transparent; cursor: pointer;
+  font: inherit; font-size: 12px; font-weight: 700; color: var(--mu);
+}
+.tab:hover { color: var(--nv) }
+.tab.on { color: var(--nv); border-bottom-color: var(--or) }
+.dkbd { flex: 1; overflow-y: auto; padding: 14px 12px 18px }
+.dim { font-size: 11.5px; color: var(--mu) }
 
-/* ── 선택띠 — 「여럿 중 하나」는 낱개 토글로 안 낸다 ──
-   낱개로 늘어놓으면 서로 무관한 스위치로 읽혀 줄이 정신없어진다.
-   테두리 하나로 묶고 안에서 칸을 가르면 한 덩이 · 하나 고르기로 읽힌다. */
+/* ── 선택띠 · 칩 ── */
 .seg { display: inline-flex; border: 1px solid var(--ln); border-radius: 5px; overflow: hidden }
-/* 칸 폭을 맞춘다 — 100/60/40 과 0/10/24 가 세로로 줄이 서야 한다 */
 .seg .chip {
   border: 0; border-left: 1px solid var(--ln); border-radius: 0;
-  min-width: 46px; padding: 5px 8px; text-align: center; background: #fff;
+  min-width: 44px; padding: 5px 8px; text-align: center; background: #fff;
 }
 .seg .chip:first-child { border-left: 0 }
 .seg .chip.on { background: var(--nv); color: #fff }
 .seg .chip:hover:not(:disabled):not(.on) { background: #f2f5f8; color: var(--nv) }
-
-/* ── 떠 있는 속성 패널 — 어도비 팔레트 ──
-   판 위에 뜬다. 머리를 잡아 끌고 · 두 번 누르면 접히고 · 누르면 앞으로 온다. */
-.fp {
-  position: absolute;
-  background: #fff; border: 1px solid #d7dee5; border-radius: 7px;
-  box-shadow: 0 6px 22px rgba(25, 41, 73, .16);
-  overflow: hidden;
-}
-.fphd {
-  display: flex; align-items: center; gap: 2px;
-  height: 30px; padding: 0 4px;
-  background: #f4f6f8; border-bottom: 1px solid var(--ln);
-  cursor: grab; user-select: none;
-}
-.fp.fold .fphd { border-bottom: 0 }
-body.끄는중, body.끄는중 .fphd { cursor: grabbing }
-.fpnm {
-  flex: 1; min-width: 0; padding-left: 2px;
-  font-size: 11px; font-weight: 800; letter-spacing: .08em; color: var(--nv);
-}
-.fpb {
-  flex: 0 0 auto; border: 0; background: transparent; cursor: pointer;
-  color: #93a0ae; font-size: 11px; line-height: 1; padding: 5px 6px;
-}
-.fpx { font-size: 15px }
-.fpb:hover { color: var(--nv) }
-.fpbd { padding: 14px 14px 15px }
-
-/* 패널 한 칸 — 이름표를 값 위에 둔다.
-   왼쪽 이름표는 길이만큼 값을 밀어 칸마다 시작점이 어긋난다.
-   위에 두면 값이 전부 왼쪽 끝에서 시작해 세로로 줄이 선다. */
-.fld { margin-bottom: 14px }
-.fld:last-child { margin-bottom: 0 }
-.fldnm {
-  display: flex; align-items: baseline; gap: 7px; margin-bottom: 7px;
-  font-size: 10px; font-weight: 800; letter-spacing: .11em; color: var(--mu);
-}
-/* 곁말 — 지금 고른 값의 이름. 눈으로 확인하는 자리다 */
-.fldnm em {
-  font-style: normal; font-weight: 600; letter-spacing: 0; font-size: 10.5px;
-  color: #a7b2be; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.fldv { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; min-width: 0 }
-
-/* 갈래를 가르는 실선 — 배경 · 테두리 · 글자를 눈으로 갈라 준다 */
-.popln { height: 1px; margin: 17px -14px 16px; background: var(--ln) }
-
-/* 줄 바꿈 — hex 칸을 견본 아래로 내린다. 견본 줄이 색만으로 읽힌다 */
-.brk { flex: 1 0 100%; height: 0; margin: 0 }
-/* 견본과 최근 색을 가르는 실선 */
-.swsp { flex: 0 0 auto; width: 1px; height: 18px; margin: 0 1px; background: #dbe2e9 }
-
-/* 색 견본 — 색은 이름이 아니라 색으로 고른다 */
-.sw {
-  flex: 0 0 auto; width: 22px; height: 22px;
-  border: 1px solid #cbd4dd; border-radius: 4px;
-  background: #fff; cursor: pointer; padding: 0;
-}
-.sw:hover { border-color: var(--nv2) }
-.sw.on { border-color: var(--nv); box-shadow: 0 0 0 2px rgba(25, 41, 73, .18) }
-/* 「없음」 은 빗금으로 낸다 */
-.sw.none {
-  background: linear-gradient(to top right,
-    #fff 0 45%, #d0424a 45% 55%, #fff 55% 100%);
-}
-/* hex 칸 — 견본과 같은 높이로 맞춘다 */
-.hexin {
-  width: 84px; height: 22px; padding: 0 7px;
-  font-size: 11px; font-variant-numeric: tabular-nums; text-transform: uppercase;
-}
-/* 수치 칸 — 수는 칩으로 박지 않는다. 칸 하나로 통일한다 */
-.numwrap { display: inline-flex; align-items: center; gap: 7px }
-.numin {
-  width: 58px; height: 26px; padding: 0 8px; text-align: center;
-  font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--nv);
-}
-.numin:disabled { background: #f7f9fb; color: #b3bdc8; cursor: default }
-/* 좁은 칸 — 표 열 폭처럼 칸이 열 수만큼 늘어설 때. 네 칸이 한 줄에 선다 */
-.numin.w { width: 42px }
-/* 받는 범위를 칸 옆에 적어 둔다 — 눌러 보고 알아내지 않게 한다 */
-.numrg { font-size: 10px; font-variant-numeric: tabular-nums; color: #b3bdc8 }
-
-.fphint {
-  margin-top: 10px; padding: 7px 8px;
-  font-size: 11px; line-height: 1.5; color: var(--mu);
-  background: #f7f9fb; border-radius: 5px;
-}
-.fphint b { color: var(--nv2); font-weight: 700 }
-
-.barin {
-  font: inherit; font-size: 11.5px; color: var(--tx);
-  border: 1px solid var(--ln); border-radius: 5px; padding: 4px 7px;
-  background: #fff; min-width: 0;
-}
-.barin:focus { outline: 0; border-color: var(--nv2) }
-
-/* ── 배율 — 판 오른쪽 아래에 얹는다 ── */
-.zoom {
-  position: absolute; right: 14px; bottom: 12px;   /* 창 기준 층(.floats) 안이다 */
-  display: flex; align-items: center; gap: 4px;
-  padding: 5px 7px;
-  background: #fff; border: 1px solid var(--ln);
-  border-radius: 7px; box-shadow: 0 2px 8px rgba(25, 41, 73, .10);
-}
-.zoom .zin { width: 52px; text-align: center }
-.znow {
-  min-width: 44px; text-align: right;
-  font-size: 11px; font-weight: 700; color: var(--mu);
-  font-variant-numeric: tabular-nums;
-}
-
-.empty { color: var(--mu) }
-
-/* ── 구조 폼 — 줄과 행만 더하고 뺀다. 글자는 판면에서 ── */
-.form { padding: 0 12px 8px }
-
-.grp {
-  margin: 12px 2px 5px;
-  font-size: 10px; font-weight: 800; letter-spacing: .12em;
-  color: var(--mu);
-}
-.grp:first-child { margin-top: 2px }
-
-.hint {
-  margin: 0 2px 4px; padding: 6px 8px;
-  font-size: 11.5px; line-height: 1.45; color: var(--mu);
-  background: #f7f9fb; border-radius: 5px;
-}
-
-.ln {
-  display: flex; align-items: center; gap: 8px;
-  padding: 5px 6px 5px 8px; border-radius: 5px;
-}
-.ln:hover { background: #f4f6f8 }
-.lnno {
-  flex: 0 0 auto; min-width: 22px;
-  font-size: 10.5px; font-weight: 800; color: var(--mu);
-  font-variant-numeric: tabular-nums;
-}
-.lntx {
-  flex: 1; min-width: 0; font-size: 12px; line-height: 1.4;
-  color: var(--tx); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.delln {
-  flex: 0 0 auto; border: 0; background: transparent; cursor: pointer;
-  color: #c3ccd6; font-size: 15px; line-height: 1; padding: 0 3px;
-}
-.ln:hover .delln { color: #8b96a2 }
-.delln:hover { color: var(--or) }
-
-.addln {
-  display: block; width: 100%; margin: 4px 0 2px; padding: 6px;
-  font: inherit; font-size: 11.5px;
-  border: 1px dashed #c3ccd6; border-radius: 5px;
-  background: #fff; color: var(--mu); cursor: pointer;
-}
-.addln:hover { border-color: var(--nv2); color: var(--nv) }
-
-.save {
-  width: 100%; margin-bottom: 10px; padding: 9px;
-  font: inherit; font-size: 13px; font-weight: 700;
-  border: 0; border-radius: 6px; background: var(--or); color: #fff; cursor: pointer;
-}
-.save:hover { background: #cf7400 }
-.save:disabled { background: #e9edf1; color: var(--mu); cursor: default }
-
-/* 넘침 표시 */
-.chk {
-  margin-bottom: 10px; padding: 7px 9px; border-radius: 5px;
-  font-size: 11.5px; line-height: 1.5;
-  background: #f2f7f4; color: #3f6f6a;
-}
-.chk.bad { background: #fdf0e6; color: #b45309; font-weight: 700 }
-
-/* ── 구조 조작 ── */
-.brand { display: flex; align-items: center; justify-content: space-between }
-.undo { display: flex; gap: 2px }
-.undo button {
-  border: 0; background: transparent; cursor: pointer;
-  font-size: 15px; line-height: 1; color: var(--mu); padding: 2px 4px; border-radius: 4px;
-}
-.undo button:hover:not(:disabled) { background: #f4f6f8; color: var(--nv) }
-.undo button:disabled { opacity: .3; cursor: default }
-
-.ctl { padding: 0 14px 6px }
-.ctlrow { display: flex; align-items: center; gap: 5px; margin-bottom: 6px }
-.ctlrow.wrap { flex-wrap: wrap }
-.ctlrow.pg { padding: 0 12px 8px }
-.ck { font-size: 10px; font-weight: 800; letter-spacing: .1em; color: var(--mu); flex: 0 0 34px }
 
 .chip {
   padding: 4px 9px; font: inherit; font-size: 11.5px;
@@ -383,4 +167,51 @@ body.끄는중, body.끄는중 .fphd { cursor: grabbing }
 .chip.warn:hover:not(:disabled) { border-color: var(--or); color: var(--or) }
 .chip:disabled { opacity: .35; cursor: default }
 
-.grp { display: flex; align-items: center; justify-content: space-between }
+/* ── 도크 한 칸 — 이름표를 값 위에 둔다 ── */
+.fld { margin-bottom: 14px }
+.fld:last-child { margin-bottom: 0 }
+.fldnm {
+  display: flex; align-items: baseline; gap: 7px; margin-bottom: 7px;
+  font-size: 10px; font-weight: 800; letter-spacing: .11em; color: var(--mu);
+}
+.fldnm em {
+  font-style: normal; font-weight: 600; letter-spacing: 0; font-size: 10.5px;
+  color: #a7b2be; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.fldv { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; min-width: 0 }
+.popln { height: 1px; margin: 16px -12px; background: var(--ln) }
+.brk { flex: 1 0 100%; height: 0; margin: 0 }
+.swsp { flex: 0 0 auto; width: 1px; height: 18px; margin: 0 1px; background: #dbe2e9 }
+
+/* 색 견본 — 색은 이름이 아니라 색으로 고른다 */
+.sw {
+  flex: 0 0 auto; width: 22px; height: 22px;
+  border: 1px solid #cbd4dd; border-radius: 4px;
+  background: #fff; cursor: pointer; padding: 0;
+}
+.sw:hover { border-color: var(--nv2) }
+.sw.on { border-color: var(--nv); box-shadow: 0 0 0 2px rgba(25, 41, 73, .18) }
+.sw.none {
+  background: linear-gradient(to top right,
+    #fff 0 45%, #d0424a 45% 55%, #fff 55% 100%);
+}
+
+/* 칸 */
+.barin {
+  font: inherit; font-size: 11.5px; color: var(--tx);
+  border: 1px solid var(--ln); border-radius: 5px; padding: 4px 7px;
+  background: #fff; min-width: 0;
+}
+.barin:focus { outline: 0; border-color: var(--nv2) }
+.hexin {
+  width: 84px; height: 22px; padding: 0 7px;
+  font-size: 11px; font-variant-numeric: tabular-nums; text-transform: uppercase;
+}
+.numwrap { display: inline-flex; align-items: center; gap: 7px }
+.numin {
+  width: 58px; height: 26px; padding: 0 8px; text-align: center;
+  font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--nv);
+}
+.numin.w { width: 42px }
+.numin:disabled { background: #f7f9fb; color: #b3bdc8; cursor: default }
+.numrg { font-size: 10px; font-variant-numeric: tabular-nums; color: #b3bdc8 }
