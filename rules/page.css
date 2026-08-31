@@ -549,6 +549,11 @@ b{font-weight:700;color:var(--강조)}
 
    **얹은 것을 옅게 드러낸다.** 2px 선은 어디 있는지 눈으로 못 찾는다 ·
    [얹기] 탭일 때만이고 문안 · 출력에는 안 나간다. */
+/* **박스가 누르기를 안 가로챈다.** 뒤 층은 DOM 상 박스보다 먼저라 · 얹은 것이
+   박스보다 작아 그 안에 들어가면 박스가 위를 덮어 클릭을 통째로 가져갔다 · 사용자 지적.
+   [얹기] 탭은 얹는 것만 만지는 모드다 — 그동안 박스를 안 받는다.
+   보이는 순서는 그대로다 · 글자 편집은 다른 탭으로 돌아가면 그대로 산다. */
+.wrap.ovp .bx{pointer-events:none}
 .wrap.ovp .ov{pointer-events:auto;cursor:move;outline:1px dashed rgba(230,129,0,.3)}
 .wrap.ovp .ov:before{content:"";position:absolute;left:-14px;top:-14px;right:-14px;bottom:-14px}
 .wrap.ovp .ov:hover{outline:1px solid rgba(230,129,0,.55);outline-offset:2px}

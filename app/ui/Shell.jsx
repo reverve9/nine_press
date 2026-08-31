@@ -178,7 +178,7 @@ function 맛보기(el, k) {
    그래서 박스 · 요소와 나란히 서는 물건이 아니라 **탭이 따로 하나 든다** · [얹기].
    좌표는 키노트 슬라이드와 같은 계다 · 2339 × 1654. */
 const 판W = 2339, 판H = 1654;
-const 얹기갈래들 = [['선', '선'], ['도형', '도형']];
+const 얹기갈래들 = [['선', '선'], ['도형', '도형'], ['그림', '그림']];
 const 선방향들 = [['가로', '가로'], ['세로', '세로']];
 /* 층 · 박스 뒤 · 박스 앞 · N-얹기 b · 사용자 판정.
    쌓임은 DOM 순서가 전부다 — 렌더러가 박스 앞뒤로 한 번씩 내놓는다.
@@ -188,12 +188,17 @@ const 새얹기 = {
   // 판 한가운데를 가로지르는 선 · 처음 놓을 때 눈에 바로 보이는 자리다
   선: () => ({ 선: '가로', x: 80, y: 827, 길이: 2179, 굵기: 2, 색: '선' }),
   도형: () => ({ 도형: { 배경: '블록배경', 모서리: 10 }, x: 80, y: 260, 폭: 1090, 높이: 1150 }),
+  // 그림은 경로가 있어야 살아서 여기서 안 만든다 — 견본을 고르는 것이 곧 놓는 것이다
 };
 const 얹기열쇠 = (o) => 얹기갈래들.map(([k]) => k).find((k) => o?.[k] != null) ?? null;
 const 얹기맛보기 = (o) => {
   const k = 얹기열쇠(o);
   if (k === '선') return `${o.선} · ${o.x},${o.y} · 길이 ${o.길이} · 굵기 ${o.굵기 ?? 1}`;
-  if (k === '도형') return `${o.x},${o.y} · ${o.폭} × ${o.높이}`;
+  if (k === '도형' || k === '그림') {
+    const 뒤 = k === '그림'
+      ? ` · ${(typeof o.그림 === 'string' ? o.그림 : o.그림?.경로 ?? '').split('/').pop()}` : '';
+    return `${o.x},${o.y} · ${o.폭} × ${o.높이}${뒤}`;
+  }
   return '';
 };
 
@@ -708,6 +713,37 @@ export default function Shell({ docs, first }) {
     set얹기번호(k);
   }, { 그리기: true });
 
+  /* 얹기 그림 — **견본을 고르는 것이 곧 놓는 것이다** · 요소 그림과 같은 규칙이다.
+     경로 없는 그림을 한 박자 만들면 렌더러가 던져 그 페이지가 오류판이 된다 · §7 첫째 구멍.
+
+     **자연 비율을 재서 앉힌다.** 얹기는 42 스냅이 없어 내보낸 그대로 쓸 수 있는데 ·
+     기본 크기를 어림잡으면 첫 화면부터 찌그러져 보인다. 그림을 한 번 읽어 비율을 얻는다.
+     못 읽으면(SVG 에 치수가 없는 등) 16:9 로 앉힌다 · 끌어서 고치면 된다.
+
+     고른 것이 있으면 **그 자리를 갈아 끼운다** — x · y 를 지키고 갈래만 바뀐다. */
+  const 얹기그림놓기 = async (경로) => {
+    const 잰것 = await new Promise((풀기) => {
+      const im = new Image();
+      im.onload = () => 풀기(im.naturalWidth && im.naturalHeight
+        ? { w: im.naturalWidth, h: im.naturalHeight } : null);
+      im.onerror = () => 풀기(null);
+      im.src = `/api/img/${경로.slice('assets/'.length)}`;
+    });
+    const 비 = 잰것 ? 잰것.h / 잰것.w : 9 / 16;
+    const 폭 = Math.min(1000, 판W - 160);
+    const 높이 = Math.max(1, Math.min(판H - 300, Math.round(폭 * 비)));
+    바꾸기((d) => {
+      const a = 얹기들(d);
+      if (!a) return false;
+      const 옛 = 얹기번호 == null ? null : a[얹기번호];
+      const 새 = { 그림: 경로, x: 옛?.x ?? 80, y: 옛?.y ?? 260, 폭, 높이,
+        ...(옛?.층 ? { 층: 옛.층 } : {}) };
+      if (옛) { a[얹기번호] = 새; return; }
+      a.push(새);
+      set얹기번호(a.length - 1);
+    }, { 그리기: true });
+  };
+
   const 얹기값 = (열쇠, 값) => 바꾸기((d) => {
     const o = 얹기찾기(d);
     if (!o) return false;
@@ -737,12 +773,16 @@ export default function Shell({ docs, first }) {
 
   /* 갈래 갈아타기 — 선 ↔ 도형. x · y 만 나르고 나머지는 새로 세운다.
      길이와 폭/높이는 뜻이 달라 나를 수 없다 */
-  const 얹기갈래바꾸기 = (갈래) => 바꾸기((d) => {
-    const a = 얹기들(d);
-    const o = a?.[얹기번호];
-    if (!o || 얹기열쇠(o) === 갈래) return false;
-    a[얹기번호] = { ...새얹기[갈래](), x: o.x, y: o.y };
-  }, { 그리기: true });
+  const 얹기갈래바꾸기 = (갈래) => {
+    // 그림은 경로가 있어야 산다 — 갈아타는 대신 견본을 편다 · 거기서 고르면 갈아 끼워진다
+    if (갈래 === '그림') return set견본(true);
+    바꾸기((d) => {
+      const a = 얹기들(d);
+      const o = a?.[얹기번호];
+      if (!o || 얹기열쇠(o) === 갈래) return false;
+      a[얹기번호] = { ...새얹기[갈래](), x: o.x, y: o.y, ...(o.층 ? { 층: o.층 } : {}) };
+    }, { 그리기: true });
+  };
 
   /* 비움 — 짧은 꼴(높이만)과 긴 꼴([높이, 무엇]) 둘을 오간다.
      무엇이 비면 짧은 꼴로 되돌린다 · 안 보이는 값을 문안에 안 남긴다 */
@@ -2460,9 +2500,18 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
               <>
                 <줄 이름="얹기" 곁={`${목록.length}개 · 판 ${판W} × ${판H}`}>
                   {얹기갈래들.map(([v, 이름]) => (
-                    <button key={v} className="chip" onClick={() => 얹기넣기(v)}>+ {이름}</button>
+                    <button key={v} className="chip"
+                            onClick={() => (v === '그림'
+                              ? (set얹기번호(null), set견본(true)) : 얹기넣기(v))}>+ {이름}</button>
                   ))}
                 </줄>
+                {/* 견본 — 고르는 것이 곧 놓는 것이다. 고른 얹기가 있으면 그 자리를 갈아 끼운다 */}
+                {견본 && (그림목록.length
+                  ? <견본판 목록={그림목록}
+                            지금={k === '그림'
+                              ? (typeof o.그림 === 'string' ? o.그림 : o.그림?.경로) : null}
+                            누르기={얹기그림놓기} />
+                  : <p className="dim">assets/ 아래에 그림이 없다 · 파일을 넣고 새로고침한다</p>)}
 
                 {목록.length > 0 && (
                   <div className="elrows">
@@ -2549,6 +2598,46 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                         </줄>
                       </>
                     )}
+
+                    {k === '그림' && (() => {
+                      const g = typeof o.그림 === 'string' ? { 경로: o.그림 } : (o.그림 ?? {});
+                      const 값놓기 = (열쇠, v) => 바꾸기((d) => {
+                        const t = 얹기찾기(d);
+                        if (!t) return false;
+                        if (typeof t.그림 === 'string') t.그림 = { 경로: t.그림 };
+                        if (v === '' || v == null) delete t.그림[열쇠]; else t.그림[열쇠] = v;
+                        // 경로만 남으면 짧은 꼴로 되돌린다 · 안 보이는 값을 문안에 안 남긴다
+                        if (Object.keys(t.그림).length === 1) t.그림 = t.그림.경로;
+                      }, { 그리기: true });
+                      return (
+                        <>
+                          <줄 이름="크기" 곁={`${o.폭} × ${o.높이}px · ${(o.폭 / o.높이).toFixed(2)}:1`}>
+                            <수칸 열쇠="얹폭" 값={o.폭} 기본={1000} 로그={set로그}
+                                  놓기={(n) => 얹기값('폭', n)} />
+                            <수칸 열쇠="얹높이" 값={o.높이} 기본={563} 로그={set로그}
+                                  놓기={(n) => 얹기값('높이', n)} />
+                          </줄>
+                          <줄 이름="맞춤"
+                              곁={(g.맞춤 ?? '전체') === '전체' ? '다 보인다' : '채우고 자른다'}>
+                            <span className="seg">
+                              {맞춤들.map(([v, 이름]) => (
+                                <button key={v} className={'chip' + ((g.맞춤 ?? '전체') === v ? ' on' : '')}
+                                        onClick={() => 값놓기('맞춤', v === '전체' ? '' : v)}>{이름}</button>
+                              ))}
+                            </span>
+                          </줄>
+                          <줄 이름="설명" 곁="그림이 안 뜰 때 남는 글">
+                            <입력 값={g.설명 ?? ''} 놓기={(v) => 값놓기('설명', v)} />
+                          </줄>
+                          <줄 이름="바꾸기" 곁={`${그림목록.length}개`}>
+                            <button className={'chip' + (견본 ? ' on' : '')}
+                                    onClick={() => set견본((v) => !v)}>
+                              {견본 ? '견본 접기' : '견본 펴기'}
+                            </button>
+                          </줄>
+                        </>
+                      );
+                    })()}
 
                     {k === '도형' && (
                       <>
