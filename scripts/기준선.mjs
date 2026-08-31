@@ -44,7 +44,8 @@ const 결과 = await pg.evaluate(() => {
       const 여백 = parseFloat(getComputedStyle(bx).paddingTop) || 0;
       bx.querySelectorAll(
         ':scope > .bt, :scope > .sm, :scope > .bd, :scope > .lb,' +
-        ':scope > .ls, :scope > .ol, :scope > .tb, :scope > .sp, :scope > .nm'
+        ':scope > .ls, :scope > .ol, :scope > .tb, :scope > .sp, :scope > .nm,' +
+        ':scope > .im'
       ).forEach((el) => {
         out.push({
           면: pi + 1, 자리: bi, 여백, 계층: el.className,

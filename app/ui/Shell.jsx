@@ -86,6 +86,13 @@ const 도형테두리들 = [['', '없음', null], ['선', '선 E4E8EC', '#E4E8EC
 const 도형그림자들 = [['', '없음'], ['약', '약'], ['중', '중']];
 // 단계띠 · N-배경 c — 칠은 도형과 같은 색 어휘를 쓴다
 const 새띠 = () => ({ 현재: 0, 칸: [['1단계', '내용'], ['2단계', '내용'], ['3단계', '내용']] });
+/* 그림 · N-그림 — 렌더러의 그림그리기() 가 받는 것과 같아야 한다.
+   높이 갈래는 표와 같은 어휘다(§N-배경 b7). 다만 그림은 하나뿐이라 「몫」이 없다 —
+   나눌 상대가 없어서 정수는 곧 블록 수다. */
+const 맞춤들 = [['전체', '전체'], ['채우기', '채우기']];
+const 그림높이갈래들 = [['채움', '채움'], ['블록', '블록'], ['%', '%']];
+const 그림높이갈래 = (h) => (h == null || h === '채움' ? '채움'
+  : Number.isInteger(h) ? '블록' : '%');
 const HEX6 = /^#[0-9a-fA-F]{6}$/;
 
 /* ── 표 칩 — N-배경 b2 ──────────────────────────────────
@@ -166,7 +173,8 @@ const 칠정리 = (t) => {
    진짜 계약은 렌더러가 지킨다. */
 const 수범위 = { 모서리: [0, 40], 투명도: [0, 100], 굵기: [1, 6],
                  폭: [1, 표열최대], 비율: [비율하한, 100 - 비율하한],
-                 몫: [1, 20], 빈몫: [0, 20], 빈비율: [0, 100 - 비율하한] };
+                 몫: [1, 20], 빈몫: [0, 20], 빈비율: [0, 100 - 비율하한],
+                 블록: [1, 30], 그림비율: [1, 100] };
 
 /* 위 · 아래 화살표로 올리고 내린다 · ⇧ 를 누르면 열 걸음이다. 어도비 수치 칸 그대로다.
    「좁게」 는 칸이 여럿 늘어설 때다 — 표 열 폭은 열 수만큼 칸이 서므로
@@ -215,6 +223,21 @@ function 줄({ 이름, 곁, children }) {
       <span className="fldnm">{이름}{곁 ? <em>{곁}</em> : null}</span>
       <span className="fldv">{children}</span>
     </div>
+  );
+}
+
+/* 글 칸 — 색입력 · 수칸과 같은 규칙이다. **문안을 따라간다.**
+   비우면 열쇠가 지워진다 — 안 보이는 값을 문안에 남기지 않는다. */
+function 입력({ 값, 놓기, 자리표 }) {
+  const [글, set글] = useState(값 ?? '');
+  useEffect(() => { set글(값 ?? ''); }, [값]);
+  const 맞추기 = () => { const v = 글.trim(); if (v !== (값 ?? '')) 놓기(v); };
+  return (
+    <input className="barin" style={{ width: '100%' }} type="text"
+           value={글} placeholder={자리표}
+           onChange={(e) => set글(e.target.value)}
+           onBlur={맞추기}
+           onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }} />
   );
 }
 
@@ -279,6 +302,16 @@ export default function Shell({ docs, first }) {
   const [자리번호, set자리번호] = useState(null);
   // 오른쪽 도크 · 지금 연 탭
   const [탭, set탭] = useState('도형');
+  /* assets/ 아래 그림 목록 · 한 번만 받는다. 파일을 새로 넣으면 새로고침한다 —
+     문안 파일과 같은 규칙이다(밖에서 고치면 다시 읽어야 한다 · v8 §9 ⑦) */
+  const [그림목록, set그림목록] = useState([]);
+  useEffect(() => {
+    fetch('/api/img')
+      .then((r) => r.json())
+      .then((j) => set그림목록(Array.isArray(j?.그림) ? j.그림 : []))
+      .catch(() => { /* 못 받으면 빈 목록이다. 경로를 손으로 적을 수 있다 */ });
+  }, []);
+
   /* 최근 쓴 색 — 견본에 없는 색은 hex 로 적어야 하는데 같은 색을 여러 자리에 줄 때
      매번 여섯 자리를 다시 친다. 쓴 것을 남겨 두고 눌러 쓴다. 브라우저에 남는다 */
   const [최근색, set최근색] = useState([]);
@@ -354,7 +387,7 @@ export default function Shell({ docs, first }) {
       // 도형도 함께 못 산다 — 비움은 「출력에 아무것도 안 나간다」가 계약이다.
       // 목록은 렌더러(블록())가 막는 것과 **같아야 한다**. 표가 빠져 있어
       // 표가 있는 자리를 비우면 렌더러가 던지고 판이 오류판으로 떨어졌다
-      const 있는것 = ['제목', '요약', '문단', '목록', '번호목록', '표', '단계띠', '수치', '출처', '도형']
+      const 있는것 = ['제목', '요약', '문단', '목록', '번호목록', '표', '단계띠', '수치', '그림', '출처', '도형']
         .filter((k) => z[k] != null);
       if (있는것.length) {
         set로그(`내용이 있어 못 비운다 · ${있는것.join(' · ')} 를 먼저 지운다`);
@@ -837,6 +870,43 @@ export default function Shell({ docs, first }) {
     if (값 === '' || 값 == null) delete t[열쇠]; else t[열쇠] = 값;
   });
 
+  /* ── 그림 · N-그림 ──
+     문안에는 **객체 꼴로만 쓴다.** 짧은 꼴(경로 문자열)은 렌더러가 읽어 주지만
+     도구가 높이 · 맞춤을 얹는 순간 객체가 되어야 하므로 여기서는 한 꼴로 통일한다.
+     읽기는 두 꼴 다 받는다 — 손으로 짧게 적은 문안을 열어도 탭이 뜬다. */
+  const 그림읽기 = (z) => (typeof z?.그림 === 'string' ? { 경로: z.그림 } : z?.그림 ?? null);
+  const 그림바꾸기 = (fn) => 바꾸기((d) => {
+    const z = d.면[i]?.자리?.[자리번호];
+    if (z?.그림 == null) return false;
+    if (typeof z.그림 === 'string') z.그림 = { 경로: z.그림 };   // 짧은 꼴을 펴 놓는다
+    return fn(z.그림, z);
+  }, { 그리기: true });
+
+  const 그림놓기 = (경로) => 바꾸기((d) => {
+    const z = d.면[i]?.자리?.[자리번호];
+    if (!z) return false;
+    if (z.비움) { set로그('비운 자리에는 그림을 못 놓는다 · 비움을 먼저 푼다'); return false; }
+    if (typeof z.그림 === 'string') z.그림 = { 경로: z.그림 };
+    if (z.그림) { if (z.그림.경로 === 경로) return false; z.그림.경로 = 경로; return; }
+    /* 새로 놓을 때 높이를 정해 준다 — 기본값 「채움」은 앞에 문단 · 목록 · 표가 있으면
+       렌더러가 던진다. 그 자리에서 오류판으로 떨어지지 않게 미리 블록 수로 앉힌다.
+       비어 있는 자리면 채움 그대로 둔다 · 그게 가장 흔한 쓰임이다 */
+    const 앞것 = ['문단', '목록', '번호목록', '표', '단계띠', '수치'].some((k) => z[k] != null);
+    z.그림 = 앞것 ? { 경로, 높이: 6 } : { 경로 };
+  }, { 그리기: true });
+  const 그림없애기 = () => 그림바꾸기((g, z) => { delete z.그림; });
+
+  // 빈 값을 주면 열쇠를 지운다 · 도형바꾸기와 같은 규칙
+  const 그림값 = (열쇠, 값) => 그림바꾸기((g) => {
+    if (값 === '' || 값 == null) delete g[열쇠]; else g[열쇠] = 값;
+  });
+  const 그림높이갈래놓기 = (갈래) => 그림바꾸기((g) => {
+    if (그림높이갈래(g.높이) === 갈래) return false;
+    if (갈래 === '채움') delete g.높이;
+    else if (갈래 === '블록') g.높이 = 6;
+    else g.높이 = '50%';
+  });
+
   /* 판 · 썸네일 · 한 함수로 그린다 */
   const 면그리기 = useCallback((d, n) => {
     if (!d?.면?.[n]) return '';
@@ -1002,7 +1072,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
         )}
 
         <div className="tabs">
-          {['도형', '표', '단계띠'].map((v) => (
+          {['도형', '표', '단계띠', '그림'].map((v) => (
             <button key={v} className={'tab' + (탭 === v ? ' on' : '')}
                     onClick={() => set탭(v)}>{v}</button>
           ))}
@@ -1288,6 +1358,91 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                 </줄>
                 <줄 이름="단계띠">
                   <button className="chip warn" onClick={띠없애기}>− 단계띠</button>
+                </줄>
+              </>
+            );
+          })()}
+
+          {탭 === '그림' && (() => {
+            const z = 고른;
+            const g = 그림읽기(z);
+            const 켬 = !!z && !z.비움;
+            if (!켬) return <p className="dim">{z?.비움 ? '비운 자리' : '자리를 고른다'}</p>;
+            /* 그림이 없으면 목록만 낸다 — 고르는 것이 곧 놓는 것이다.
+               「+ 그림」 버튼을 따로 두면 경로 없는 그림이 한 박자 생겨 렌더러가 던진다 */
+            if (!g) {
+              if (!그림목록.length) return (
+                <p className="dim">assets/ 아래에 그림이 없다 · 파일을 넣고 새로고침한다</p>
+              );
+              return (
+                <줄 이름="그림" 곁={`${그림목록.length}개`}>
+                  <span className="imgs">
+                    {그림목록.map((it) => (
+                      <button key={it.경로} className="imgc" title={it.경로}
+                              onClick={() => 그림놓기(it.경로)}>
+                        <img src={`/api/img/${it.경로.slice('assets/'.length)}`} alt="" />
+                        <em>{it.이름}</em>
+                      </button>
+                    ))}
+                  </span>
+                </줄>
+              );
+            }
+            const 갈래 = 그림높이갈래(g.높이);
+            return (
+              <>
+                <줄 이름="그림" 곁={g.경로}>
+                  <span className="imgs">
+                    {그림목록.map((it) => (
+                      <button key={it.경로}
+                              className={'imgc' + (g.경로 === it.경로 ? ' on' : '')}
+                              title={it.경로}
+                              onClick={() => 그림놓기(it.경로)}>
+                        <img src={`/api/img/${it.경로.slice('assets/'.length)}`} alt="" />
+                        <em>{it.이름}</em>
+                      </button>
+                    ))}
+                  </span>
+                </줄>
+
+                <div className="popln" />
+
+                <줄 이름="높이"
+                    곁={갈래 === '채움' ? '남은 높이를 다 먹는다'
+                      : 갈래 === '블록' ? `42 × ${g.높이} = ${g.높이 * 42}px` : null}>
+                  <span className="seg">
+                    {그림높이갈래들.map(([v, 이름]) => (
+                      <button key={v} className={'chip' + (갈래 === v ? ' on' : '')}
+                              onClick={() => 그림높이갈래놓기(v)}>{이름}</button>
+                    ))}
+                  </span>
+                  {갈래 !== '채움' && <span className="brk" />}
+                  {갈래 === '블록' && (
+                    <수칸 열쇠="블록" 값={g.높이} 기본={6}
+                          로그={set로그} 놓기={(n) => 그림값('높이', n)} />
+                  )}
+                  {갈래 === '%' && (
+                    <수칸 열쇠="그림비율" 값={퍼센트수(g.높이)} 기본={50}
+                          로그={set로그} 놓기={(n) => 그림값('높이', 퍼센트글(n))} />
+                  )}
+                </줄>
+                <줄 이름="맞춤"
+                    곁={(g.맞춤 ?? '전체') === '전체' ? '다 보인다' : '채우고 자른다'}>
+                  <span className="seg">
+                    {맞춤들.map(([v, 이름]) => (
+                      <button key={v} className={'chip' + ((g.맞춤 ?? '전체') === v ? ' on' : '')}
+                              onClick={() => 그림값('맞춤', v === '전체' ? '' : v)}>{이름}</button>
+                    ))}
+                  </span>
+                </줄>
+
+                <div className="popln" />
+
+                <줄 이름="설명" 곁="그림이 안 뜰 때 남는 글">
+                  <입력 값={g.설명 ?? ''} 놓기={(v) => 그림값('설명', v)} />
+                </줄>
+                <줄 이름="그림">
+                  <button className="chip warn" onClick={그림없애기}>− 그림</button>
                 </줄>
               </>
             );

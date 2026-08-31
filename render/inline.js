@@ -22,8 +22,11 @@ export function inline(s) {
     .replace(/\r\n?|\n/g, '<br>');
 }
 
+// 속성 안에 들어가는 값을 다듬는다. 따옴표까지 막는다 — 안 막으면 이름 하나가
+// data-k="…" 를 끊고 그 뒤를 통째로 속성으로 만든다
 export const esc = (s) =>
-  String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 
 // data-k 속성. 이름이 없으면 붙이지 않는다.
 export const dk = (name) => (name ? ` data-k="${esc(name)}"` : '');
