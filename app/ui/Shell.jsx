@@ -505,12 +505,21 @@ export default function Shell({ docs, first }) {
      **속성이 걸리는 곳이 박스에서 요소로 내려갔다.**
      새 꼴이면 고른 요소(`박스.내용[요소번호]`) · 옛 꼴이면 박스 자신이다.
      옛 꼴을 그대로 두는 이유는 회귀 문안 여덟이 아직 옛 꼴이고 · 렌더러가 둘 다 읽어서다.
-     내용을 새로 놓는 순간(요소넣기) 박스는 배열로 접힌다 — 그때부터 요소 단위다. */
-  const 요소찾기 = (d) => {
+     **속성은 언제나 요소에 걸린다** · 옛 꼴이어도 그렇다 · N-그림 b.
+     읽기는 가상으로 접어 보고 · 손대는 순간 진짜로 접는다. */
+  /* 고른 박스의 내용 배열 · **옛 꼴이면 여기서 접는다** · N-그림 b.
+     도구는 언제나 배열로 쓴다. 읽기는 가상으로 접어 보고(박스접기) ·
+     **손대는 순간 진짜로 접는다.** 그래야 옛 꼴 박스의 그림을 골라도
+     요소가 「그림」으로 잡힌다 — 전에는 박스 자신이 요소라 첫 열쇠(제목)가 잡혔다.
+     번호는 안 어긋난다 · 박스접기() 가 렌더러 내용읽기() 와 같은 순서다 */
+  const 접힌내용 = (d) => {
     const z = d.페이지[i]?.박스?.[박스번호];
-    if (!z) return null;
-    if (!Array.isArray(z.내용)) return z;
-    return 요소번호 == null ? null : (z.내용[요소번호] ?? null);
+    if (!z || z.비움) return null;
+    return 접기(z);
+  };
+  const 요소찾기 = (d) => {
+    const 내용 = 접힌내용(d);
+    return 요소번호 == null ? null : (내용?.[요소번호] ?? null);
   };
 
   /* 옛 꼴 박스를 배열로 접는다. 접고 나면 옛 열쇠를 지운다 —
@@ -522,13 +531,6 @@ export default function Shell({ docs, first }) {
     z.내용 = 내용;
     return 내용;
   };
-  const 배열로 = () => 바꾸기((d) => {
-    const z = d.페이지[i]?.박스?.[박스번호];
-    if (!z || Array.isArray(z.내용)) return false;
-    if (z.비움) { set로그('비운 박스는 접을 것이 없다'); return false; }
-    접기(z);
-  }, { 그리기: true });
-
   /* 요소를 놓는다 · 뺀다 · 옮긴다. 놓으면 옛 꼴 박스가 먼저 배열로 접힌다 */
   const 요소넣기 = (열쇠, 값) => 바꾸기((d) => {
     const z = d.페이지[i]?.박스?.[박스번호];
@@ -544,32 +546,26 @@ export default function Shell({ docs, first }) {
   }, { 그리기: true });
 
   const 요소빼기 = (j) => 바꾸기((d) => {
-    const z = d.페이지[i]?.박스?.[박스번호];
-    if (!Array.isArray(z?.내용) || z.내용[j] == null) return false;
-    z.내용.splice(j, 1);
-    set요소번호(z.내용.length ? Math.min(j, z.내용.length - 1) : null);
+    const 내용 = 접힌내용(d);
+    if (내용?.[j] == null) return false;
+    내용.splice(j, 1);
+    set요소번호(내용.length ? Math.min(j, 내용.length - 1) : null);
   }, { 그리기: true });
 
   const 요소옮기기 = (j, 걸음) => 바꾸기((d) => {
-    const z = d.페이지[i]?.박스?.[박스번호];
+    const 내용 = 접힌내용(d);
     const k = j + 걸음;
-    if (!Array.isArray(z?.내용) || k < 0 || k >= z.내용.length) return false;
-    [z.내용[j], z.내용[k]] = [z.내용[k], z.내용[j]];
+    if (!내용 || k < 0 || k >= 내용.length) return false;
+    [내용[j], 내용[k]] = [내용[k], 내용[j]];
     set요소번호(k);
   }, { 그리기: true });
 
-  /* 열쇠로 지운다 — 새 꼴이면 고른 요소를 통째로 · 옛 꼴이면 박스에서 그 열쇠만 */
+  // 열쇠로 지운다 — 고른 요소가 그 열쇠면 요소를 통째로 뺀다
   const 요소지우기 = (열쇠) => 바꾸기((d) => {
-    const z = d.페이지[i]?.박스?.[박스번호];
-    if (!z) return false;
-    if (!Array.isArray(z.내용)) {
-      if (z[열쇠] == null) return false;
-      delete z[열쇠];
-      return;
-    }
-    if (요소번호 == null || z.내용[요소번호]?.[열쇠] == null) return false;
-    z.내용.splice(요소번호, 1);
-    set요소번호(z.내용.length ? Math.min(요소번호, z.내용.length - 1) : null);
+    const 내용 = 접힌내용(d);
+    if (요소번호 == null || 내용?.[요소번호]?.[열쇠] == null) return false;
+    내용.splice(요소번호, 1);
+    set요소번호(내용.length ? Math.min(요소번호, 내용.length - 1) : null);
   }, { 그리기: true });
 
   /* 비움 — 짧은 꼴(높이만)과 긴 꼴([높이, 무엇]) 둘을 오간다.
@@ -597,15 +593,15 @@ export default function Shell({ docs, first }) {
      값을 나르는 법은 계층값() 에 있다. 새 열쇠를 **앞에 둔다** —
      그래야 문안에서 내용이 도형 · 크기보다 먼저 읽힌다 */
   const 계층바꾸기 = (새열쇠) => 바꾸기((d) => {
-    const z = d.페이지[i]?.박스?.[박스번호];
-    if (!Array.isArray(z?.내용) || 요소번호 == null) return false;
-    const el = z.내용[요소번호];
+    const 내용 = 접힌내용(d);
+    if (!내용 || 요소번호 == null) return false;
+    const el = 내용[요소번호];
     const 옛열쇠 = 글자갈래들.find((k) => el?.[k] != null);
     if (옛열쇠 == null || 옛열쇠 === 새열쇠) return false;
     const 값 = 계층값(el[옛열쇠], 옛열쇠, 새열쇠);
     const 나머지 = { ...el };
     delete 나머지[옛열쇠];
-    z.내용[요소번호] = { [새열쇠]: 값, ...나머지 };
+    내용[요소번호] = { [새열쇠]: 값, ...나머지 };
   });
 
   /* 크기 계단 — 없으면 계층 기본이다. 열쇠를 지우는 것이 「기본」이다 —
@@ -1376,10 +1372,13 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
   const 고른 = 박스번호 == null ? null : 현재?.박스?.[박스번호];
   /* 고른 요소 · N-자유. 새 꼴이면 내용 배열의 한 칸 · 옛 꼴이면 박스 자신이다.
      요소 탭이 이걸 보고 갈래별로 갈라진다 — 요소찾기() 의 읽기판이다 */
-  const 고른내용 = Array.isArray(고른?.내용) ? 고른.내용 : null;
-  const 고른요소 = 고른내용
-    ? (요소번호 == null ? null : (고른내용[요소번호] ?? null))
-    : 고른;
+  /* **옛 꼴도 배열로 읽는다** · N-그림 b. 접지 않고 가상으로만 접어 본다 —
+     고르기만 했는데 문안이 바뀌면 안 된다. 진짜 접기는 손댈 때 접힌내용() 이 한다.
+     번호는 렌더러의 `data-요소` 와 같다 · 박스접기() 가 내용읽기() 와 같은 순서다 */
+  const 옛꼴 = !!고른 && !고른.비움 && !Array.isArray(고른.내용);
+  const 고른내용 = 고른 == null || 고른.비움 ? null
+    : (Array.isArray(고른.내용) ? 고른.내용 : 박스접기(고른));
+  const 고른요소 = 요소번호 == null ? null : (고른내용?.[요소번호] ?? null);
   const 요소열쇠 = (el) => 요소갈래들.find((k) => el?.[k] != null) ?? null;
   const 고른갈래 = 요소열쇠(고른요소);
 
@@ -1574,16 +1573,13 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
         {고른 && !고른.비움 && (
           <div className="dkln">
             {/* 내용 목록 — **박스 안이 배열이다.** 한 줄이 요소 하나고 · 누르면 고른다.
-                옛 꼴 박스는 접기 전까지 목록이 안 뜬다 · 「배열로」 를 누르거나
-                무엇이든 하나 놓으면 그때 접힌다 · N-자유 */}
+                **옛 꼴 박스도 같은 목록이 뜬다** · N-그림 b. 접지 않고 가상으로 접어 보여 주고 ·
+                손대는 순간 진짜로 접힌다. 전에는 여기가 「배열로」 버튼 하나였는데
+                그림이 든 옛 꼴 박스를 고른 사람에게 요소가 통째로 안 보였다 · 사용자 지적 */}
             <div className="fld">
-              <span className="fldnm">내용{고른내용 ? <em>{고른내용.length}개</em> : <em>옛 꼴</em>}</span>
-              <span className="fldv">
-                {!고른내용 && (
-                  <button className="chip" onClick={배열로} title="박스 안을 내용 배열로 접는다">
-                    배열로
-                  </button>
-                )}
+              <span className="fldnm">
+                내용
+                {고른내용 && <em>{고른내용.length}개{옛꼴 ? ' · 옛 꼴' : ''}</em>}
               </span>
             </div>
             {고른내용 && (
