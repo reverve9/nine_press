@@ -987,15 +987,23 @@ export default function Shell({ docs, first }) {
           d.execCommand('insertText', false, e.clipboardData.getData('text/plain'));
         });
 
+        /* ── 고르기 ──
+           **글자를 눌러도 그 자리가 고른 자리가 된다.** 예전에는 data-p 를 만나면
+           그냥 돌아섰는데, 표가 들어오고부터 칸(.tc)이 자리를 거의 다 덮어
+           표가 있는 자리는 고를 방법이 없어졌다. 그래서 판에서는 표 A 를 만지면서
+           패널은 아까 골라 둔 표 B 를 고치는 일이 생긴다 — 표 둘이 같이 움직인 것처럼 보인다.
+           고르기와 제자리 편집은 서로 배타적인 일이 아니다. 둘 다 한다. */
         d.addEventListener('click', (e) => {
-          if (e.target.closest?.('[data-p]')) return;
-          // 골격 체계 — 자리를 고른다. 빈 곳을 누르면 고르기를 푼다
           const 자리 = e.target.closest?.('[data-자리]');
-          if (자리 || d.querySelector('[data-자리]')) {
-            set자리번호(자리 ? Number(자리.getAttribute('data-자리')) : null);
+          if (d.querySelector('[data-자리]')) {           // 골격 체계
+            if (자리) set자리번호(Number(자리.getAttribute('data-자리')));
+            // 면 제목 · 카피처럼 자리 밖 글자를 누른 것은 고르기를 안 건드린다.
+            // 판 바닥을 누르면 푼다
+            else if (!e.target.closest?.('[data-p]')) set자리번호(null);
             return;
           }
-          const t = e.target.closest?.('[data-b]');
+          if (e.target.closest?.('[data-p]')) return;
+          const t = e.target.closest?.('[data-b]');       // 옛 12칸 트랙
           if (!t) return;
           const v = t.getAttribute('data-b');
           if (v === 'head') return set표적('head');
