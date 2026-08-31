@@ -424,6 +424,10 @@ export default function Shell({ docs, first }) {
      사이드에 썸네일이 늘 깔려 있으면 지금 박스에 무엇이 놓였는지가 안 읽힌다 ·
      사용자 지적 둘. 놓는 길은 판의 「+」 놓기 판에도 있다 */
   const [견본, set견본] = useState(false);
+  /* 고른 요소가 판에서 실제로 차지한 px · N-그림 e.
+     **계산하지 않고 잰다** — 레이아웃 열둘 × 안여백 × 좌우 패딩을 도구가 다시 셈하면
+     렌더러와 갈라진다. 판이 이미 그려 놨으니 그것을 읽는다 · { 가로, 세로 } */
+  const [요소칸, set요소칸] = useState(null);
   useEffect(() => {
     fetch('/api/img')
       .then((r) => r.json())
@@ -513,6 +517,11 @@ export default function Shell({ docs, first }) {
         const 이박스 = Number(el.closest('[data-박스]')?.getAttribute('data-박스')) === 박스번호;
         el.classList.toggle('epick', 이박스 && Number(el.getAttribute('data-요소')) === 요소번호);
       });
+      /* 고른 요소의 실치수 · 판면 px 그대로다 — 페이지그리기() 가
+         `.sheet .page{transform:none}` 을 박아 두어 축척이 안 걸린다 */
+      const 고름 = d.querySelector(`[data-박스="${박스번호}"] [data-요소="${요소번호}"]`);
+      const r = 고름?.getBoundingClientRect();
+      set요소칸(r && r.width ? { 가로: Math.round(r.width), 세로: Math.round(r.height) } : null);
     };
     테칠ref.current();
   }, [박스번호, 요소번호, 판본키]);
@@ -2029,9 +2038,16 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
 
                 <div className="popln" />
 
+                {/* **실치수를 곁말로 낸다** · N-그림 e · 사용자 요구.
+                    높이는 언제나 42 배수라 값이 셋(채움 · 블록 · %) 다 블록 수로 떨어지는데
+                    **가로는 레이아웃과 안여백이 정해서 눈으로 알 길이 없었다.**
+                    그 둘을 같이 보여야 그 크기에 맞춰 그림을 잘라 붙일 수 있다.
+                    계산 안 하고 판에서 잰다 — 렌더러와 갈라질 자리를 안 만든다 */}
                 <줄 이름="높이"
-                    곁={갈래 === '채움' ? '남은 높이를 다 먹는다'
-                      : 갈래 === '블록' ? `42 × ${g.높이} = ${g.높이 * 42}px` : null}>
+                    곁={요소칸
+                      ? `${요소칸.가로} × ${요소칸.세로}px · ${Math.round(요소칸.세로 / 42)}칸`
+                      : (갈래 === '채움' ? '남은 높이를 다 먹는다'
+                        : 갈래 === '블록' ? `42 × ${g.높이} = ${g.높이 * 42}px` : null)}>
                   <span className="seg">
                     {그림높이갈래들.map(([v, 이름]) => (
                       <button key={v} className={'chip' + (갈래 === v ? ' on' : '')}
