@@ -339,3 +339,31 @@ body {
 
 /* 얹은 글 입력 · N-얹기 e — 여러 줄이라 input 이 아니라 textarea 다 */
 .txin { width: 100%; resize: vertical; min-height: 62px; line-height: 1.6; padding: 7px 9px }
+
+/* ── 층 목록 · N-도크재편 ──
+   **놓기와 얹기가 대등해져 겹칠 수 있다** · 무엇이 위인지 볼 자리다 · 사용자 판정.
+   위가 앞이다 — 렌더러가 얹기층('뒤') · 박스들 · 얹기층('앞') 순으로 내놓으므로
+   박스와 그 안 요소는 **통째로 칸막이 한 칸**에 든다.
+   데이터는 안 바뀐다 · 층('앞'|'뒤')과 배열 순서 그대로다 · UI 만 한 목록이다. */
+.lyrs { display: flex; flex-direction: column; margin: -3px 0 0 }
+.lyrs .elrows { margin: 3px 0 0; max-height: 208px }
+/* 박스 안 요소 — 칸막이에 딸린 것이라 한 단 들여 세운다 · 흐름 순서다 · 쌓임이 아니다 */
+.lyrs .elrows.lyrin {
+  margin: 3px 0 0 11px; padding-left: 9px; border-left: 2px solid var(--ln);
+}
+/* 박스 칸막이 — 흐름 안이 여기서 시작하고 여기서 끝난다.
+   위아래로 넘기면 층이 앞 ↔ 뒤로 바뀐다 */
+.lyrbx {
+  display: flex; align-items: center; gap: 8px;
+  margin: 6px 0 0; padding: 6px 9px;
+  border: 1px dashed #cbd4dd; border-radius: 5px;
+  background: #f7f9fb; cursor: pointer;
+  font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--onx);
+}
+.lyrbx:hover { border-color: var(--on2) }
+.lyrbx.on { border-style: solid; border-color: var(--on2); background: var(--on) }
+.lyrbx em {
+  font-style: normal; font-weight: 400; letter-spacing: 0;
+  font-size: 11.5px; color: #8c96a2;
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
