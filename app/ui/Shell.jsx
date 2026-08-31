@@ -414,17 +414,19 @@ function 색칸({ 색, 이름, 지금, 누르기 }) {
   );
 }
 
-/* 고르는 자리에 낼 묶음 — 사업 하나가 묶음 하나다.
-   `_check` 열셋은 「검사 문안」 한 묶음으로 맨 아래로 민다 · listDocs 가 이미 뒤로 정렬해 둔다. */
+/* 고르는 자리에 낼 묶음 — **유형 하나가 묶음 하나**다 · listDocs 의 유형순서 그대로다.
+   줄에는 문서 이름만 낸다. 사업은 이름이 겹칠 때만 덧붙인다 —
+   묶음이 이미 성격을 말하고 있어서 줄마다 `sokcho /` 를 다는 것은 군더더기다. */
 function 묶기(docs) {
+  const 셈 = new Map();
+  for (const d of docs) 셈.set(d.이름, (셈.get(d.이름) ?? 0) + 1);
   const 순서 = [];
   const 통 = new Map();
   for (const d of docs) {
-    const 이름 = d.검사 ? '검사 문안' : d.사업;
-    if (!통.has(이름)) { 통.set(이름, []); 순서.push(이름); }
-    통.get(이름).push(d);
+    if (!통.has(d.유형)) { 통.set(d.유형, []); 순서.push(d.유형); }
+    통.get(d.유형).push({ ...d, 낼이름: 셈.get(d.이름) > 1 ? `${d.이름} · ${d.사업}` : d.이름 });
   }
-  return 순서.map((이름) => [이름, 통.get(이름)]);
+  return 순서.map((유형) => [유형, 통.get(유형)]);
 }
 
 /* 지난번에 열었던 문안으로 돌아온다 — 이 브라우저에만 남는다.
@@ -1703,7 +1705,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
   /* 페이지 미리보기 — 페이지마다 iframe 하나. render 가 결정적이라 안 바뀐 페이지는
      같은 문자열이 나오고 · React 가 srcdoc 을 안 건드려 그 iframe 은 다시 안 뜬다 */
   const 썸네일 = useMemo(() => (doc?.페이지 ?? []).map((_, n) => 페이지그리기(doc, n)), [doc, 페이지그리기]);
-  const 썸폭 = 174;   // 왼쪽 패널 208 − 안여백 18 − 번호 자리 16
+  const 썸폭 = 200;   // 왼쪽 패널 244 − 좌우 안여백 28 − 번호 자리 16
 
   const 고른 = 박스번호 == null ? null : 현재?.박스?.[박스번호];
   /* 고른 요소 · N-자유. 새 꼴이면 내용 배열의 한 칸 · 옛 꼴이면 박스 자신이다.
@@ -1790,7 +1792,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
             {묶음.map(([이름, 목록]) => (
               <optgroup key={이름} label={이름}>
                 {목록.map((d) => (
-                  <option key={d.slug} value={d.slug}>{d.이름}</option>
+                  <option key={d.slug} value={d.slug}>{d.낼이름}</option>
                 ))}
               </optgroup>
             ))}
