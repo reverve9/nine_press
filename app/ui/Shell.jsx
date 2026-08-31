@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { 빌드, PDF, 문안저장, 문안불러오기 } from '../actions.js';
-import { render } from '../../render/index.js';
+import { render, 영역, _규격 } from '../../render/index.js';
 import { 구간토큰, 원문, 구간칠, 색토큰인가, HEX6 } from '../../render/inline.js';
 
 // 판면 픽셀 — render/index.js 의 판 · rules/page.css 의 --판W/--판H 와 같은 값이어야 한다.
@@ -473,7 +473,9 @@ export default function Shell({ docs, first }) {
   const [고른글자, set고른글자] = useState(null);
 
   // 오른쪽 도크 · 지금 연 탭
-  const [탭, set탭] = useState('박스');
+  const [탭, set탭] = useState('판면');
+  /* 판면을 갈 때 뒤 박스가 잘려 나가면 한 번 더 묻는다 · { 레이아웃, 모드, 잃는수 } */
+  const [판면확인, set판면확인] = useState(null);
   /* assets/ 아래 그림 목록 · 한 번만 받는다. 파일을 새로 넣으면 새로고침한다 —
      문안 파일과 같은 규칙이다(밖에서 고치면 다시 읽어야 한다 · v8 §9 ⑦) */
   const [그림목록, set그림목록] = useState([]);
@@ -1259,6 +1261,56 @@ export default function Shell({ docs, first }) {
     setDoc(앞); set더러움(true); set되돌림(스택.current.length); set판본키((n) => n + 1);
   }
 
+  /* ── 판면 · N-판면 ──────────────────────────────────────────────
+     **판면을 정하는 것이 문서를 정하는 것이다.** 봉인본 39쪽은 블록 157개 중 124개가
+     내용 요소 하나뿐인 격자다 — 칸을 깔고 칸을 채운 물건이지 글을 나눈 물건이 아니다.
+     그래서 칸을 고르는 일이 편집기의 첫 손짓이어야 하는데 · 여기가 글자로 찍히기만 했다.
+
+     **미리보기는 그리는 게 아니라 재는 것이다** — `영역()` 을 그대로 불러 좌표를 %로 옮긴다.
+     도식을 손으로 그리면 레이아웃이 바뀔 때 조용히 거짓말을 한다. */
+  const 판면갈래 = useMemo(() => {
+    const 모드 = 현재?.모드 === '연속' ? '연속' : '카피';
+    const 통 = new Map();
+    for (const G of Object.keys(_규격.레이아웃)) {
+      let r;
+      try { r = 영역({ 번호: '01', 모드, 레이아웃: G, 박스: [] }); } catch { continue; }
+      if (!통.has(r.length)) 통.set(r.length, []);
+      통.get(r.length).push({ 레이아웃: G, 이름: _규격.레이아웃[G].이름, 칸: r });
+    }
+    return [...통.entries()].sort((a, b) => a[0] - b[0]);
+  }, [현재?.모드]);
+
+  /* 칸 수가 줄면 뒤에서부터 뺀다. **내용이 든 박스가 빠지면 한 번 더 묻는다** —
+     되돌리기가 있어도 지운 줄 모르고 넘어가는 것이 더 나쁘다. */
+  const 판면고르기 = (레이아웃, 모드, 밀어붙임 = false) => {
+    const p = 현재;
+    if (!p) return;
+    let 필요;
+    try { 필요 = 영역({ ...p, 모드, 레이아웃, 구성: undefined, 박스: [] }).length; }
+    catch { return set로그(`레이아웃 ${레이아웃} 을 못 읽는다`); }
+    const 지금 = p.박스?.length ?? 0;
+    const 잃는것 = (p.박스 ?? []).slice(필요)
+      .filter((b) => (Array.isArray(b.내용) ? b.내용.length : Object.keys(b).length) > 0);
+    if (잃는것.length && !밀어붙임) {
+      set판면확인({ 레이아웃, 모드, 잃는수: 잃는것.length });
+      return;
+    }
+    set판면확인(null);
+    바꾸기((d) => {
+      const q = d.페이지[i];
+      const 레이아웃바뀜 = q.레이아웃 !== 레이아웃 || q.구성 != null;
+      q.모드 = 모드; q.레이아웃 = 레이아웃;
+      delete q.구성;
+      // 비율은 통짜 열 번호로 매겨 있어 골격이 갈리면 뜻을 잃는다 · 같이 버린다
+      if (레이아웃바뀜) delete q.비율;
+      const 박스 = q.박스 ?? [];
+      while (박스.length < 필요) 박스.push({ 내용: [] });
+      박스.length = 필요;
+      q.박스 = 박스;
+    }, { 그리기: true });
+    set박스번호(null); set요소번호(null);
+  };
+
   /* ── 페이지 ── */
   const 번호매기기 = (d) => d.페이지.forEach((p, k) => { p.번호 = String(k + 1).padStart(2, '0'); });
   const 페이지넣기 = () => 바꾸기((d) => { d.페이지.splice(i + 1, 0, 새페이지('00')); 번호매기기(d); }, { 그리기: true });
@@ -1967,13 +2019,64 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
             그래서 박스에 걸리는 것과 요소에 걸리는 것 둘로만 가르고 ·
             요소 탭이 고른 요소의 갈래를 보고 갈라진다 · 사용자 판정 · N-자유 c */}
         <div className="tabs">
-          {['박스', '요소', '얹기'].map((v) => (
+          {['판면', '박스', '요소', '얹기'].map((v) => (
             <button key={v} className={'tab' + (탭 === v ? ' on' : '')}
                     onClick={() => set탭(v)}>{v}</button>
           ))}
         </div>
 
         <div className="dkbd">
+          {탭 === '판면' && (
+            <div className="lays">
+              <div className="fld">
+                <span className="fldnm">모드</span>
+                <span className="seg">
+                  {['카피', '연속'].map((m) => (
+                    <button key={m}
+                            className={'chip' + ((현재?.모드 === '연속' ? '연속' : '카피') === m ? ' on' : '')}
+                            onClick={() => 판면고르기(현재?.레이아웃 ?? 'G2', m)}>{m}</button>
+                  ))}
+                </span>
+              </div>
+
+              {현재?.구성 && <p className="dim">이 페이지는 「구성」으로 골격을 직접 적었다 · 아래에서 고르면 그것이 지워진다</p>}
+
+              {판면확인 && (
+                <div className="laywarn">
+                  <span><b>{판면확인.레이아웃}</b>{` 로 가면 내용이 든 박스 ${판면확인.잃는수}개가 빠진다`}</span>
+                  <span className="bfill" />
+                  <button className="chip" onClick={() => set판면확인(null)}>그만</button>
+                  <button className="chip warn"
+                          onClick={() => 판면고르기(판면확인.레이아웃, 판면확인.모드, true)}>빼고 바꾼다</button>
+                </div>
+              )}
+
+              {판면갈래.map(([수, 것들]) => (
+                <div key={수} className="laygrp">
+                  <span className="laynm">{수}칸</span>
+                  <div className="laylist">
+                    {것들.map(({ 레이아웃, 이름, 칸 }) => (
+                      <button key={레이아웃} title={`${레이아웃} · ${이름}`}
+                              className={'lay' + (현재?.레이아웃 === 레이아웃 && !현재?.구성 ? ' on' : '')}
+                              onClick={() => 판면고르기(레이아웃, 현재?.모드 === '연속' ? '연속' : '카피')}>
+                        <span className="laypv" style={{ aspectRatio: `${W} / ${H}` }}>
+                          {칸.map((r, k) => (
+                            <i key={k} style={{
+                              left: `${r.x / W * 100}%`, top: `${r.y / H * 100}%`,
+                              width: `${r.w / W * 100}%`, height: `${r.h / H * 100}%`,
+                            }} />
+                          ))}
+                        </span>
+                        <span className="layid">{레이아웃}</span>
+                        <em className="layttl">{이름}</em>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {탭 === '박스' && (() => {
             const z = 고른;
             const s = z?.도형 ?? {};
