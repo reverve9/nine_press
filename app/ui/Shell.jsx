@@ -381,6 +381,7 @@ export default function Shell({ docs, first }) {
      그래서 놓기 동작만 ref 로 빼 둔다. 판본 · 판이 갈려도 언제나 지금 것을 부른다 */
   const 끌어놓기ref = useRef(() => {});
   const 놓기판열기ref = useRef(() => {});
+  const 파일놓기ref = useRef(() => {});
   const 스택 = useRef([]);        // 되돌리기 — 문서 스냅샷
   const 앞스택 = useRef([]);      // 다시 하기
 
@@ -948,7 +949,8 @@ export default function Shell({ docs, first }) {
              면그리기() 가 `.sheet .page{transform:none}` 을 박아 두어서 그렇다 */
           if (e.target.closest?.('.plus, .emp.add')) {
             const r = 자리.getBoundingClientRect();
-            놓기판열기ref.current(n, Math.round(r.left), Math.round(r.top));
+            놓기판열기ref.current(n, Math.round(r.left), Math.round(r.top),
+              Math.round(r.width), Math.round(r.height));
           } else {
             set놓기판(null);
           }
@@ -973,9 +975,13 @@ export default function Shell({ docs, first }) {
           d.querySelectorAll('.bx.drop').forEach((el) => el.classList.remove('drop'));
           if (!bx) return;
           e.preventDefault();
+          const n = Number(bx.getAttribute('data-자리'));
+          // Finder 에서 온 파일이 먼저다 · 그다음이 도크 견본 경로다
+          const 파일 = [...(e.dataTransfer.files ?? [])];
+          if (파일.length) { 파일놓기ref.current(n, 파일); return; }
           const 경로 = e.dataTransfer.getData('text/plain');
           if (!경로.startsWith('assets/')) return;
-          끌어놓기ref.current(Number(bx.getAttribute('data-자리')), 경로);
+          끌어놓기ref.current(n, 경로);
         });
 
         // srcdoc 이 갈리면 문서가 새로 만들어져 클래스가 날아간다. 다시 입힌다.
@@ -1057,8 +1063,33 @@ export default function Shell({ docs, first }) {
     set요소번호(내용.length - 1);
     set탭('요소');
   }, { 그리기: true });
+  /* 파일을 받아 `assets/올린것/` 에 쓰고 그 경로로 놓는다 · N-자유 d.
+     **지금까지는 assets 에 손으로 먼저 넣어야 했다.** 이제 Finder 에서 바로 끈다.
+     겹침 · 크기 · 이름 다듬기는 전부 라우트가 정한다 — 여기서는 결과 경로만 받는다 */
+  const 파일놓기 = async (자리n, files) => {
+    const 받은 = [];
+    for (const f of files) {
+      const fd = new FormData();
+      fd.append('파일', f);
+      let r;
+      try { r = await (await fetch('/api/img', { method: 'POST', body: fd })).json(); }
+      catch { set로그(`${f.name} · 올리다 끊겼다`); continue; }
+      if (!r?.경로) { set로그(`${f.name} · ${r?.사유 ?? '못 올렸다'}`); continue; }
+      받은.push(r.경로);
+    }
+    if (!받은.length) return;
+    // 목록을 새로 받는다 — 방금 올린 것이 견본에 떠야 한다
+    try {
+      const j = await (await fetch('/api/img')).json();
+      set그림목록(Array.isArray(j?.그림) ? j.그림 : []);
+    } catch { /* 목록을 못 받아도 놓는 것은 된다 */ }
+    for (const 경로 of 받은) 판에놓기(자리n, 경로);
+    set로그(`${받은.length}개를 assets/올린것/ 에 넣고 놓았다`);
+  };
+
   useEffect(() => { 끌어놓기ref.current = 판에놓기; });
-  useEffect(() => { 놓기판열기ref.current = (자리, x, y) => set놓기판({ 자리, x, y }); });
+  useEffect(() => { 파일놓기ref.current = 파일놓기; });
+  useEffect(() => { 놓기판열기ref.current = (자리, x, y, w, h) => set놓기판({ 자리, x, y, w, h }); });
 
   /* 놓기 판이 놓는다 — **판이 가리키는 그 자리에** 놓는다.
      「지금 고른 자리」를 다시 읽지 않는다 · 그게 어느 박스인지 흐려지던 자리였다 */
@@ -1337,7 +1368,8 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                 면그리기() 가 `.sheet .page{transform:none}` 을 박아 둔 덕이다 */}
             {놓기판 && (
               <div className="drop-pane"
-                   style={{ left: 놓기판.x * 축척, top: 놓기판.y * 축척 }}>
+                   style={{ left: (놓기판.x + 놓기판.w / 2) * 축척,
+                            top: (놓기판.y + 놓기판.h / 2) * 축척 }}>
                 <div className="dp-hd">
                   자리 <b>{놓기판.자리 + 1}</b> 에 놓는다
                   <span className="bfill" />
@@ -1349,9 +1381,22 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                             onClick={() => 판에요소놓기(놓기판.자리, k)}>{k}</button>
                   ))}
                 </div>
+                <div className="dp-hd sub">
+                  그림
+                  <span className="bfill" />
+                  <label className="chip">
+                    파일에서
+                    <input type="file" hidden accept="image/*"
+                           onChange={(e) => {
+                             const f = e.target.files?.[0];
+                             e.target.value = '';
+                             if (f) 파일놓기(놓기판.자리, [f]);
+                           }} />
+                  </label>
+                </div>
+                <p className="dim">Finder 에서 판의 박스로 바로 끌어다 놓아도 된다</p>
                 {그림목록.length > 0 && (
                   <>
-                    <div className="dp-hd sub">그림</div>
                     <div className="imgs">
                       {그림목록.map((it) => (
                         <button key={it.경로} className="imgc" title={it.경로}
