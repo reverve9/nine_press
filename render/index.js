@@ -274,24 +274,74 @@ function 도형(자리, i) {
 const 표거터 = 21;
 const 표선갈래 = { 가로: 'x', 격자: 'xy', 없음: '' };
 
-/* 열 폭 — 「폭」은 균등 트랙 몇 개를 먹느냐다. 폭 [2,1,1] 이면 4트랙을 나눠
-   첫 열이 둘을 먹는다. 골격의 열자리() 가 2:1 을 다루는 방식과 같다.
-   split() 밖에 새 계산식을 만들지 않는다 · 파일 머리 규칙. */
+/* 열 폭 — 갈래 둘을 받는다. **한 배열에 섞지 않는다.**
+
+     ① 몫   [1, 2, 1]                       균등 트랙 몇 개를 먹느냐
+     ② 백분율 ["25%","30%","15%","30%"]      거터를 뺀 나머지의 % · 합 100
+
+   몫은 골격의 열자리() 가 2:1 을 다루는 방식과 같다. 폭 [2,1,1] 이면 4트랙을 나눠
+   첫 열이 둘을 먹는다.
+
+   **둘은 같은 물건이 아니다.** 몫으로 묶은 열은 **안쪽 거터까지 제가 먹는다** —
+   안폭 1002 · 4열에서 30% 를 몫 [5,6,3,6](20트랙)으로 흉내 내면 285.9px 이고
+   백분율로 주면 282px 이다. 그래서 백분율은 몫의 대체가 아니라 **더 가는 자**다.
+
+   파일 머리 규칙은 「가로 분할은 split() 하나」다. **백분율이 그 규칙을 여는 자리다** ·
+   사용자 판정 · N-배경 b3. split() 은 균등 트랙만 내므로 임의 백분율을 못 낸다.
+   여는 대신 split() 이 지키던 것을 그대로 지킨다 —
+   첫 열은 x 0 · 열 사이는 거터 21 · **마지막 열이 나머지 px 을 받아** 오른쪽 끝에 딱 맞는다.
+
+   세로(채움)는 열지 않았다. 42 격자에 스냅되므로 백분율이 4.76%p 단위로 끊긴다 ·
+   실물 표를 옮겨 보고 정한다. */
+
+const 백분율 = /^(\d{1,3})%$/;
+
 function 표열(폭, n, 표폭, i) {
   if (폭 == null) return split(0, 표폭, n, 표거터);
   if (!Array.isArray(폭) || 폭.length !== n) throw new Error(
     `자리 ${i} 의 표 "폭" 은 열 수(${n})와 같은 길이의 배열이어야 한다`);
-  if (!폭.every((v) => Number.isInteger(v) && v >= 1 && v <= 8)) throw new Error(
-    `자리 ${i} 의 표 "폭" 은 1 ~ 8 사이 정수만 받는다 (받은 값 ${JSON.stringify(폭)})`);
-  const 트랙 = split(0, 표폭, 폭.reduce((a, b) => a + b, 0), 표거터);
-  const out = [];
-  let k = 0;
-  for (const w of 폭) {
-    const a = 트랙[k], b = 트랙[k + w - 1];
-    out.push({ x: a.x, w: b.x + b.w - a.x });
-    k += w;
+
+  // ① 몫
+  if (폭.every((v) => Number.isInteger(v))) {
+    if (!폭.every((v) => v >= 1 && v <= 8)) throw new Error(
+      `자리 ${i} 의 표 "폭" 을 몫으로 주면 1 ~ 8 사이 정수다 (받은 값 ${JSON.stringify(폭)})`);
+    const 트랙 = split(0, 표폭, 폭.reduce((a, b) => a + b, 0), 표거터);
+    const out = [];
+    let k = 0;
+    for (const w of 폭) {
+      const a = 트랙[k], b = 트랙[k + w - 1];
+      out.push({ x: a.x, w: b.x + b.w - a.x });
+      k += w;
+    }
+    return out;
   }
-  return out;
+
+  // ② 백분율
+  if (폭.every((v) => typeof v === 'string' && 백분율.test(v))) {
+    const 몫 = 폭.map((v) => Number(백분율.exec(v)[1]));
+    if (!몫.every((v) => v >= 1 && v <= 99)) throw new Error(
+      `자리 ${i} 의 표 "폭" 백분율은 1% ~ 99% 다 (받은 값 ${JSON.stringify(폭)})`);
+    const 합 = 몫.reduce((a, b) => a + b, 0);
+    if (합 !== 100) throw new Error(
+      `자리 ${i} 의 표 "폭" 백분율 합이 ${합} 이다. 100 으로 맞춘다 (받은 값 ${JSON.stringify(폭)})`);
+    // 거터는 백분율 밖이다. 나눌 폭에서 먼저 뺀다 — 그래야 합 100 이 폭 전체를 덮는다
+    const 남 = 표폭 - 표거터 * (n - 1);
+    const out = [];
+    let x = 0;
+    몫.forEach((p, k) => {
+      const w = k === n - 1 ? 표폭 - x : 반올림(남 * p / 100);
+      out.push({ x, w });
+      x += w + 표거터;
+    });
+    if (out.some((c) => c.w < 1)) throw new Error(
+      `자리 ${i} 의 표 폭 ${JSON.stringify(폭)} 이 폭 ${표폭}px 에 안 들어간다. ` +
+      `열을 줄이거나 작은 비율을 키운다`);
+    return out;
+  }
+
+  throw new Error(
+    `자리 ${i} 의 표 "폭" 은 몫 [1,2,1] 이거나 백분율 ["25%","75%"] 다. 한 배열에 섞지 않는다 ` +
+    `(받은 값 ${JSON.stringify(폭)})`);
 }
 
 function 표그리기(자리, i, 안폭, 안높이, 앞높이, P) {
