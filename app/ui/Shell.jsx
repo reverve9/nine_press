@@ -354,6 +354,25 @@ function 색입력({ 값, 이름, 놓기, 로그 }) {
 
 /* 색은 이름이 아니라 색으로 고른다 — 어도비 견본 칸 그대로다.
    글자 칩으로 늘어놓으면 네 개만 돼도 줄이 접히고 무슨 색인지도 안 보인다. */
+/* 그림 견본 판 · N-그림 c. 두 자리(놓기 · 바꾸기)가 같은 것을 쓴다 —
+   따로 적어 두면 한쪽만 고쳐져 갈라진다. 판으로 끌어다 놓는 길도 여기 산다 */
+function 견본판({ 목록, 지금, 누르기 }) {
+  return (
+    <div className="imgs">
+      {목록.map((it) => (
+        <button key={it.경로} className={'imgc' + (지금 === it.경로 ? ' on' : '')}
+                title={`${it.경로} · 판으로 끌어다 놓을 수 있다`}
+                draggable
+                onDragStart={(e) => e.dataTransfer.setData('text/plain', it.경로)}
+                onClick={() => 누르기(it.경로)}>
+          <img src={`/api/img/${it.경로.slice('assets/'.length)}`} alt="" />
+          <em>{it.이름}</em>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function 색칸({ 색, 이름, 지금, 누르기 }) {
   return (
     <button className={'sw' + (지금 ? ' on' : '') + (색 ? '' : ' none')}
@@ -401,6 +420,10 @@ export default function Shell({ docs, first }) {
   /* assets/ 아래 그림 목록 · 한 번만 받는다. 파일을 새로 넣으면 새로고침한다 —
      문안 파일과 같은 규칙이다(밖에서 고치면 다시 읽어야 한다 · v8 §9 ⑦) */
   const [그림목록, set그림목록] = useState([]);
+  /* 그림 견본을 펼쳤나 · N-그림 c. **기본은 접힘이다** —
+     사이드에 썸네일이 늘 깔려 있으면 지금 박스에 무엇이 놓였는지가 안 읽힌다 ·
+     사용자 지적 둘. 놓는 길은 판의 「+」 놓기 판에도 있다 */
+  const [견본, set견본] = useState(false);
   useEffect(() => {
     fetch('/api/img')
       .then((r) => r.json())
@@ -476,9 +499,14 @@ export default function Shell({ docs, first }) {
       el.classList.toggle('pick', Number(el.getAttribute('data-박스')) === 박스번호));
   }, [박스번호, 판본키]);
 
-  /* 페이지를 옮기거나 문안을 갈면 고르기를 푼다 */
-  useEffect(() => { set박스번호(null); }, [i, slug]);
-  useEffect(() => { set요소번호(null); }, [박스번호, i, slug]);
+  /* 페이지를 옮기거나 문안을 갈면 고르기를 푼다.
+
+     **박스가 바뀔 때는 요소를 안 푼다** · N-그림 c. 판에서 그림을 누르면 클릭 하나가
+     박스와 요소를 같이 고르는데(`set박스번호` + `set요소번호`) · 박스 바뀜을 보고
+     요소를 지우면 그 클릭이 통째로 무효가 된다. 실제로 **그림이 영영 안 골라졌다** —
+     글자는 두 번 눌러 들어가는 길이 따로 있어 안 드러났고 그림만 드러났다 · 사용자 지적.
+     박스만 고른 클릭은 고르는 쪽에서 이미 `set요소번호(null)` 을 함께 부른다. */
+  useEffect(() => { set박스번호(null); set요소번호(null); }, [i, slug]);
 
   /* 고른 박스를 비우거나 되돌린다.
      비움은 내용과 함께 못 산다 — 렌더러가 오류를 던진다. 그래서 내용이 있으면 막는다. */
@@ -1165,7 +1193,8 @@ export default function Shell({ docs, first }) {
           const n = Number(박스.getAttribute('data-박스'));
           set박스번호(n);
           /* 요소도 같이 고른다 · N-자유. 렌더러가 도구 모드에서만 data-요소 를 붙인다.
-             옛 꼴 박스에는 안 붙는다 — 그때는 속성이 박스에 걸린다 */
+             **옛 꼴 박스에도 붙는다** · 번호는 박스접기() 순서와 같다 · N-그림 b.
+             박스만 누른 클릭은 여기서 요소를 함께 푼다 — 위 useEffect 가 안 푼다 */
           const 요소 = e.target.closest?.('[data-요소]');
           set요소번호(요소 ? Number(요소.getAttribute('data-요소')) : null);
           /* 「+」 를 눌렀으면 그 박스 위에 놓기 판을 연다. 좌표는 판면 px 이다 —
@@ -1936,19 +1965,14 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                 <>
                 <div className="popln" />
 
-                <줄 이름="그림" 곁={`누르면 놓인다 · ${그림목록.length}개`}>
-                  <span className="imgs">
-                    {그림목록.map((it) => (
-                      <button key={it.경로} className="imgc" title={`${it.경로} · 판으로 끌어다 놓을 수 있다`}
-                              draggable
-                              onDragStart={(e) => e.dataTransfer.setData('text/plain', it.경로)}
-                              onClick={() => 그림놓기(it.경로)}>
-                        <img src={`/api/img/${it.경로.slice('assets/'.length)}`} alt="" />
-                        <em>{it.이름}</em>
-                      </button>
-                    ))}
-                  </span>
+                <줄 이름="그림" 곁={`${그림목록.length}개`}>
+                  <button className={'chip' + (견본 ? ' on' : '')}
+                          onClick={() => set견본((v) => !v)}
+                          title="견본을 펴서 누르면 놓인다 · 판의 「+」로도 놓는다">
+                    {견본 ? '견본 접기' : '견본 펴기'}
+                  </button>
                 </줄>
+                {견본 && <견본판 목록={그림목록} 지금={null} 누르기={그림놓기} />}
                 </>
               );
             }
@@ -2010,23 +2034,16 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
 
                 <div className="popln" />
 
-                {/* 바꾸기 — 견본 갤러리는 여기 산다. 놓을 때는 위가 갤러리고 ·
-                    놓은 뒤에는 아래로 내려간다 · 위는 놓인 것 하나가 지킨다 */}
-                <줄 이름="바꾸기" 곁={`누르면 갈아 끼운다 · ${그림목록.length}개`}>
-                  <span className="imgs">
-                    {그림목록.map((it) => (
-                      <button key={it.경로}
-                              className={'imgc' + (g.경로 === it.경로 ? ' on' : '')}
-                              title={`${it.경로} · 판으로 끌어다 놓을 수 있다`}
-                              draggable
-                              onDragStart={(e) => e.dataTransfer.setData('text/plain', it.경로)}
-                              onClick={() => 그림놓기(it.경로)}>
-                        <img src={`/api/img/${it.경로.slice('assets/'.length)}`} alt="" />
-                        <em>{it.이름}</em>
-                      </button>
-                    ))}
-                  </span>
+                {/* 바꾸기 — **접어 둔다** · N-그림 c. 견본이 늘 깔려 있으면
+                    이 박스에 무엇이 놓였는지가 위의 한 칸에 안 읽힌다 · 사용자 지적 */}
+                <줄 이름="바꾸기" 곁={`${그림목록.length}개`}>
+                  <button className={'chip' + (견본 ? ' on' : '')}
+                          onClick={() => set견본((v) => !v)}
+                          title="견본을 펴서 누르면 갈아 끼운다">
+                    {견본 ? '견본 접기' : '견본 펴기'}
+                  </button>
                 </줄>
+                {견본 && <견본판 목록={그림목록} 지금={g.경로} 누르기={그림놓기} />}
                 <줄 이름="그림">
                   <button className="chip warn" onClick={그림없애기}>− 그림</button>
                 </줄>

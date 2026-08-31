@@ -251,6 +251,8 @@ body {
   display: flex; flex-wrap: wrap; gap: 8px;
   width: 100%; max-height: 224px; overflow-y: auto;
 }
+/* 도크에서는 칸 밖에 홀로 선다 · 펴고 접는 판이라 이름표를 안 단다 · N-그림 c */
+.dkbd > .imgs { margin: -6px 0 17px }
 .imgc {
   flex: 0 0 auto; width: 82px; padding: 4px;
   border: 1px solid #cbd4dd; border-radius: 6px;
