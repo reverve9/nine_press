@@ -1368,14 +1368,16 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
             const g = 그림읽기(z);
             const 켬 = !!z && !z.비움;
             if (!켬) return <p className="dim">{z?.비움 ? '비운 자리' : '자리를 고른다'}</p>;
-            /* 그림이 없으면 목록만 낸다 — 고르는 것이 곧 놓는 것이다.
-               「+ 그림」 버튼을 따로 두면 경로 없는 그림이 한 박자 생겨 렌더러가 던진다 */
+            /* 그림이 없으면 목록만 낸다 — **고르는 것이 곧 놓는 것이다.**
+               「+ 그림」 버튼을 따로 두면 경로 없는 그림이 한 박자 생겨 렌더러가 던지고
+               그 면이 통째로 오류판이 되어 자리를 다시 못 고른다 · §7 첫째 구멍.
+               대신 곁말이 「누르면 놓인다」를 말한다 — 다른 탭의 `+ 표` 자리다 */
             if (!g) {
               if (!그림목록.length) return (
                 <p className="dim">assets/ 아래에 그림이 없다 · 파일을 넣고 새로고침한다</p>
               );
               return (
-                <줄 이름="그림" 곁={`${그림목록.length}개`}>
+                <줄 이름="그림" 곁={`누르면 놓인다 · ${그림목록.length}개`}>
                   <span className="imgs">
                     {그림목록.map((it) => (
                       <button key={it.경로} className="imgc" title={it.경로}
