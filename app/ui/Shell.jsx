@@ -209,7 +209,7 @@ const 새얹기 = {
   // 높이는 안 준다 · 글이 정한다. 박스 자리면 본문 크기 · 존 전체면 카피 크기다
   글: (자리) => ({ 글: '새 글', x: 자리.x, y: 자리.y, 폭: 자리.폭,
     크기: 자리.박스 ? 24 : 64, 층: '앞' }),
-  // 그림은 경로가 있어야 살아서 여기서 안 만든다 — 견본을 고르는 것이 곧 놓는 것이다
+  // 그림은 경로가 있어야 살아서 여기서 안 만든다 — 파일을 고르는 것이 곧 놓는 것이다
 };
 const 얹기열쇠 = (o) => 얹기갈래들.map(([k]) => k).find((k) => o?.[k] != null) ?? null;
 const 얹기맛보기 = (o) => {
@@ -227,7 +227,7 @@ const 얹기맛보기 = (o) => {
   return '';
 };
 
-const 맞춤들 = [['전체', '전체'], ['채우기', '채우기']];
+const 맞춤들 = [['전체', '전체'], ['채우기', '채움']];
 const 그림높이갈래들 = [['채움', '채움'], ['블록', '블록'], ['%', '%']];
 const 그림높이갈래 = (h) => (h == null || h === '채움' ? '채움'
   : Number.isInteger(h) ? '블록' : '%');
@@ -400,7 +400,7 @@ function 색입력({ 값, 이름, 놓기, 로그 }) {
   return (
     <input
       className="barin hexin" style={{ width: '100%' }}
-      placeholder="#RRGGBB 로 적으면 위에 남는다"
+      placeholder="#RRGGBB"
       value={글}
       title="#RRGGBB"
       onChange={(e) => set글(e.target.value)}
@@ -412,24 +412,8 @@ function 색입력({ 값, 이름, 놓기, 로그 }) {
 
 /* 색은 이름이 아니라 색으로 고른다 — 어도비 견본 칸 그대로다.
    글자 칩으로 늘어놓으면 네 개만 돼도 줄이 접히고 무슨 색인지도 안 보인다. */
-/* 그림 견본 판 · N-그림 c. 두 자리(놓기 · 바꾸기)가 같은 것을 쓴다 —
-   따로 적어 두면 한쪽만 고쳐져 갈라진다. 판으로 끌어다 놓는 길도 여기 산다 */
-function 견본판({ 목록, 지금, 누르기 }) {
-  return (
-    <div className="imgs">
-      {목록.map((it) => (
-        <button key={it.경로} className={'imgc' + (지금 === it.경로 ? ' on' : '')}
-                title={`${it.경로} · 판으로 끌어다 놓을 수 있다`}
-                draggable
-                onDragStart={(e) => e.dataTransfer.setData('text/plain', it.경로)}
-                onClick={() => 누르기(it.경로)}>
-          <img src={`/api/img/${it.경로.slice('assets/'.length)}`} alt="" />
-          <em>{it.이름}</em>
-        </button>
-      ))}
-    </div>
-  );
-}
+/* (그림 견본 판은 걷었다 · 사용자 판정. 같은 그림을 문서 안에서 두 번 쓸 일이 없어
+   갤러리가 값을 못 했다 — 파일을 고르는 것이 곧 놓는 것이다) */
 
 function 색칸({ 색, 이름, 지금, 누르기 }) {
   return (
@@ -500,8 +484,7 @@ function 도형판({ 도형: s = {}, 놓기, 최근색, 색기억, 로그, 글�
 
           <줄 이름="글자">
             <button className={'chip' + (s.글자 === '반전' ? ' on' : '')}
-                    onClick={() => 놓기('글자', s.글자 === '반전' ? '' : '반전')}
-                    title="반전">반전</button>
+                    onClick={() => 놓기('글자', s.글자 === '반전' ? '' : '반전')}>반전</button>
           </줄>
         </>
       )}
@@ -584,26 +567,12 @@ export default function Shell({ docs, first }) {
      「페이지」일 때만 `.wrap.ovp` 를 켜서 박스를 누르기에서 뺀다 */
   const [삽입처, set삽입처] = useState('박스');
 
-  /* assets/ 아래 그림 목록 · 한 번만 받는다. 파일을 새로 넣으면 새로고침한다 —
-     문안 파일과 같은 규칙이다(밖에서 고치면 다시 읽어야 한다 · v8 §9 ⑦) */
-  const [그림목록, set그림목록] = useState([]);
-  /* 그림 견본을 펼쳤나 · N-그림 c. **기본은 접힘이다** —
-     사이드에 썸네일이 늘 깔려 있으면 지금 박스에 무엇이 놓였는지가 안 읽힌다 ·
-     사용자 지적 둘. 놓는 길은 판의 「+」 놓기 판에도 있다 */
-  const [견본, set견본] = useState(false);
   /* 고른 요소가 판에서 실제로 차지한 px · N-그림 e.
      **계산하지 않고 잰다** — 레이아웃 열둘 × 안여백 × 좌우 패딩을 도구가 다시 셈하면
      렌더러와 갈라진다. 판이 이미 그려 놨으니 그것을 읽는다 · { 가로, 세로 } */
   const [요소칸, set요소칸] = useState(null);
   // 고른 얹기 번호 · 페이지.얹기[] 의 자리다 · N-얹기
   const [얹기번호, set얹기번호] = useState(null);
-  useEffect(() => {
-    fetch('/api/img')
-      .then((r) => r.json())
-      .then((j) => set그림목록(Array.isArray(j?.그림) ? j.그림 : []))
-      .catch(() => { /* 못 받으면 빈 목록이다. 경로를 손으로 적을 수 있다 */ });
-  }, []);
-
   /* 최근 쓴 색 — 견본에 없는 색은 hex 로 적어야 하는데 같은 색을 여러 박스에 줄 때
      매번 여섯 자리를 다시 친다. 쓴 것을 남겨 두고 눌러 쓴다. 브라우저에 남는다 */
   const [최근색, set최근색] = useState([]);
@@ -738,16 +707,30 @@ export default function Shell({ docs, first }) {
       // 도형도 함께 못 산다 — 비움은 「출력에 아무것도 안 나간다」가 계약이다.
       // 목록은 렌더러(블록())가 막는 것과 **같아야 한다**. 표가 빠져 있어
       // 표가 있는 박스를 비우면 렌더러가 던지고 판이 오류판으로 떨어졌다
+      /* **빈 배열은 내용이 아니다** · 「내용 삭제」 뒤에 `내용: []` 이 남는데
+         그것까지 막으면 지우고도 비움이 안 열린다 · 실측 */
       const 있는것 = [...박스내용열쇠, '내용', '도형']
-        .filter((k) => z[k] != null);
+        .filter((k) => z[k] != null && !(Array.isArray(z[k]) && !z[k].length));
       if (있는것.length) {
         set로그(`내용이 있어 못 비운다 · ${있는것.join(' · ')} 를 먼저 지운다`);
         return false;
       }
+      delete z.내용;
       z.비움 = 값 === true ? true : 값;
     } else {
       delete z.비움;
     }
+  }, { 그리기: true });
+
+  /* 고른 박스의 내용을 통째로 지운다 · 도형 · 안여백은 남는다 */
+  const 내용지움 = () => 바꾸기((d) => {
+    const z = d.페이지[i]?.박스?.[박스번호];
+    if (!z || z.비움) return false;
+    const 내용 = Array.isArray(z.내용) ? z.내용 : 박스접기(z);
+    if (!내용.length) return false;
+    for (const k of 박스내용열쇠) delete z[k];
+    z.내용 = [];
+    set요소번호(null);
   }, { 그리기: true });
 
   /* ── 요소 · N-자유 ────────────────────────────────────
@@ -910,7 +893,7 @@ export default function Shell({ docs, first }) {
     set얹기번호(k);
   }, { 그리기: true });
 
-  /* 얹기 그림 — **견본을 고르는 것이 곧 놓는 것이다** · 요소 그림과 같은 규칙이다.
+  /* 얹기 그림 — **파일을 고르는 것이 곧 놓는 것이다** · 요소 그림과 같은 규칙이다.
      경로 없는 그림을 한 박자 만들면 렌더러가 던져 그 페이지가 오류판이 된다 · §7 첫째 구멍.
 
      **자연 비율을 재서 앉힌다.** 얹기는 42 스냅이 없어 내보낸 그대로 쓸 수 있는데 ·
@@ -972,8 +955,8 @@ export default function Shell({ docs, first }) {
   /* 갈래 갈아타기 — 선 ↔ 도형. x · y 만 나르고 나머지는 새로 세운다.
      길이와 폭/높이는 뜻이 달라 나를 수 없다 */
   const 얹기갈래바꾸기 = (갈래) => {
-    // 그림은 경로가 있어야 산다 — 갈아타는 대신 견본을 편다 · 거기서 고르면 갈아 끼워진다
-    if (갈래 === '그림') return set견본(true);
+    // 그림은 경로가 있어야 산다 — 갈래 칩이 아니라 파일 칸으로만 간다
+    if (갈래 === '그림') return;
     바꾸기((d) => {
       const a = 얹기들(d);
       const o = a?.[얹기번호];
@@ -1939,6 +1922,18 @@ export default function Shell({ docs, first }) {
   /* 파일을 받아 `assets/올린것/` 에 쓰고 그 경로로 놓는다 · N-자유 d.
      **지금까지는 assets 에 손으로 먼저 넣어야 했다.** 이제 Finder 에서 바로 끈다.
      겹침 · 크기 · 이름 다듬기는 전부 라우트가 정한다 — 여기서는 결과 경로만 받는다 */
+  /* 파일 하나를 올리고 경로를 낸다 · **견본 목록을 대신한다** · 사용자 판정.
+     같은 그림을 문서 안에서 두 번 쓸 일이 없어 갤러리가 값을 못 했다 */
+  const 파일올리기 = async (f) => {
+    const fd = new FormData();
+    fd.append('파일', f);
+    let r;
+    try { r = await (await fetch('/api/img', { method: 'POST', body: fd })).json(); }
+    catch { set로그(`${f.name} · 올리다 끊겼다`); return null; }
+    if (!r?.경로) { set로그(`${f.name} · ${r?.사유 ?? '못 올렸다'}`); return null; }
+    return r.경로;
+  };
+
   const 파일놓기 = async (박스n, files) => {
     const 받은 = [];
     for (const f of files) {
@@ -1951,11 +1946,6 @@ export default function Shell({ docs, first }) {
       받은.push(r.경로);
     }
     if (!받은.length) return;
-    // 목록을 새로 받는다 — 방금 올린 것이 견본에 떠야 한다
-    try {
-      const j = await (await fetch('/api/img')).json();
-      set그림목록(Array.isArray(j?.그림) ? j.그림 : []);
-    } catch { /* 목록을 못 받아도 놓는 것은 된다 */ }
     for (const 경로 of 받은) 판에놓기(박스n, 경로);
     set로그(`${받은.length}개를 assets/올린것/ 에 넣고 놓았다`);
   };
@@ -2122,11 +2112,11 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
          onClick={() => { set삽입처('페이지'); set얹기번호(j); }}>
       <span className="eln">{얹기열쇠(o) ?? '?'}</span>
       <em>{얹기맛보기(o)}</em>
-      <button className="chip mini" title="앞으로 · 박스를 넘기면 층이 바뀐다"
+      <button className="chip mini"
               onClick={(e) => { e.stopPropagation(); 층옮기기(j, -1); }}>↑</button>
-      <button className="chip mini" title="뒤로 · 박스를 넘기면 층이 바뀐다"
+      <button className="chip mini"
               onClick={(e) => { e.stopPropagation(); 층옮기기(j, 1); }}>↓</button>
-      <button className="chip mini warn" title="뺀다"
+      <button className="chip mini warn"
               onClick={(e) => { e.stopPropagation(); 얹기빼기(j); }}>−</button>
     </div>
   );
@@ -2142,12 +2132,10 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
         </span>
         <span className="bsp" />
         <button className={'chip' + (자 ? ' on' : '')} onClick={() => set자((v) => !v)}
-                title="기준선 42 · ⌘\">기준선</button>
-        <button className={'chip' + (외곽선 ? ' on' : '')} onClick={() => set외곽선((v) => !v)}
-                title="박스 외곽선">외곽선</button>
+                title="⌘\">기준선</button>
+        <button className={'chip' + (외곽선 ? ' on' : '')} onClick={() => set외곽선((v) => !v)}>외곽선</button>
         {/* 안내선 · N-자. **끄면 자석도 같이 끈다** — 안 보이는 선이 잡아채면 이유를 못 댄다 */}
-        <button className={'chip' + (안내선켬 ? ' on' : '')} onClick={() => set안내선켬((v) => !v)}
-                title="자에서 끌어 내려 안내선을 만든다 · 판 밖으로 끌면 지운다 · 끄면 자석도 끈다">
+        <button className={'chip' + (안내선켬 ? ' on' : '')} onClick={() => set안내선켬((v) => !v)}>
           안내선{안내선.가로.length + 안내선.세로.length
             ? ` ${안내선.가로.length + 안내선.세로.length}` : ''}</button>
         <span className="bsp" />
@@ -2192,7 +2180,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
         )}
         <button className="chip" disabled={바쁨 || !slug} onClick={() => 실행(() => 빌드(slug))}>빌드</button>
         <button className="chip" disabled={바쁨 || !slug} onClick={() => 실행(() => 빌드(slug, true))}
-                title="폰트 내장">폰트</button>
+>폰트</button>
         <button className="chip" disabled={바쁨 || !slug} onClick={() => 실행(() => PDF(slug))}>PDF</button>
         <button className="save" disabled={바쁨 || !더러움} onClick={저장}>
           {더러움 ? '저장 ⌘S' : '저장됨'}
@@ -2247,15 +2235,13 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
               <>
                 <span className="rlc" />
                 <div className="rlx" style={{ width: W * 축척 }}
-                     onPointerDown={(e) => 안내선끌기('가로', null, e)}
-                     title="끌어 내리면 가로 안내선이 생긴다">
+                     onPointerDown={(e) => 안내선끌기('가로', null, e)}>
                   {눈금([100, 200, 500, 1000], W).map((v) => (
                     <i key={v} style={{ left: v * 축척 }}>{v}</i>
                   ))}
                 </div>
                 <div className="rly" style={{ height: H * 축척 }}
-                     onPointerDown={(e) => 안내선끌기('세로', null, e)}
-                     title="끌어 오른쪽으로 내면 세로 안내선이 생긴다">
+                     onPointerDown={(e) => 안내선끌기('세로', null, e)}>
                   {눈금([42, 84, 210, 420, 840], H).map((v) => (
                     <i key={v} style={{ top: v * 축척 }}><b>{v}</b></i>
                   ))}
@@ -2281,7 +2267,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                 <div className="dp-hd">
                   박스 <b>{놓기판.박스 + 1}</b> · 삽입
                   <span className="bfill" />
-                  <button className="chip mini" onClick={() => set놓기판(null)}>닫기</button>
+                  <button className="chip mini" onClick={() => set놓기판(null)}>×</button>
                 </div>
                 <div className="dp-bd">
                   {요소갈래들.filter((k) => k !== '그림').map((k) => (
@@ -2289,11 +2275,9 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                             onClick={() => 판에요소놓기(놓기판.박스, k)}>{k}</button>
                   ))}
                 </div>
-                <div className="dp-hd sub">
-                  그림
-                  <span className="bfill" />
+                <div className="dp-bd">
                   <label className="chip">
-                    파일에서
+                    그림
                     <input type="file" hidden accept="image/*"
                            onChange={(e) => {
                              const f = e.target.files?.[0];
@@ -2302,20 +2286,6 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                            }} />
                   </label>
                 </div>
-                <p className="dim">Finder 에서 판의 박스로 바로 끌어다 놓아도 된다</p>
-                {그림목록.length > 0 && (
-                  <>
-                    <div className="imgs">
-                      {그림목록.map((it) => (
-                        <button key={it.경로} className="imgc" title={it.경로}
-                                onClick={() => 판에요소놓기(놓기판.박스, '그림', { 경로: it.경로, 높이: 6 })}>
-                          <img src={`/api/img/${it.경로.slice('assets/'.length)}`} alt="" />
-                          <em>{it.이름}</em>
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
               </div>
             )}
 
@@ -2399,17 +2369,15 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                 </span>
               </div>
               <div className="fld">
-                <span className="fldnm">카피 영역</span>
+                <span className="fldnm">모드</span>
                 <span className="seg">
-                  {[['카피', '있다'], ['연속', '없다']].map(([m, 글]) => (
+                  {['카피', '연속'].map((m) => (
                     <button key={m}
                             className={'chip' + ((현재?.모드 === '연속' ? '연속' : '카피') === m ? ' on' : '')}
-                            onClick={() => 판면고르기(현재?.레이아웃 ?? 'G2', m)}>{글}</button>
+                            onClick={() => 판면고르기(현재?.레이아웃 ?? 'G2', m)}>{m}</button>
                   ))}
                 </span>
               </div>
-
-              {현재?.구성 && <p className="dim">이 페이지는 「구성」으로 골격을 직접 적었다 · 아래에서 고르면 그것이 지워진다</p>}
 
               {판면갈래.map(([수, 것들]) => (
                 <div key={수} className="laygrp">
@@ -2420,9 +2388,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                       const 잃음 = 잃는수(레이아웃, 모드);
                       return (
                       <button key={레이아웃} disabled={!!잃음}
-                              title={잃음
-                                ? `${레이아웃} · ${이름} — 내용이 든 박스 ${잃음}개가 빠져서 못 고른다 · 그 박스를 비우면 열린다`
-                                : `${레이아웃} · ${이름}`}
+                              title={`${레이아웃} · ${이름}`}
                               className={'lay' + (현재?.레이아웃 === 레이아웃 && !현재?.구성 ? ' on' : '')
                                 + (잃음 ? ' 막힘' : '')}
                               onClick={() => 판면고르기(레이아웃, 모드)}>
@@ -2435,7 +2401,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                             }} />
                           ))}
                         </span>
-                        {!!잃음 && <em className="layx">박스 {잃음}개가 빠진다</em>}
+                        {!!잃음 && <em className="layx">박스 −{잃음}</em>}
                       </button>
                       );
                     })}
@@ -2458,11 +2424,12 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
 
               <줄 이름="박스" 곁={`${박스번호 + 1} / ${현재?.박스?.length ?? 0}`}>
                 <button className={'chip' + (고른.비움 ? ' on' : '')}
-                        onClick={() => 박스비움(!고른.비움)}
-                        title="박스를 통째로 키노트로 넘긴다 · 출력에 아무것도 안 나간다">비움</button>
+                        onClick={() => 박스비움(!고른.비움)}>비움</button>
+                <button className="chip warn" disabled={!고른내용?.length}
+                        onClick={내용지움}>내용 삭제</button>
               </줄>
               {고른.비움 && (
-                <줄 이름="무엇으로 채울지" 곁="키노트가 맡는다">
+                <줄 이름="채울 것">
                   <input
                     className="barin" style={{ width: '100%' }}
                     placeholder="단계띠 · 도표 · 사진"
@@ -2498,7 +2465,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
           {탭 === '내용' && (
             <>
               <div className="fld hd">
-                <span className="fldnm">레이어<em>위가 앞</em></span>
+                <span className="fldnm">레이어</span>
               </div>
               <div className="lyrs">
                 {앞무리.map(얹기줄)}
@@ -2524,12 +2491,12 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                              onClick={() => { set삽입처('박스'); set요소번호(j); }}>
                           <span className="eln">{k ?? '?'}</span>
                           <em>{맛보기(el, k)}</em>
-                          {el.도형 && <span className="eldot" title="요소 도형" />}
-                          <button className="chip mini" title="위로"
+                          {el.도형 && <span className="eldot" />}
+                          <button className="chip mini"
                                   onClick={(e) => { e.stopPropagation(); 요소옮기기(j, -1); }}>↑</button>
-                          <button className="chip mini" title="아래로"
+                          <button className="chip mini"
                                   onClick={(e) => { e.stopPropagation(); 요소옮기기(j, 1); }}>↓</button>
-                          <button className="chip mini warn" title="뺀다"
+                          <button className="chip mini warn"
                                   onClick={(e) => { e.stopPropagation(); 요소빼기(j); }}>−</button>
                         </div>
                       );
@@ -2550,11 +2517,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                   **스위치는 판이 누구를 받는지도 정한다** · N-얹기 d. 얹은 것이 박스 안에
                   들면 박스가 위를 덮어 클릭을 통째로 가져가므로 「페이지」일 때만
                   `.wrap.ovp` 가 박스를 누르기에서 뺀다 */}
-              <줄 이름="삽입" 곁={삽입처 === '박스'
-                ? (!고른 ? '고른 박스가 없다'
-                  : 고른.비움 ? '비운 박스에는 못 넣는다'
-                    : 요소번호 != null ? '고른 것 뒤에' : '박스 끝에')
-                : (박스번호 == null ? '박스 존 자리에' : `박스 ${박스번호 + 1} 자리에`)}>
+              <줄 이름="삽입">
                 <span className="seg">
                   {['박스', '페이지'].map((v) => (
                     <button key={v} className={'chip' + (삽입처 === v ? ' on' : '')}
@@ -2568,17 +2531,37 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                       <button key={k} className="chip" disabled={!고른 || !!고른.비움}
                               onClick={() => 요소넣기(k)}>+ {k}</button>
                     ))}
-                    {/* 「+ 그림」 은 **견본을 편다** · N-그림 d. 경로 없는 그림을 미리
-                        만들지 않는다 — 그러면 렌더러가 던져 그 페이지가 오류판이 된다 */}
-                    <button className="chip" disabled={!고른 || !!고른.비움}
-                            onClick={() => { set요소번호(null); set견본(true); }}
-                            title="견본을 펴서 누르면 놓인다 · 판의 「+」로도 놓는다">+ 그림</button>
+                    {/* 그림은 파일을 고르는 것이 곧 놓는 것이다 · 사용자 판정.
+                        경로 없는 그림을 미리 만들지 않는다 — 렌더러가 던진다 */}
+                    <label className={'chip' + (!고른 || 고른.비움 ? ' 막힘' : '')}>
+                      + 그림
+                      <input type="file" hidden accept="image/*"
+                             disabled={!고른 || !!고른.비움}
+                             onChange={async (e) => {
+                               const f = e.target.files?.[0];
+                               e.target.value = '';
+                               if (!f) return;
+                               const 경로 = await 파일올리기(f);
+                               if (경로) { set요소번호(null); 그림놓기(경로); }
+                             }} />
+                    </label>
                   </>
-                ) : 얹기갈래들.map(([v, 이름]) => (
+                ) : 얹기갈래들.map(([v, 이름]) => (v === '그림' ? (
+                  <label key={v} className="chip">
+                    + 그림
+                    <input type="file" hidden accept="image/*"
+                           onChange={async (e) => {
+                             const f = e.target.files?.[0];
+                             e.target.value = '';
+                             if (!f) return;
+                             const 경로 = await 파일올리기(f);
+                             if (경로) { set얹기번호(null); 얹기그림놓기(경로); }
+                           }} />
+                  </label>
+                ) : (
                   <button key={v} className="chip"
-                          onClick={() => (v === '그림'
-                            ? (set얹기번호(null), set견본(true)) : 얹기넣기(v))}>+ {이름}</button>
-                ))}
+                          onClick={() => 얹기넣기(v)}>+ {이름}</button>
+                )))}
               </줄>
 
               <div className="popln" />
@@ -2601,7 +2584,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                     <button className="chip" onClick={() => 요소옮기기(요소번호, -1)}>↑</button>
                     <button className="chip" onClick={() => 요소옮기기(요소번호, 1)}>↓</button>
                   </span>
-                  <button className="chip warn" onClick={() => 요소빼기(요소번호)}>− 요소</button>
+                  <button className="chip warn" onClick={() => 요소빼기(요소번호)}>삭제</button>
                 </줄>
 
                 {/* 계층 · 크기는 글자 요소에만 뜬다. 표 · 수치 · 그림엔 갈아탈 곳이 없다 */}
@@ -2609,7 +2592,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                   <>
                     <div className="popln" />
 
-                    <줄 이름="계층" 곁="값은 그대로 나른다">
+                    <줄 이름="갈래">
                       <span className="seg">
                         {글자갈래들.map((v) => (
                           <button key={v} className={'chip' + (k === v ? ' on' : '')}
@@ -2617,7 +2600,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                         ))}
                       </span>
                     </줄>
-                    <줄 이름="크기" 곁={el.크기 ? `${el.크기}px · 행간 42` : '계층 기본'}>
+                    <줄 이름="크기" 곁={el.크기 ? `${el.크기}px` : null}>
                       <span className="seg">
                         <button className={'chip' + (el.크기 == null ? ' on' : '')}
                                 onClick={() => 크기바꾸기(null)}>기본</button>
@@ -2647,12 +2630,12 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                   <수칸 열쇠="블록" 값={n} 기본={2}
                         로그={set로그} 놓기={(x) => 비움값('높이', x)} />
                 </줄>
-                <줄 이름="무엇" 곁="키노트에서 무엇으로 채울지">
+                <줄 이름="채울 것">
                   <입력 값={무엇} 힌트="단계띠 · 도표 · 사진"
                         놓기={(x) => 비움값('무엇', x)} />
                 </줄>
                 <줄 이름="비움">
-                  <button className="chip warn" onClick={() => 요소빼기(요소번호)}>− 비움</button>
+                  <button className="chip warn" onClick={() => 요소빼기(요소번호)}>삭제</button>
                 </줄>
               </>
             );
@@ -2682,18 +2665,18 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
 
               <줄 이름="열" 곁={`${n}열`}>
                 <span className="seg">
-                  <button className="chip" onClick={표열빼기} title="끝 열을 뺀다">−</button>
-                  <button className="chip" onClick={표열넣기} title="끝에 열을 넣는다">+</button>
+                  <button className="chip" onClick={표열빼기}>−</button>
+                  <button className="chip" onClick={표열넣기}>+</button>
                 </span>
               </줄>
               <줄 이름="행" 곁={`${t.행.length}행${t.헤더 ? ' + 헤더' : ''}`}>
                 <span className="seg">
-                  <button className="chip" onClick={표행빼기} title="끝 행을 뺀다">−</button>
-                  <button className="chip" onClick={표행넣기} title="끝에 행을 넣는다">+</button>
+                  <button className="chip" onClick={표행빼기}>−</button>
+                  <button className="chip" onClick={표행넣기}>+</button>
                 </span>
                 <button className={'chip' + (t.헤더 ? ' on' : '')}
                         onClick={() => 표헤더(!t.헤더)}
-                        title="헤더행">
+>
                   헤더행
                 </button>
               </줄>
@@ -2788,7 +2771,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
               <div className="popln" />
 
               <줄 이름="표">
-                <button className="chip warn" onClick={표없애기}>− 표</button>
+                <button className="chip warn" onClick={표없애기}>삭제</button>
               </줄>
               </>
             );
@@ -2799,46 +2782,28 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
             const g = 그림읽기(z);
             const 켬 = !!고른 && !고른.비움;
             if (!켬) return null;
-            /* 그림이 없으면 목록만 낸다 — **고르는 것이 곧 놓는 것이다.**
-               「+ 그림」 버튼을 따로 두면 경로 없는 그림이 한 박자 생겨 렌더러가 던지고
-               그 페이지가 통째로 오류판이 되어 박스를 다시 못 고른다 · §7 첫째 구멍.
-               대신 곁말이 「누르면 놓인다」를 말한다 — 다른 탭의 `+ 표` 박스다 */
-            if (!g) {
-              if (!그림목록.length) return (
-                <p className="dim">assets/ 아래에 그림이 없다 · 파일을 넣고 새로고침한다</p>
-              );
-              return (
-                <>
-                <div className="popln" />
-
-                <줄 이름="그림" 곁={`${그림목록.length}개`}>
-                  <button className={'chip' + (견본 ? ' on' : '')}
-                          onClick={() => set견본((v) => !v)}
-                          title="견본을 펴서 누르면 놓인다 · 판의 「+」로도 놓는다">
-                    {견본 ? '견본 접기' : '견본 펴기'}
-                  </button>
-                </줄>
-                {견본 && <견본판 목록={그림목록} 지금={null} 누르기={그림놓기} />}
-                </>
-              );
-            }
+            if (!g) return null;
             const 갈래 = 그림높이갈래(g.높이);
-            const 지금것 = 그림목록.find((it) => it.경로 === g.경로);
             return (
               <>
                 <div className="popln" />
 
-                {/* **놓은 뒤에는 놓은 것만 낸다** · N-글자 e.
-                    견본 갤러리를 그대로 두면 그림을 골랐는데 「고르는 판」이 다시 떠서
-                    무엇이 놓인 것인지 안 읽힌다 · 사용자 지적. 바꾸는 길은 아래 「바꾸기」다 */}
-                <줄 이름="그림" 곁={g.경로}>
+                <줄 이름="그림" 곁={g.경로.split('/').pop()}>
                   <span className="imgs">
-                    <button className="imgc on" title={g.경로}
-                            onClick={() => 그림놓기(g.경로)}>
-                      <img src={`/api/img/${g.경로.slice('assets/'.length)}`} alt="" />
-                      <em>{지금것?.이름 ?? g.경로.split('/').pop()}</em>
-                    </button>
+                    <img className="imgone" src={`/api/img/${g.경로.slice('assets/'.length)}`} alt="" />
                   </span>
+                  <span className="brk" />
+                  <label className="chip">
+                    파일
+                    <input type="file" hidden accept="image/*"
+                           onChange={async (e) => {
+                             const f = e.target.files?.[0];
+                             e.target.value = '';
+                             if (!f) return;
+                             const 경로 = await 파일올리기(f);
+                             if (경로) 그림놓기(경로);
+                           }} />
+                  </label>
                 </줄>
 
                 <div className="popln" />
@@ -2851,8 +2816,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                 <줄 이름="높이"
                     곁={요소칸
                       ? `${요소칸.가로} × ${요소칸.세로}px · ${Math.round(요소칸.세로 / 42)}칸`
-                      : (갈래 === '채움' ? '남은 높이를 다 먹는다'
-                        : 갈래 === '블록' ? `42 × ${g.높이} = ${g.높이 * 42}px` : null)}>
+                      : (갈래 === '블록' ? `${g.높이 * 42}px` : null)}>
                   <span className="seg">
                     {그림높이갈래들.map(([v, 이름]) => (
                       <button key={v} className={'chip' + (갈래 === v ? ' on' : '')}
@@ -2869,8 +2833,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                           로그={set로그} 놓기={(n) => 그림값('높이', 퍼센트글(n))} />
                   )}
                 </줄>
-                <줄 이름="맞춤"
-                    곁={(g.맞춤 ?? '전체') === '전체' ? '다 보인다' : '채우고 자른다'}>
+                <줄 이름="맞춤">
                   <span className="seg">
                     {맞춤들.map(([v, 이름]) => (
                       <button key={v} className={'chip' + ((g.맞춤 ?? '전체') === v ? ' on' : '')}
@@ -2881,24 +2844,14 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
 
                 <div className="popln" />
 
-                <줄 이름="설명" 곁="그림이 안 뜰 때 남는 글">
+                <줄 이름="설명">
                   <입력 값={g.설명 ?? ''} 놓기={(v) => 그림값('설명', v)} />
                 </줄>
 
                 <div className="popln" />
 
-                {/* 바꾸기 — **접어 둔다** · N-그림 c. 견본이 늘 깔려 있으면
-                    이 박스에 무엇이 놓였는지가 위의 한 칸에 안 읽힌다 · 사용자 지적 */}
-                <줄 이름="바꾸기" 곁={`${그림목록.length}개`}>
-                  <button className={'chip' + (견본 ? ' on' : '')}
-                          onClick={() => set견본((v) => !v)}
-                          title="견본을 펴서 누르면 갈아 끼운다">
-                    {견본 ? '견본 접기' : '견본 펴기'}
-                  </button>
-                </줄>
-                {견본 && <견본판 목록={그림목록} 지금={g.경로} 누르기={그림놓기} />}
                 <줄 이름="그림">
-                  <button className="chip warn" onClick={그림없애기}>− 그림</button>
+                  <button className="chip warn" onClick={그림없애기}>삭제</button>
                 </줄>
               </>
             );
@@ -2920,9 +2873,9 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                   칩은 다 `onMouseDown` 을 막는다. 안 막으면 누르는 순간 판면이
                   focus 를 잃고 focusout 이 편집을 닫아 고른 자리가 사라진다. */}
               <줄 이름="고른 글자"
-                  곁={고른글자 ? `"${고른글자.글.slice(0, 18)}"` : '판에서 끌어서 고른다'}>
+                  곁={고른글자 ? `"${고른글자.글.slice(0, 18)}"` : null}>
                 <button className="chip" onMouseDown={(e) => e.preventDefault()}
-                        onClick={굵게} title="**굵게** · 굵기 700 + 강조색이 한 묶음이다">
+                        onClick={굵게}>
                   굵게
                 </button>
               </줄>
@@ -2968,10 +2921,10 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
 
               {/* 벗길 대상 바로 아래다. 위에 두면 무엇을 벗기는지가 흐리다 ·
                   켠 칩을 다시 눌러 하나씩 끄는 길도 그대로 있다 */}
-              <줄 이름="민글로" 곁="씌운 것을 다 뗀다">
+              <줄 이름="민글">
                 <button className="chip warn" onMouseDown={(e) => e.preventDefault()}
                         onClick={민글로}
-                        title="고른 자리의 구간 표기와 굵게를 함께 벗긴다">민글로</button>
+>민글</button>
               </줄>
             </>
           )}
@@ -3001,14 +2954,6 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
             const k = 얹기열쇠(o);
             return (
               <>
-                {/* 견본 — 고르는 것이 곧 놓는 것이다. 고른 얹기가 있으면 그 자리를 갈아 끼운다 */}
-                {견본 && (그림목록.length
-                  ? <견본판 목록={그림목록}
-                            지금={k === '그림'
-                              ? (typeof o.그림 === 'string' ? o.그림 : o.그림?.경로) : null}
-                            누르기={얹기그림놓기} />
-                  : <p className="dim">assets/ 아래에 그림이 없다 · 파일을 넣고 새로고침한다</p>)}
-
                 {o && (
                   <>
                     <줄 이름="갈래">
@@ -3020,7 +2965,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                       </span>
                     </줄>
 
-                    <줄 이름="레이어" 곁={(o.층 ?? '뒤') === '뒤' ? '글에 안 가린다' : '글을 덮는다'}>
+                    <줄 이름="레이어">
                       <span className="seg">
                         {얹기층들.map(([v, 이름]) => (
                           <button key={v} className={'chip' + ((o.층 ?? '뒤') === v ? ' on' : '')}
@@ -3029,7 +2974,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                       </span>
                     </줄>
 
-                    <줄 이름="자리" 곁={`x ${o.x} · y ${o.y} · 끌어서 옮긴다 · Shift 자석`}>
+                    <줄 이름="자리">
                       <수칸 열쇠="얹x" 값={o.x} 기본={80} 로그={set로그}
                             놓기={(n) => 얹기값('x', n)} />
                       <수칸 열쇠="얹y" 값={o.y} 기본={260} 로그={set로그}
@@ -3038,18 +2983,18 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
 
                     {k === '글' && (
                       <>
-                        <줄 이름="글" 곁="**굵게** · {강조|글자} 가 그대로 먹는다">
+                        <줄 이름="글">
                           <textarea
                             className="barin txin" rows={3}
                             key={`얹글-${slug}-${i}-${얹기번호}`}
                             defaultValue={o.글 ?? ''}
                             onBlur={(e) => { if (e.target.value !== o.글) 얹기값('글', e.target.value); }} />
                         </줄>
-                        <줄 이름="폭" 곁={`${o.폭}px · 높이는 글이 정한다`}>
+                        <줄 이름="폭">
                           <수칸 열쇠="얹폭" 값={o.폭} 기본={2179} 로그={set로그}
                                 놓기={(n) => 얹기값('폭', n)} />
                         </줄>
-                        <줄 이름="크기" 곁={`행간 ${(o.크기 ?? 24) <= 29 ? 42 : 84}`}>
+                        <줄 이름="크기">
                           <span className="seg">
                             {얹기글크기들.map((v) => (
                               <button key={v} className={'chip' + ((o.크기 ?? 24) === v ? ' on' : '')}
@@ -3078,12 +3023,12 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                             ))}
                           </span>
                         </줄>
-                        <줄 이름="길이" 곁={`${o.길이}px`}>
+                        <줄 이름="길이">
                           <수칸 열쇠={o.선 === '가로' ? '얹가로' : '얹세로'} 값={o.길이}
                                 기본={o.선 === '가로' ? 2179 : 1108}
                                 로그={set로그} 놓기={(n) => 얹기값('길이', n)} />
                         </줄>
-                        <줄 이름="굵기" 곁={`${o.굵기 ?? 1}px`}>
+                        <줄 이름="굵기">
                           <수칸 열쇠="얹굵기" 값={o.굵기} 기본={1} 로그={set로그}
                                 놓기={(n) => 얹기값('굵기', n)} />
                         </줄>
@@ -3123,8 +3068,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                             <수칸 열쇠="얹높이" 값={o.높이} 기본={563} 로그={set로그}
                                   놓기={(n) => 얹기값('높이', n)} />
                           </줄>
-                          <줄 이름="맞춤"
-                              곁={(g.맞춤 ?? '전체') === '전체' ? '다 보인다' : '채우고 자른다'}>
+                          <줄 이름="맞춤">
                             <span className="seg">
                               {맞춤들.map(([v, 이름]) => (
                                 <button key={v} className={'chip' + ((g.맞춤 ?? '전체') === v ? ' on' : '')}
@@ -3132,14 +3076,21 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                               ))}
                             </span>
                           </줄>
-                          <줄 이름="설명" 곁="그림이 안 뜰 때 남는 글">
+                          <줄 이름="설명">
                             <입력 값={g.설명 ?? ''} 놓기={(v) => 값놓기('설명', v)} />
                           </줄>
-                          <줄 이름="바꾸기" 곁={`${그림목록.length}개`}>
-                            <button className={'chip' + (견본 ? ' on' : '')}
-                                    onClick={() => set견본((v) => !v)}>
-                              {견본 ? '견본 접기' : '견본 펴기'}
-                            </button>
+                          <줄 이름="그림" 곁={g.경로?.split('/').pop() ?? ''}>
+                            <label className="chip">
+                              파일
+                              <input type="file" hidden accept="image/*"
+                                     onChange={async (e) => {
+                                       const f = e.target.files?.[0];
+                                       e.target.value = '';
+                                       if (!f) return;
+                                       const 경로 = await 파일올리기(f);
+                                       if (경로) 얹기그림놓기(경로);
+                                     }} />
+                            </label>
                           </줄>
                         </>
                       );
@@ -3163,8 +3114,8 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                       </>
                     )}
 
-                    <줄 이름="얹기">
-                      <button className="chip warn" onClick={() => 얹기빼기(얹기번호)}>− 얹기</button>
+                    <줄 이름="삭제">
+                      <button className="chip warn" onClick={() => 얹기빼기(얹기번호)}>삭제</button>
                     </줄>
                   </>
                 )}

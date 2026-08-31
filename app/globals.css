@@ -148,11 +148,11 @@ body {
 .tab {
   flex: 1; padding: 13px 0; border: 0; border-bottom: 2px solid transparent;
   background: transparent; cursor: pointer;
-  font: inherit; font-size: 13px; font-weight: 500; letter-spacing: .05em; color: var(--mu);
+  font: inherit; font-size: 14px; font-weight: 400; letter-spacing: .04em; color: var(--mu);
 }
 .tab:hover { color: var(--onx) }
 .tab.on {
-  color: var(--onx); font-weight: 700;
+  color: var(--onx); font-weight: 600;
   background: #fff; border-bottom-color: var(--on2);
 }
 .dkbd { flex: 1; overflow-y: auto; padding: 16px 14px 22px }
@@ -278,7 +278,7 @@ body {
   flex: 0 0 auto; width: 7px; height: 7px; border-radius: 50%;
   background: var(--nv2);
 }
-.chip.mini { padding: 0 7px; min-width: 0; font-size: 12px; line-height: 21px }
+.chip.mini { padding: 0 7px; min-width: 0; font-size: 12.5px; line-height: 22px }
 
 /* 그림 견본 — 그림도 이름이 아니라 그림으로 고른다 · N-그림.
    assets/ 가 커지면 줄이 길어지므로 세로로 스크롤한다. 파일명은 아래 한 줄. */
@@ -380,8 +380,8 @@ body {
 .lyrbx:hover { border-color: var(--on2) }
 .lyrbx.on { border-color: var(--on2); background: var(--on) }
 .lyrbx em {
-  font-style: normal; font-weight: 500; letter-spacing: 0;
-  font-size: 11.5px; color: #7b8794;
+  font-style: normal; font-weight: 400; letter-spacing: 0;
+  font-size: 12.5px; color: #7b8794;
   flex: 0 0 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
@@ -430,3 +430,12 @@ body {
 }
 .gd.h em { left: 4px; top: 2px }
 .gd.v em { left: 3px; top: 4px }
+
+/* 놓인 그림 한 장 — 견본 갤러리를 걷은 자리다 · 사용자 판정.
+   같은 그림을 문서 안에서 두 번 쓸 일이 없어 목록이 값을 못 했다 */
+.imgone {
+  width: 96px; height: 60px; object-fit: contain;
+  background: #f4f6f8; border: 1px solid #cbd4dd; border-radius: 5px;
+}
+/* 파일 칸을 겸하는 칩 — label 이라 disabled 가 안 먹는다 · 꼴로만 막는다 */
+.chip.막힘 { opacity: .35; pointer-events: none }
