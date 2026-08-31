@@ -1371,7 +1371,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
   /* 페이지 미리보기 — 페이지마다 iframe 하나. render 가 결정적이라 안 바뀐 페이지는
      같은 문자열이 나오고 · React 가 srcdoc 을 안 건드려 그 iframe 은 다시 안 뜬다 */
   const 썸네일 = useMemo(() => (doc?.페이지 ?? []).map((_, n) => 페이지그리기(doc, n)), [doc, 페이지그리기]);
-  const 썸폭 = 168;
+  const 썸폭 = 174;   // 왼쪽 패널 208 − 안여백 18 − 번호 자리 16
 
   const 고른 = 박스번호 == null ? null : 현재?.박스?.[박스번호];
   /* 고른 요소 · N-자유. 새 꼴이면 내용 배열의 한 칸 · 옛 꼴이면 박스 자신이다.
@@ -1387,11 +1387,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
     <div className="shell">
       <header className="top">
         <span className="brand">nine_press</span>
-        <select className="pick" value={slug} onChange={(e) => setSlug(e.target.value)}>
-          {docs.map((d) => (
-            <option key={d.slug} value={d.slug}>{d.사업} / {d.이름}</option>
-          ))}
-        </select>
+        <span className="bsp" />
         <span className="undo">
           <button disabled={!되돌림} onClick={되돌리기} title="⌘Z">↺</button>
           <button disabled={!앞스택.current.length} onClick={다시하기} title="⌘⇧Z">↻</button>
@@ -1451,6 +1447,16 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
       </header>
 
       <aside className="pages">
+        {/* 문안 고르기 — **왼쪽 맨 위다** · 사용자 판정.
+            상단바에 있을 때는 도구 버튼들과 한 줄에 섞여 무엇을 고르는 것인지 흐렸다.
+            페이지 목록 바로 위가 제자리다 — 문안을 고르면 그 아래가 통째로 바뀐다 */}
+        <div className="dochd">
+          <select className="pick" value={slug} onChange={(e) => setSlug(e.target.value)}>
+            {docs.map((d) => (
+              <option key={d.slug} value={d.slug}>{d.사업} / {d.이름}</option>
+            ))}
+          </select>
+        </div>
         <div className="pgs">
           {페이지.map((pg, n) => (
             <button key={n} className={'pg' + (n === i ? ' on' : '')} onClick={() => setI(n)}>
