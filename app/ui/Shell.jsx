@@ -173,6 +173,26 @@ function 맛보기(el, k) {
   }
 }
 
+/* ── 얹는 층 · N-얹기 ──────────────────────────────────
+   **흐름 밖이다.** 요소는 박스 안에 순서대로 쌓이는데 이건 판 전역 절대 좌표로 앉는다.
+   그래서 박스 · 요소와 나란히 서는 물건이 아니라 **탭이 따로 하나 든다** · [얹기].
+   좌표는 키노트 슬라이드와 같은 계다 · 2339 × 1654. */
+const 판W = 2339, 판H = 1654;
+const 얹기갈래들 = [['선', '선'], ['도형', '도형']];
+const 선방향들 = [['가로', '가로'], ['세로', '세로']];
+const 새얹기 = {
+  // 판 한가운데를 가로지르는 선 · 처음 놓을 때 눈에 바로 보이는 자리다
+  선: () => ({ 선: '가로', x: 80, y: 827, 길이: 2179, 굵기: 2, 색: '선' }),
+  도형: () => ({ 도형: { 배경: '블록배경', 모서리: 10 }, x: 80, y: 260, 폭: 1090, 높이: 1150 }),
+};
+const 얹기열쇠 = (o) => 얹기갈래들.map(([k]) => k).find((k) => o?.[k] != null) ?? null;
+const 얹기맛보기 = (o) => {
+  const k = 얹기열쇠(o);
+  if (k === '선') return `${o.선} · ${o.x},${o.y} · 길이 ${o.길이} · 굵기 ${o.굵기 ?? 1}`;
+  if (k === '도형') return `${o.x},${o.y} · ${o.폭} × ${o.높이}`;
+  return '';
+};
+
 const 맞춤들 = [['전체', '전체'], ['채우기', '채우기']];
 const 그림높이갈래들 = [['채움', '채움'], ['블록', '블록'], ['%', '%']];
 const 그림높이갈래 = (h) => (h == null || h === '채움' ? '채움'
@@ -255,6 +275,10 @@ const 배경정리 = (t) => {
    범위는 렌더러의 도형() 과 같아야 한다 — 여기서 막는 것은 편의고
    진짜 계약은 렌더러가 지킨다. */
 const 수범위 = { 모서리: [0, 40], 투명도: [0, 100], 굵기: [1, 6],
+                 /* 얹기 · 이름을 갈라 둔다 — 「폭」은 표 열 폭이 이미 쓴다.
+                    한 객체에 같은 열쇠를 두 번 적으면 뒤엣것이 조용히 이긴다 */
+                 얹x: [0, 판W], 얹y: [0, 판H], 얹가로: [1, 판W], 얹세로: [1, 판H],
+                 얹폭: [1, 판W], 얹높이: [1, 판H], 얹굵기: [1, 20],
                  폭: [1, 표열최대], 비율: [비율하한, 100 - 비율하한],
                  칸수: [1, 20], 빈칸수: [0, 20], 빈비율: [0, 100 - 비율하한],
                  블록: [1, 30], 그림비율: [1, 100] };
@@ -428,6 +452,8 @@ export default function Shell({ docs, first }) {
      **계산하지 않고 잰다** — 레이아웃 열둘 × 안여백 × 좌우 패딩을 도구가 다시 셈하면
      렌더러와 갈라진다. 판이 이미 그려 놨으니 그것을 읽는다 · { 가로, 세로 } */
   const [요소칸, set요소칸] = useState(null);
+  // 고른 얹기 번호 · 페이지.얹기[] 의 자리다 · N-얹기
+  const [얹기번호, set얹기번호] = useState(null);
   useEffect(() => {
     fetch('/api/img')
       .then((r) => r.json())
@@ -456,6 +482,9 @@ export default function Shell({ docs, first }) {
   const 페이지ref = useRef(0);
   const 시각ref = useRef(0);
   const 자ref = useRef(false);
+  /* 탭 · 고른 얹기를 판에 알린다 · N-얹기. 클래스만 껐다 켜므로 판을 다시 안 그린다 */
+  const 탭ref = useRef('박스');
+  const 얹기번호ref = useRef(null);
   const 외곽선ref = useRef(false);
   /* 판 안 리스너는 판이 뜰 때 한 번 달린다. 그때의 클로저를 물면 옛 박스번호를 본다 —
      그래서 놓기 동작만 ref 로 빼 둔다. 판본 · 판이 갈려도 언제나 지금 것을 부른다 */
@@ -483,6 +512,8 @@ export default function Shell({ docs, first }) {
   useEffect(() => { 페이지ref.current = i; }, [i]);
   useEffect(() => { 시각ref.current = mtime; }, [mtime]);
   useEffect(() => { 자ref.current = 자; }, [자]);
+  useEffect(() => { 탭ref.current = 탭; 얹기번호ref.current = 얹기번호; 테칠ref.current(); },
+    [탭, 얹기번호]);
   useEffect(() => { 외곽선ref.current = 외곽선; }, [외곽선]);
 
   /* 켜고 끌 때 iframe 문서에 바로 입힌다.
@@ -517,6 +548,10 @@ export default function Shell({ docs, first }) {
         const 이박스 = Number(el.closest('[data-박스]')?.getAttribute('data-박스')) === 박스번호;
         el.classList.toggle('epick', 이박스 && Number(el.getAttribute('data-요소')) === 요소번호);
       });
+      // 얹은 것 · [얹기] 탭일 때만 누를 수 있고 고른 것에 테가 붙는다 · N-얹기
+      d.querySelector('.wrap')?.classList.toggle('ovp', 탭ref.current === '얹기');
+      d.querySelectorAll('[data-얹기]').forEach((el) =>
+        el.classList.toggle('opick', Number(el.getAttribute('data-얹기')) === 얹기번호ref.current));
       /* 고른 요소의 실치수 · 판면 px 그대로다 — 페이지그리기() 가
          `.sheet .page{transform:none}` 을 박아 두어 축척이 안 걸린다 */
       const 고름 = d.querySelector(`[data-박스="${박스번호}"] [data-요소="${요소번호}"]`);
@@ -533,7 +568,7 @@ export default function Shell({ docs, first }) {
      요소를 지우면 그 클릭이 통째로 무효가 된다. 실제로 **그림이 영영 안 골라졌다** —
      글자는 두 번 눌러 들어가는 길이 따로 있어 안 드러났고 그림만 드러났다 · 사용자 지적.
      박스만 고른 클릭은 고르는 쪽에서 이미 `set요소번호(null)` 을 함께 부른다. */
-  useEffect(() => { set박스번호(null); set요소번호(null); }, [i, slug]);
+  useEffect(() => { set박스번호(null); set요소번호(null); set얹기번호(null); }, [i, slug]);
 
   /* 고른 박스를 비우거나 되돌린다.
      비움은 내용과 함께 못 산다 — 렌더러가 오류를 던진다. 그래서 내용이 있으면 막는다. */
@@ -621,6 +656,71 @@ export default function Shell({ docs, first }) {
     if (요소번호 == null || 내용?.[요소번호]?.[열쇠] == null) return false;
     내용.splice(요소번호, 1);
     set요소번호(내용.length ? Math.min(요소번호, 내용.length - 1) : null);
+  }, { 그리기: true });
+
+  /* ── 얹는 층 · N-얹기 ────────────────────────────────
+     **박스가 아니라 페이지에 붙는다.** `페이지.얹기[]` 다 · 판 전역 절대 좌표.
+     그래서 박스번호 · 요소번호와 무관하게 산다 — 다루는 꼴은 요소와 같다. */
+  const 얹기들 = (d) => {
+    const p = d.페이지[i];
+    if (!p) return null;
+    if (!Array.isArray(p.얹기)) p.얹기 = [];
+    return p.얹기;
+  };
+  const 얹기찾기 = (d) => (얹기번호 == null ? null : (얹기들(d)?.[얹기번호] ?? null));
+
+  const 얹기넣기 = (갈래) => 바꾸기((d) => {
+    const a = 얹기들(d);
+    if (!a) return false;
+    a.push(새얹기[갈래]());
+    set얹기번호(a.length - 1);
+  }, { 그리기: true });
+
+  const 얹기빼기 = (k) => 바꾸기((d) => {
+    const a = 얹기들(d);
+    if (a?.[k] == null) return false;
+    a.splice(k, 1);
+    // 빈 배열은 문안에 안 남긴다 · 안 보이는 열쇠를 남기지 않는 규칙 그대로다
+    if (!a.length) delete d.페이지[i].얹기;
+    set얹기번호(a.length ? Math.min(k, a.length - 1) : null);
+  }, { 그리기: true });
+
+  const 얹기옮기기 = (k, 걸음) => 바꾸기((d) => {
+    const a = 얹기들(d);
+    const n = k + 걸음;
+    if (!a || n < 0 || n >= a.length) return false;
+    [a[k], a[n]] = [a[n], a[k]];
+    set얹기번호(n);
+  }, { 그리기: true });
+
+  const 얹기값 = (열쇠, 값) => 바꾸기((d) => {
+    const o = 얹기찾기(d);
+    if (!o) return false;
+    if (o[열쇠] === 값) return false;
+    o[열쇠] = 값;
+  }, { 그리기: true });
+
+  /* 얹기 도형 — 박스 · 요소 도형과 같은 어휘다. 다만 **다 지우면 안 된다** —
+     렌더러가 「아무것도 안 그린다」로 던진다. 마지막 하나는 안 지운다 */
+  const 얹기도형 = (열쇠, 값) => 바꾸기((d) => {
+    const o = 얹기찾기(d);
+    if (o?.도형 == null) return false;
+    const t = { ...o.도형 };
+    if (값 === '' || 값 == null) delete t[열쇠]; else t[열쇠] = 값;
+    if (!['배경', '테두리', '그림자'].some((k) => t[k])) {
+      set로그('배경 · 테두리 · 그림자 중 하나는 남긴다 · 안 그리면 얹을 것이 없다');
+      return false;
+    }
+    o.도형 = t;
+  }, { 그리기: true });
+
+  /* 갈래 갈아타기 — 선 ↔ 도형. x · y 만 나르고 나머지는 새로 세운다.
+     길이와 폭/높이는 뜻이 달라 나를 수 없다 */
+  const 얹기갈래바꾸기 = (갈래) => 바꾸기((d) => {
+    const a = 얹기들(d);
+    const o = a?.[얹기번호];
+    if (!o || 얹기열쇠(o) === 갈래) return false;
+    a[얹기번호] = { ...새얹기[갈래](), x: o.x, y: o.y };
   }, { 그리기: true });
 
   /* 비움 — 짧은 꼴(높이만)과 긴 꼴([높이, 무엇]) 둘을 오간다.
@@ -1226,6 +1326,11 @@ export default function Shell({ docs, first }) {
 
         d.addEventListener('click', (e) => {
           if (e.target.isContentEditable) return;
+          /* 얹은 것 · **[얹기] 탭일 때만 누를 수 있다** · N-얹기.
+             늘 열어 두면 판 위를 덮은 도형이 박스 고르기를 통째로 가로챈다 —
+             `.wrap.ovp` 가 그때만 pointer-events 를 연다 · page.css ㊲ */
+          const 얹 = e.target.closest?.('[data-얹기]');
+          if (얹) { set얹기번호(Number(얹.getAttribute('data-얹기'))); return; }
           const 박스 = e.target.closest?.('[data-박스]');
           if (!박스) { if (!e.target.closest?.('[data-p]')) set박스번호(null); return; }
           const n = Number(박스.getAttribute('data-박스'));
@@ -1692,7 +1797,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
             그래서 박스에 걸리는 것과 요소에 걸리는 것 둘로만 가르고 ·
             요소 탭이 고른 요소의 갈래를 보고 갈라진다 · 사용자 판정 · N-자유 c */}
         <div className="tabs">
-          {['박스', '요소'].map((v) => (
+          {['박스', '요소', '얹기'].map((v) => (
             <button key={v} className={'tab' + (탭 === v ? ' on' : '')}
                     onClick={() => set탭(v)}>{v}</button>
           ))}
@@ -2242,6 +2347,168 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                     반전
                   </button>
                 </줄>
+              </>
+            );
+          })()}
+
+          {/* ── 얹는 층 · N-얹기 ────────────────────────────
+              **박스가 아니라 페이지에 붙는다.** 그래서 탭이 따로 하나 든다 —
+              박스를 안 골라도 쓸 수 있어야 하고 · 고른 박스와 무관하다.
+              좌표는 판 전역 절대다 · 2339 × 1654 · 키노트 슬라이드와 같은 계다 */}
+          {탭 === '얹기' && (() => {
+            const 목록 = 현재?.얹기 ?? [];
+            const o = 얹기번호 == null ? null : (목록[얹기번호] ?? null);
+            const k = 얹기열쇠(o);
+            const s2 = o?.도형 ?? {};
+            const 이름표 = (열쇠, 표) => 표.find(([v]) => v === (s2[열쇠] ?? ''))?.[1]
+              ?? (HEX6.test(s2[열쇠] ?? '') ? s2[열쇠] : null);
+            return (
+              <>
+                <줄 이름="얹기" 곁={`${목록.length}개 · 판 ${판W} × ${판H}`}>
+                  {얹기갈래들.map(([v, 이름]) => (
+                    <button key={v} className="chip" onClick={() => 얹기넣기(v)}>+ {이름}</button>
+                  ))}
+                </줄>
+
+                {목록.length > 0 && (
+                  <div className="elrows">
+                    {목록.map((it, j) => (
+                      <div key={j} className={'elrow' + (얹기번호 === j ? ' on' : '')}
+                           onClick={() => set얹기번호(j)}>
+                        <span className="eln">{얹기열쇠(it) ?? '?'}</span>
+                        <em>{얹기맛보기(it)}</em>
+                        <button className="chip mini" title="위로"
+                                onClick={(e) => { e.stopPropagation(); 얹기옮기기(j, -1); }}>↑</button>
+                        <button className="chip mini" title="아래로"
+                                onClick={(e) => { e.stopPropagation(); 얹기옮기기(j, 1); }}>↓</button>
+                        <button className="chip mini warn" title="뺀다"
+                                onClick={(e) => { e.stopPropagation(); 얹기빼기(j); }}>−</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {!o && <p className="dim">얹은 것을 고른다 · 없으면 위에서 놓는다</p>}
+
+                {o && (
+                  <>
+                    <div className="popln" />
+
+                    <줄 이름="갈래">
+                      <span className="seg">
+                        {얹기갈래들.map(([v, 이름]) => (
+                          <button key={v} className={'chip' + (k === v ? ' on' : '')}
+                                  onClick={() => 얹기갈래바꾸기(v)}>{이름}</button>
+                        ))}
+                      </span>
+                    </줄>
+
+                    <줄 이름="자리" 곁={`x ${o.x} · y ${o.y}`}>
+                      <수칸 열쇠="얹x" 값={o.x} 기본={80} 로그={set로그}
+                            놓기={(n) => 얹기값('x', n)} />
+                      <수칸 열쇠="얹y" 값={o.y} 기본={260} 로그={set로그}
+                            놓기={(n) => 얹기값('y', n)} />
+                    </줄>
+
+                    {k === '선' && (
+                      <>
+                        <줄 이름="방향">
+                          <span className="seg">
+                            {선방향들.map(([v, 이름]) => (
+                              <button key={v} className={'chip' + (o.선 === v ? ' on' : '')}
+                                      onClick={() => 얹기값('선', v)}>{이름}</button>
+                            ))}
+                          </span>
+                        </줄>
+                        <줄 이름="길이" 곁={`${o.길이}px`}>
+                          <수칸 열쇠={o.선 === '가로' ? '얹가로' : '얹세로'} 값={o.길이}
+                                기본={o.선 === '가로' ? 2179 : 1108}
+                                로그={set로그} 놓기={(n) => 얹기값('길이', n)} />
+                        </줄>
+                        <줄 이름="굵기" 곁={`${o.굵기 ?? 1}px`}>
+                          <수칸 열쇠="얹굵기" 값={o.굵기} 기본={1} 로그={set로그}
+                                놓기={(n) => 얹기값('굵기', n)} />
+                        </줄>
+                        <줄 이름="색" 곁={도형테두리들.find(([v]) => v === (o.색 ?? ''))?.[1]
+                          ?? (HEX6.test(o.색 ?? '') ? o.색 : null)}>
+                          {도형테두리들.filter(([v]) => v).map(([v, 이름, 색]) => (
+                            <색칸 key={v} 색={색} 이름={이름} 지금={o.색 === v}
+                                  누르기={() => 얹기값('색', v)} />
+                          ))}
+                          {최근색.length > 0 && <span className="swsp" />}
+                          {최근색.map((색) => (
+                            <색칸 key={색} 색={색} 이름={`최근 ${색}`} 지금={o.색 === 색}
+                                  누르기={() => 얹기값('색', 색)} />
+                          ))}
+                          <span className="brk" />
+                          <색입력 값={o.색} 이름="선 색" 로그={set로그}
+                                    놓기={(v) => { 얹기값('색', v); 색기억(v); }} />
+                        </줄>
+                      </>
+                    )}
+
+                    {k === '도형' && (
+                      <>
+                        <줄 이름="크기" 곁={`${o.폭} × ${o.높이}px`}>
+                          <수칸 열쇠="얹폭" 값={o.폭} 기본={1090} 로그={set로그}
+                                놓기={(n) => 얹기값('폭', n)} />
+                          <수칸 열쇠="얹높이" 값={o.높이} 기본={1150} 로그={set로그}
+                                놓기={(n) => 얹기값('높이', n)} />
+                        </줄>
+
+                        <div className="popln" />
+
+                        <줄 이름="배경" 곁={이름표('배경', 도형배경들)}>
+                          {도형배경들.map(([v, 이름, 색]) => (
+                            <색칸 key={v || 'n'} 색={색} 이름={이름} 지금={(s2.배경 ?? '') === v}
+                                  누르기={() => 얹기도형('배경', v)} />
+                          ))}
+                          {최근색.length > 0 && <span className="swsp" />}
+                          {최근색.map((색) => (
+                            <색칸 key={색} 색={색} 이름={`최근 ${색}`} 지금={s2.배경 === 색}
+                                  누르기={() => 얹기도형('배경', 색)} />
+                          ))}
+                          <span className="brk" />
+                          <색입력 값={s2.배경} 이름="배경" 로그={set로그}
+                                    놓기={(v) => { 얹기도형('배경', v); 색기억(v); }} />
+                        </줄>
+                        <줄 이름="투명도">
+                          <수칸 열쇠="투명도" 값={s2.투명도} 기본={100} 열림={!!s2.배경}
+                                로그={set로그} 놓기={(n) => 얹기도형('투명도', n)} />
+                        </줄>
+                        <줄 이름="테두리" 곁={이름표('테두리', 도형테두리들)}>
+                          {도형테두리들.map(([v, 이름, 색]) => (
+                            <색칸 key={v || 'n'} 색={색} 이름={이름} 지금={(s2.테두리 ?? '') === v}
+                                  누르기={() => 얹기도형('테두리', v)} />
+                          ))}
+                          <span className="brk" />
+                          <색입력 값={s2.테두리} 이름="테두리" 로그={set로그}
+                                    놓기={(v) => { 얹기도형('테두리', v); 색기억(v); }} />
+                        </줄>
+                        <줄 이름="굵기">
+                          <수칸 열쇠="굵기" 값={s2.굵기} 기본={1} 열림={!!s2.테두리}
+                                로그={set로그} 놓기={(n) => 얹기도형('굵기', n)} />
+                        </줄>
+                        <줄 이름="모서리">
+                          <수칸 열쇠="모서리" 값={s2.모서리} 기본={10}
+                                로그={set로그} 놓기={(n) => 얹기도형('모서리', n)} />
+                        </줄>
+                        <줄 이름="그림자">
+                          <span className="seg">
+                            {도형그림자들.map(([v, 이름]) => (
+                              <button key={v || 'n'} className={'chip' + ((s2.그림자 ?? '') === v ? ' on' : '')}
+                                      onClick={() => 얹기도형('그림자', v)}>{이름}</button>
+                            ))}
+                          </span>
+                        </줄>
+                      </>
+                    )}
+
+                    <줄 이름="얹기">
+                      <button className="chip warn" onClick={() => 얹기빼기(얹기번호)}>− 얹기</button>
+                    </줄>
+                  </>
+                )}
               </>
             );
           })()}

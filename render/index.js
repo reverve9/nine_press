@@ -1036,6 +1036,81 @@ function 요소그리기({ 요소, 열쇠, 경로 }, i, j, 안폭, 남은, 겉) 
   }
 }
 
+/* ─────────────────── §N-얹기 · 흐름 밖에 놓이는 것 ───────────────────
+   **배열은 흐름이다.** 요소가 순서대로 쌓이고 42 격자에 앉는다. 이건 그 밖이다 —
+   `N-배경 a2` 가 「구분선」을 넣으려다 물러선 자리이고 · 사용자가 다시 열었다.
+
+   **좌표계는 판 전역 절대 좌표다** · 2339 × 1654 · 사용자 판정.
+     박스 상대로 두면 개념이 다시 레이아웃에 묶인다 — 「박스와 박스 사이」를
+     그으려면 어느 박스에 붙을지가 늘 흐리고 · 레이아웃을 갈면 선이 따라 깨진다.
+     판 좌표는 키노트 슬라이드와 같은 계라 그대로 옮겨 적을 수도 있다.
+
+   **세로를 42 에 안 붙인다** · 설계 §4-4 는 「세로 스냅」인데 그건 **글이 앉는 것**의
+   규칙이다. 얹는 것은 글을 안 담아 기준선과 무관하고 · 거터 한가운데(21 배수)에
+   그어야 하는 일이 잦다. 자유로 둔다 · 사용자 판정.
+
+   **박스 아래에 깐다.** 둘 다 「사이」와 「뒤」에 놓이는 물건이라(박스 사이 선 · 큰 도형)
+   위에 얹으면 글을 가린다. DOM 에서 박스보다 먼저 나온다 · 쌓임 순서가 그게 전부다.
+
+     페이지.얹기[] = [
+       { "선": "가로", "x": 100, "y": 500, "길이": 800, "굵기": 2, "색": "선" },
+       { "도형": { "배경": "블록배경", "모서리": 10 }, "x": 80, "y": 300, "폭": 900, "높이": 400 }
+     ]
+
+   선은 굵기만큼 두께를 갖는다 · 가로면 길이가 폭 · 세로면 길이가 높이다.
+   도형은 박스 · 요소와 **같은 어휘**를 쓴다 · 새 색도 새 열쇠도 안 만든다. */
+
+const 얹기갈래 = ['선', '도형'];
+const 선방향 = { 가로: 'x', 세로: 'y' };
+
+function 얹기수(v, 이름, 아래, 위, k) {
+  if (!Number.isInteger(v) || v < 아래 || v > 위) throw new Error(
+    `얹기 ${k} 의 "${이름}" 은 ${아래} ~ ${위} 사이 정수여야 한다 (받은 값 ${JSON.stringify(v)})`);
+  return v;
+}
+
+function 얹기하나(o, k) {
+  if (o == null || typeof o !== 'object' || Array.isArray(o)) throw new Error(
+    `얹기 ${k} 가 객체가 아니다. { "선": "가로", … } 또는 { "도형": {…}, … } 꼴로 적는다`);
+  const 있는것 = 얹기갈래.filter((g) => o[g] != null);
+  if (있는것.length !== 1) throw new Error(
+    `얹기 ${k} 에 갈래 열쇠가 ${있는것.length}개다(${있는것.join(' · ') || '없다'}). ` +
+    `하나만 둔다 — 쓸 수 있는 것은 ${얹기갈래.join(' · ')}`);
+
+  const x = 얹기수(o.x, 'x', 0, 판.w, k);
+  const y = 얹기수(o.y, 'y', 0, 판.h, k);
+  const 표식 = 도구 ? ` data-얹기="${k}"` : '';
+
+  if (있는것[0] === '선') {
+    if (!Object.prototype.hasOwnProperty.call(선방향, o.선)) throw new Error(
+      `얹기 ${k} 의 "선" 값 ${JSON.stringify(o.선)} 을 모른다. ` +
+      `쓸 수 있는 값은 ${Object.keys(선방향).join(' · ')} 뿐이다`);
+    const 가로 = o.선 === '가로';
+    const 길이 = 얹기수(o.길이, '길이', 1, 가로 ? 판.w : 판.h, k);
+    const 굵기 = 정수(o.굵기, 1, 1, 20, '굵기', `얹기 ${k}`, '선');
+    const c = 색(o.색 ?? '선', 테두리이름, '색', `얹기 ${k}`, '선');
+    return `<div class="ov ln" style="left:${x}px;top:${y}px;` +
+      `width:${가로 ? 길이 : 굵기}px;height:${가로 ? 굵기 : 길이}px;background:${c}"${표식}></div>`;
+  }
+
+  const 폭 = 얹기수(o.폭, '폭', 1, 판.w, k);
+  const 높이 = 얹기수(o.높이, '높이', 1, 판.h, k);
+  const st = 도형({ 도형: o.도형 }, `얹기 ${k}`);
+  if (!st) throw new Error(
+    `얹기 ${k} 의 도형이 아무것도 안 그린다. 배경 · 테두리 · 그림자 중 하나는 준다`);
+  return `<div class="ov" style="left:${x}px;top:${y}px;width:${폭}px;height:${높이}px${st}"${표식}></div>`;
+}
+
+/* 얹기 층 — 없으면 빈 문자열이다. 옛 열쇠(구분선)를 만나면 무엇으로 바뀌었는지 댄다 */
+function 얹기층(page) {
+  옛열쇠막기(page, `페이지 ${page.번호 ?? '?'}`, { 구분선: '얹기', 선: '얹기' });
+  const v = page.얹기;
+  if (v == null) return '';
+  if (!Array.isArray(v)) throw new Error(
+    `페이지 ${page.번호 ?? '?'} 의 "얹기" 는 배열이어야 한다`);
+  return v.map((o, k) => 얹기하나(o, k)).join('\n');
+}
+
 /* ─────────────────── 페이지 ─────────────────── */
 
 export function renderPage(page, doc = {}) {
@@ -1062,6 +1137,7 @@ export function renderPage(page, doc = {}) {
 <div class="hd"${dp(['제목'])}>${inline(page.제목)}</div>
 ${카피}
 <div class="tt"${dp(['요지'])}>${inline(page.요지)}</div>
+${얹기층(page)}
 ${rects.map((r, i) => 블록(박스[i], r, i, 안여백문서)).join('\n')}
 <div class="ft"><span class="fn">${inline(page.번호)}</span><span class="fd">${inline(doc.문서명 ?? '')}</span></div>
 </div></div>`;
