@@ -115,6 +115,11 @@ function 박스접기(z) {
    크기는 자유 숫자가 아니라 계단이다 · 렌더러의 크기계단과 **같아야 한다**.
    굵게는 새로 만들 것이 없다 — `**굵게**` 는 inline() 이 이미 읽고 원문() 이 되돌린다. */
 const 글자갈래들 = ['제목', '요약', '문단', '목록', '번호목록', '출처'];
+/* 구간 판이 뜨는 갈래 · N-글자 e. 글자를 담는 것만이다 —
+   표 칸 · 수치 값도 판면에서 고쳐 쓰는 글자라 같이 받는다.
+   **그림 · 빈칸 · 비움에는 안 뜬다** · 글자가 없는데 글자 판이 뜨면
+   그림을 골랐는데 우측이 텍스트 판으로 보인다 · 사용자 지적 */
+const 구간갈래 = new Set([...글자갈래들, '표', '수치']);
 const 배열갈래 = new Set(['목록', '번호목록']);
 const 크기계단 = [21, 24, 26, 29];
 
@@ -1747,70 +1752,6 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                     </줄>
                   </>
                 )}
-
-                <div className="popln" />
-
-                {/* ── 고른 글자 · N-글자 d ────────────────────────
-                    **여기가 요소 범위와 구간 범위가 갈리는 자리다.**
-                    위의 계층 · 크기는 문단 하나를 통째로 잡는다. 이 아래는
-                    판면에서 끌어서 고른 몇 글자에만 걸린다 · 문안에 표기로 앉는다.
-
-                    칩은 다 `onMouseDown` 을 막는다. 안 막으면 누르는 순간 판면이
-                    focus 를 잃고 focusout 이 편집을 닫아 고른 자리가 사라진다. */}
-                <줄 이름="고른 글자"
-                    곁={고른글자 ? `"${고른글자.글.slice(0, 18)}"` : '판에서 끌어서 고른다'}>
-                  <button className="chip" onMouseDown={(e) => e.preventDefault()}
-                          onClick={굵게} title="**굵게** · 굵기 700 + 강조색이 한 묶음이다">
-                    굵게
-                  </button>
-                </줄>
-
-                {/* 색 — **도형 배경 · 테두리와 같은 꼴이다** · N-글자 e.
-                    견본 + 최근색 + #RRGGBB 자유 입력. 전에는 여기만 이름 칩 여섯이라
-                    한 도크 안에서 색 고르는 법이 둘이었다 · 사용자 지적.
-                    이름은 이름대로 둔다 — 문안에서 `{결론|38억원}` 으로 읽힌다 */}
-                {(() => {
-                  const 색토큰 = 고른글자?.토큰.find(색토큰인가) ?? '';
-                  return (
-                    <줄 이름="색" 곁={색토큰 || null}>
-                      {구간토큰.색.map((t) => (
-                        <색칸 key={t} 색={구간색값[t]} 이름={`${t} ${구간색값[t].slice(1)}`}
-                              지금={색토큰 === t} 누르기={() => 구간씌우기(t)} />
-                      ))}
-                      {최근색.length > 0 && <span className="swsp" />}
-                      {최근색.map((색) => (
-                        <색칸 key={색} 색={색} 이름={`최근 ${색}`} 지금={색토큰 === 색}
-                              누르기={() => 구간씌우기(색)} />
-                      ))}
-                      <span className="brk" />
-                      <색입력 값={색토큰} 이름="글자 색" 로그={set로그}
-                                놓기={(v) => { 구간씌우기(v); 색기억(v); }} />
-                    </줄>
-                  );
-                })()}
-
-                {구간갈래들.filter(([갈래]) => 갈래 !== '색').map(([갈래, 목록]) => (
-                  <줄 key={갈래} 이름={갈래}
-                      곁={고른글자?.토큰.find((t) => 토큰갈래(t) === 갈래) ?? null}>
-                    <span className="seg">
-                      {목록.map((t) => (
-                        <button key={t}
-                                className={'chip' + (고른글자?.토큰.includes(t) ? ' on' : '')}
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={() => 구간씌우기(t)}
-                                title={`{${t}|고른 글자}`}>{t}</button>
-                      ))}
-                    </span>
-                  </줄>
-                ))}
-
-                {/* 벗길 대상 바로 아래다. 위에 두면 무엇을 벗기는지가 흐리다 ·
-                    켠 칩을 다시 눌러 하나씩 끄는 길도 그대로 있다 */}
-                <줄 이름="민글로" 곁="씌운 것을 다 뗀다">
-                  <button className="chip warn" onMouseDown={(e) => e.preventDefault()}
-                          onClick={민글로}
-                          title="고른 자리의 구간 표기와 굵게를 함께 벗긴다">민글로</button>
-                </줄>
               </>
             );
           })()}
@@ -2010,23 +1951,21 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
               );
             }
             const 갈래 = 그림높이갈래(g.높이);
+            const 지금것 = 그림목록.find((it) => it.경로 === g.경로);
             return (
               <>
                 <div className="popln" />
 
+                {/* **놓은 뒤에는 놓은 것만 낸다** · N-글자 e.
+                    견본 갤러리를 그대로 두면 그림을 골랐는데 「고르는 판」이 다시 떠서
+                    무엇이 놓인 것인지 안 읽힌다 · 사용자 지적. 바꾸는 길은 아래 「바꾸기」다 */}
                 <줄 이름="그림" 곁={g.경로}>
                   <span className="imgs">
-                    {그림목록.map((it) => (
-                      <button key={it.경로}
-                              className={'imgc' + (g.경로 === it.경로 ? ' on' : '')}
-                              title={`${it.경로} · 판으로 끌어다 놓을 수 있다`}
-                              draggable
-                              onDragStart={(e) => e.dataTransfer.setData('text/plain', it.경로)}
-                              onClick={() => 그림놓기(it.경로)}>
-                        <img src={`/api/img/${it.경로.slice('assets/'.length)}`} alt="" />
-                        <em>{it.이름}</em>
-                      </button>
-                    ))}
+                    <button className="imgc on" title={g.경로}
+                            onClick={() => 그림놓기(g.경로)}>
+                      <img src={`/api/img/${g.경로.slice('assets/'.length)}`} alt="" />
+                      <em>{지금것?.이름 ?? g.경로.split('/').pop()}</em>
+                    </button>
                   </span>
                 </줄>
 
@@ -2066,12 +2005,104 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                 <줄 이름="설명" 곁="그림이 안 뜰 때 남는 글">
                   <입력 값={g.설명 ?? ''} 놓기={(v) => 그림값('설명', v)} />
                 </줄>
+
+                <div className="popln" />
+
+                {/* 바꾸기 — 견본 갤러리는 여기 산다. 놓을 때는 위가 갤러리고 ·
+                    놓은 뒤에는 아래로 내려간다 · 위는 놓인 것 하나가 지킨다 */}
+                <줄 이름="바꾸기" 곁={`누르면 갈아 끼운다 · ${그림목록.length}개`}>
+                  <span className="imgs">
+                    {그림목록.map((it) => (
+                      <button key={it.경로}
+                              className={'imgc' + (g.경로 === it.경로 ? ' on' : '')}
+                              title={`${it.경로} · 판으로 끌어다 놓을 수 있다`}
+                              draggable
+                              onDragStart={(e) => e.dataTransfer.setData('text/plain', it.경로)}
+                              onClick={() => 그림놓기(it.경로)}>
+                        <img src={`/api/img/${it.경로.slice('assets/'.length)}`} alt="" />
+                        <em>{it.이름}</em>
+                      </button>
+                    ))}
+                  </span>
+                </줄>
                 <줄 이름="그림">
                   <button className="chip warn" onClick={그림없애기}>− 그림</button>
                 </줄>
               </>
             );
           })()}
+
+          {/* ── 고른 글자 · N-글자 d ────────────────────────
+              **요소 범위와 구간 범위가 여기서 갈린다.** 위의 계층 · 크기는 문단 하나를
+              통째로 잡고 · 이 아래는 판면에서 끌어서 고른 몇 글자에만 걸린다.
+
+              **갈래별 판 아래에 둔다** · 처음엔 맨 위에 뒀는데 그러면 그림을 골라도
+              글자 판이 먼저 떠서 우측이 텍스트 판으로 보인다 · 사용자 지적 · N-글자 e */}
+          {탭 === '요소' && 구간갈래.has(고른갈래) && (
+            <>
+              {/* ── 고른 글자 · N-글자 d ────────────────────────
+                  **여기가 요소 범위와 구간 범위가 갈리는 자리다.**
+                  위의 계층 · 크기는 문단 하나를 통째로 잡는다. 이 아래는
+                  판면에서 끌어서 고른 몇 글자에만 걸린다 · 문안에 표기로 앉는다.
+
+                  칩은 다 `onMouseDown` 을 막는다. 안 막으면 누르는 순간 판면이
+                  focus 를 잃고 focusout 이 편집을 닫아 고른 자리가 사라진다. */}
+              <줄 이름="고른 글자"
+                  곁={고른글자 ? `"${고른글자.글.slice(0, 18)}"` : '판에서 끌어서 고른다'}>
+                <button className="chip" onMouseDown={(e) => e.preventDefault()}
+                        onClick={굵게} title="**굵게** · 굵기 700 + 강조색이 한 묶음이다">
+                  굵게
+                </button>
+              </줄>
+
+              {/* 색 — **도형 배경 · 테두리와 같은 꼴이다** · N-글자 e.
+                  견본 + 최근색 + #RRGGBB 자유 입력. 전에는 여기만 이름 칩 여섯이라
+                  한 도크 안에서 색 고르는 법이 둘이었다 · 사용자 지적.
+                  이름은 이름대로 둔다 — 문안에서 `{결론|38억원}` 으로 읽힌다 */}
+              {(() => {
+                const 색토큰 = 고른글자?.토큰.find(색토큰인가) ?? '';
+                return (
+                  <줄 이름="색" 곁={색토큰 || null}>
+                    {구간토큰.색.map((t) => (
+                      <색칸 key={t} 색={구간색값[t]} 이름={`${t} ${구간색값[t].slice(1)}`}
+                            지금={색토큰 === t} 누르기={() => 구간씌우기(t)} />
+                    ))}
+                    {최근색.length > 0 && <span className="swsp" />}
+                    {최근색.map((색) => (
+                      <색칸 key={색} 색={색} 이름={`최근 ${색}`} 지금={색토큰 === 색}
+                            누르기={() => 구간씌우기(색)} />
+                    ))}
+                    <span className="brk" />
+                    <색입력 값={색토큰} 이름="글자 색" 로그={set로그}
+                              놓기={(v) => { 구간씌우기(v); 색기억(v); }} />
+                  </줄>
+                );
+              })()}
+
+              {구간갈래들.filter(([갈래]) => 갈래 !== '색').map(([갈래, 목록]) => (
+                <줄 key={갈래} 이름={갈래}
+                    곁={고른글자?.토큰.find((t) => 토큰갈래(t) === 갈래) ?? null}>
+                  <span className="seg">
+                    {목록.map((t) => (
+                      <button key={t}
+                              className={'chip' + (고른글자?.토큰.includes(t) ? ' on' : '')}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => 구간씌우기(t)}
+                              title={`{${t}|고른 글자}`}>{t}</button>
+                    ))}
+                  </span>
+                </줄>
+              ))}
+
+              {/* 벗길 대상 바로 아래다. 위에 두면 무엇을 벗기는지가 흐리다 ·
+                  켠 칩을 다시 눌러 하나씩 끄는 길도 그대로 있다 */}
+              <줄 이름="민글로" 곁="씌운 것을 다 뗀다">
+                <button className="chip warn" onMouseDown={(e) => e.preventDefault()}
+                        onClick={민글로}
+                        title="고른 자리의 구간 표기와 굵게를 함께 벗긴다">민글로</button>
+              </줄>
+            </>
+          )}
 
           {탭 === '요소' && (() => {
             /* 요소 도형 — 박스 도형과 **같은 어휘 · 같은 규칙**이다.
