@@ -89,6 +89,41 @@ const 새띠 = () => ({ 현재: 0, 칸: [['1단계', '내용'], ['2단계', '내
 /* 그림 · N-그림 — 렌더러의 그림그리기() 가 받는 것과 같아야 한다.
    높이 갈래는 표와 같은 어휘다(§N-배경 b7). 다만 그림은 하나뿐이라 「몫」이 없다 —
    나눌 상대가 없어서 정수는 곧 블록 수다. */
+/* ── 요소 · N-자유 ────────────────────────────────────
+   자리 안이 배열이 되었다. 도구는 **언제나 배열로 쓴다** —
+   옛 꼴(열쇠 뭉치)은 읽기만 하고 · 손대는 순간 접어서 배열로 옮긴다.
+   렌더러의 내용읽기() 가 접는 순서와 **같아야 한다** · render/index.js §N-자유. */
+const 요소갈래들 = ['제목', '요약', '문단', '목록', '번호목록', '표', '단계띠', '수치', '그림', '여백', '출처'];
+/* 접을 때 자리에서 지우는 열쇠 — **「여백」을 뺀다.**
+   자리의 「여백」은 안쪽 패딩이고 요소의 「여백」은 42 덩이 빈 칸이다. 이름만 같은 남이다.
+   같이 지우면 접는 순간 자리 패딩이 문서 기본값으로 돌아간다 · 렌더러도 같은 예외를 둔다 */
+const 자리내용열쇠 = 요소갈래들.filter((k) => k !== '여백');
+// 요소를 새로 놓을 때 들어가는 값. 그림은 경로가 있어야 살아서 여기서 안 만든다
+const 새요소값 = {
+  제목: () => '제목', 요약: () => '요약', 문단: () => '문단',
+  목록: () => ['항목', '항목'], 번호목록: () => ['항목', '항목'],
+  표: () => 새표(), 단계띠: () => 새띠(),
+  수치: () => [['0', '건', '라벨']],
+  여백: () => 1, 출처: () => '출처',
+};
+
+/* 옛 꼴 자리를 내용 배열로 접는다. 순서는 렌더러와 같다 */
+function 자리접기(z) {
+  const out = [];
+  if (z.제목) out.push({ 제목: z.제목 });
+  if (z.요약) out.push({ 요약: z.요약 });
+  if (z.문단 != null) {
+    (Array.isArray(z.문단) ? z.문단 : [z.문단]).forEach((t) => {
+      if (String(t ?? '').trim()) out.push({ 문단: t });
+    });
+  }
+  for (const k of ['목록', '번호목록', '표', '단계띠', '수치', '그림']) {
+    if (z[k] != null) out.push({ [k]: z[k] });
+  }
+  if (z.출처) out.push({ 출처: z.출처 });
+  return out;
+}
+
 const 맞춤들 = [['전체', '전체'], ['채우기', '채우기']];
 const 그림높이갈래들 = [['채움', '채움'], ['블록', '블록'], ['%', '%']];
 const 그림높이갈래 = (h) => (h == null || h === '채움' ? '채움'
@@ -300,8 +335,11 @@ export default function Shell({ docs, first }) {
   const [배율, set배율] = useState(null);
   // 고른 자리 번호
   const [자리번호, set자리번호] = useState(null);
+  /* 고른 요소 번호 · 내용 배열 안 자리다. 옛 꼴 자리에서는 안 쓴다 —
+     그때는 자리 자신이 요소 뭉치라 속성이 자리에 걸린다 · N-자유 */
+  const [요소번호, set요소번호] = useState(null);
   // 오른쪽 도크 · 지금 연 탭
-  const [탭, set탭] = useState('도형');
+  const [탭, set탭] = useState('자리');
   /* assets/ 아래 그림 목록 · 한 번만 받는다. 파일을 새로 넣으면 새로고침한다 —
      문안 파일과 같은 규칙이다(밖에서 고치면 다시 읽어야 한다 · v8 §9 ⑦) */
   const [그림목록, set그림목록] = useState([]);
@@ -334,6 +372,9 @@ export default function Shell({ docs, first }) {
   const 시각ref = useRef(0);
   const 자ref = useRef(false);
   const 외곽선ref = useRef(false);
+  /* 판 안 리스너는 판이 뜰 때 한 번 달린다. 그때의 클로저를 물면 옛 자리번호를 본다 —
+     그래서 놓기 동작만 ref 로 빼 둔다. 판본 · 판이 갈려도 언제나 지금 것을 부른다 */
+  const 끌어놓기ref = useRef(() => {});
   const 스택 = useRef([]);        // 되돌리기 — 문서 스냅샷
   const 앞스택 = useRef([]);      // 다시 하기
 
@@ -377,6 +418,7 @@ export default function Shell({ docs, first }) {
 
   /* 면을 옮기거나 문안을 갈면 고르기를 푼다 */
   useEffect(() => { set자리번호(null); }, [i, slug]);
+  useEffect(() => { set요소번호(null); }, [자리번호, i, slug]);
 
   /* 고른 자리를 비우거나 되돌린다.
      비움은 내용과 함께 못 산다 — 렌더러가 오류를 던진다. 그래서 내용이 있으면 막는다. */
@@ -399,6 +441,86 @@ export default function Shell({ docs, first }) {
     }
   }, { 그리기: true });
 
+  /* ── 요소 · N-자유 ────────────────────────────────────
+     **속성이 걸리는 곳이 자리에서 요소로 내려갔다.**
+     새 꼴이면 고른 요소(`자리.내용[요소번호]`) · 옛 꼴이면 자리 자신이다.
+     옛 꼴을 그대로 두는 이유는 회귀 문안 여덟이 아직 옛 꼴이고 · 렌더러가 둘 다 읽어서다.
+     내용을 새로 놓는 순간(요소넣기) 자리는 배열로 접힌다 — 그때부터 요소 단위다. */
+  const 요소찾기 = (d) => {
+    const z = d.면[i]?.자리?.[자리번호];
+    if (!z) return null;
+    if (!Array.isArray(z.내용)) return z;
+    return 요소번호 == null ? null : (z.내용[요소번호] ?? null);
+  };
+
+  /* 옛 꼴 자리를 배열로 접는다. 접고 나면 옛 열쇠를 지운다 —
+     둘을 같이 두면 렌더러가 던진다 · 한 꼴로만 산다 */
+  const 접기 = (z) => {
+    if (Array.isArray(z.내용)) return z.내용;
+    const 내용 = 자리접기(z);
+    for (const k of 자리내용열쇠) delete z[k];
+    z.내용 = 내용;
+    return 내용;
+  };
+  const 배열로 = () => 바꾸기((d) => {
+    const z = d.면[i]?.자리?.[자리번호];
+    if (!z || Array.isArray(z.내용)) return false;
+    if (z.비움) { set로그('비운 자리는 접을 것이 없다'); return false; }
+    접기(z);
+  }, { 그리기: true });
+
+  /* 요소를 놓는다 · 뺀다 · 옮긴다. 놓으면 옛 꼴 자리가 먼저 배열로 접힌다 */
+  const 요소넣기 = (열쇠, 값) => 바꾸기((d) => {
+    const z = d.면[i]?.자리?.[자리번호];
+    if (!z) return false;
+    if (z.비움) { set로그('비운 자리에는 못 놓는다 · 비움을 먼저 푼다'); return false; }
+    const 내용 = 접기(z);
+    const v = 값 !== undefined ? 값 : 새요소값[열쇠]?.();
+    if (v === undefined) { set로그(`"${열쇠}" 는 값 없이 못 놓는다`); return false; }
+    // 고른 요소 바로 뒤에 넣는다. 안 골랐으면 끝에 붙인다
+    const 자리 = 요소번호 == null ? 내용.length : 요소번호 + 1;
+    내용.splice(자리, 0, { [열쇠]: v });
+    set요소번호(자리);
+  }, { 그리기: true });
+
+  const 요소빼기 = (j) => 바꾸기((d) => {
+    const z = d.면[i]?.자리?.[자리번호];
+    if (!Array.isArray(z?.내용) || z.내용[j] == null) return false;
+    z.내용.splice(j, 1);
+    set요소번호(z.내용.length ? Math.min(j, z.내용.length - 1) : null);
+  }, { 그리기: true });
+
+  const 요소옮기기 = (j, 걸음) => 바꾸기((d) => {
+    const z = d.면[i]?.자리?.[자리번호];
+    const k = j + 걸음;
+    if (!Array.isArray(z?.내용) || k < 0 || k >= z.내용.length) return false;
+    [z.내용[j], z.내용[k]] = [z.내용[k], z.내용[j]];
+    set요소번호(k);
+  }, { 그리기: true });
+
+  /* 열쇠로 지운다 — 새 꼴이면 고른 요소를 통째로 · 옛 꼴이면 자리에서 그 열쇠만 */
+  const 요소지우기 = (열쇠) => 바꾸기((d) => {
+    const z = d.면[i]?.자리?.[자리번호];
+    if (!z) return false;
+    if (!Array.isArray(z.내용)) {
+      if (z[열쇠] == null) return false;
+      delete z[열쇠];
+      return;
+    }
+    if (요소번호 == null || z.내용[요소번호]?.[열쇠] == null) return false;
+    z.내용.splice(요소번호, 1);
+    set요소번호(z.내용.length ? Math.min(요소번호, z.내용.length - 1) : null);
+  }, { 그리기: true });
+
+  /* 요소 도형 — 자리 도형과 같은 어휘 · 같은 규칙이다. 빈 값이면 열쇠를 지운다 */
+  const 요소도형바꾸기 = (열쇠, 값) => 바꾸기((d) => {
+    const el = 요소찾기(d);
+    if (!el || el.비움) return false;
+    const s = { ...(el.도형 ?? {}) };
+    if (값 === '' || 값 == null) delete s[열쇠]; else s[열쇠] = 값;
+    if (Object.keys(s).length) el.도형 = s; else delete el.도형;
+  }, { 그리기: true });
+
   /* 고른 자리의 도형을 고친다 — 배경 · 테두리 · 모서리 · 그림자 · 투명도 · 글자 반전.
      빈 값을 주면 그 열쇠를 지우고 · 남는 열쇠가 없으면 "도형" 을 통째로 없앤다.
      안 보이는 값을 문안에 남기지 않는다 — 렌더러가 도형 문자열을 안 내는 것과 같은 규칙이다. */
@@ -419,18 +541,13 @@ export default function Shell({ docs, first }) {
      열과 행을 넣고 뺄 때 머리 · 모든 행 · 폭 · 높이 · 칠 이 **함께** 움직여야 한다.
      하나라도 어긋나면 렌더러가 「행마다 칸 수가 같다」에서 던진다. */
   const 표바꾸기 = (fn) => 바꾸기((d) => {
-    const z = d.면[i]?.자리?.[자리번호];
-    if (!z?.표) return false;
-    return fn(z.표, z);
+    const el = 요소찾기(d);
+    if (!el?.표) return false;
+    return fn(el.표, el);
   }, { 그리기: true });
 
-  const 표만들기 = () => 바꾸기((d) => {
-    const z = d.면[i]?.자리?.[자리번호];
-    if (!z || z.표) return false;
-    if (z.비움) { set로그('비운 자리에는 표를 못 놓는다 · 비움을 먼저 푼다'); return false; }
-    z.표 = 새표();
-  }, { 그리기: true });
-  const 표없애기 = () => 표바꾸기((t, z) => { delete z.표; });
+  const 표만들기 = () => 요소넣기('표');
+  const 표없애기 = () => 요소지우기('표');
 
   const 표열넣기 = () => 표바꾸기((t) => {
     const n = 표열수(t);
@@ -803,8 +920,36 @@ export default function Shell({ docs, first }) {
         d.addEventListener('click', (e) => {
           if (e.target.isContentEditable) return;
           const 자리 = e.target.closest?.('[data-자리]');
-          if (자리) set자리번호(Number(자리.getAttribute('data-자리')));
-          else if (!e.target.closest?.('[data-p]')) set자리번호(null);
+          if (!자리) { if (!e.target.closest?.('[data-p]')) set자리번호(null); return; }
+          set자리번호(Number(자리.getAttribute('data-자리')));
+          /* 요소도 같이 고른다 · N-자유. 렌더러가 도구 모드에서만 data-요소 를 붙인다.
+             옛 꼴 자리에는 안 붙는다 — 그때는 속성이 자리에 걸린다 */
+          const 요소 = e.target.closest?.('[data-요소]');
+          set요소번호(요소 ? Number(요소.getAttribute('data-요소')) : null);
+        });
+
+        /* 도크 그림 견본을 판의 자리로 끌어다 놓는다 · N-자유.
+           srcdoc 은 부모와 같은 출처라 dataTransfer 가 문서 경계를 넘는다.
+           **좌표를 안 쓴다** — closest('.bx') 로 자리를 찾으므로 바깥 축척과 무관하다.
+           판이 새로 뜰 때마다 이 onLoad 가 다시 단다 · 기존 리스너와 같은 길이다. */
+        const 끌자리 = (ev) => ev.target?.closest?.('[data-자리]');
+        d.addEventListener('dragover', (e) => {
+          const bx = 끌자리(e);
+          if (!bx) return;
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'copy';
+          d.querySelectorAll('.bx.drop').forEach((el) => el.classList.remove('drop'));
+          bx.classList.add('drop');
+        });
+        d.addEventListener('dragleave', (e) => 끌자리(e)?.classList.remove('drop'));
+        d.addEventListener('drop', (e) => {
+          const bx = 끌자리(e);
+          d.querySelectorAll('.bx.drop').forEach((el) => el.classList.remove('drop'));
+          if (!bx) return;
+          e.preventDefault();
+          const 경로 = e.dataTransfer.getData('text/plain');
+          if (!경로.startsWith('assets/')) return;
+          끌어놓기ref.current(Number(bx.getAttribute('data-자리')), 경로);
         });
 
         // srcdoc 이 갈리면 문서가 새로 만들어져 클래스가 날아간다. 다시 입힌다.
@@ -839,18 +984,13 @@ export default function Shell({ docs, first }) {
 
   /* ── 단계띠 · N-배경 c ── */
   const 띠바꾸기 = (fn) => 바꾸기((d) => {
-    const z = d.면[i]?.자리?.[자리번호];
-    if (!z?.단계띠) return false;
-    return fn(z.단계띠, z);
+    const el = 요소찾기(d);
+    if (!el?.단계띠) return false;
+    return fn(el.단계띠, el);
   }, { 그리기: true });
 
-  const 띠만들기 = () => 바꾸기((d) => {
-    const z = d.면[i]?.자리?.[자리번호];
-    if (!z || z.단계띠) return false;
-    if (z.비움) { set로그('비운 자리에는 못 놓는다'); return false; }
-    z.단계띠 = 새띠();
-  }, { 그리기: true });
-  const 띠없애기 = () => 띠바꾸기((t, z) => { delete z.단계띠; });
+  const 띠만들기 = () => 요소넣기('단계띠');
+  const 띠없애기 = () => 요소지우기('단계띠');
 
   const 띠칸넣기 = () => 띠바꾸기((t) => {
     if (t.칸.length >= 6) { set로그('칸은 여섯까지다'); return false; }
@@ -876,25 +1016,55 @@ export default function Shell({ docs, first }) {
      읽기는 두 꼴 다 받는다 — 손으로 짧게 적은 문안을 열어도 탭이 뜬다. */
   const 그림읽기 = (z) => (typeof z?.그림 === 'string' ? { 경로: z.그림 } : z?.그림 ?? null);
   const 그림바꾸기 = (fn) => 바꾸기((d) => {
-    const z = d.면[i]?.자리?.[자리번호];
-    if (z?.그림 == null) return false;
-    if (typeof z.그림 === 'string') z.그림 = { 경로: z.그림 };   // 짧은 꼴을 펴 놓는다
-    return fn(z.그림, z);
+    const el = 요소찾기(d);
+    if (el?.그림 == null) return false;
+    if (typeof el.그림 === 'string') el.그림 = { 경로: el.그림 };   // 짧은 꼴을 펴 놓는다
+    return fn(el.그림, el);
   }, { 그리기: true });
 
   const 그림놓기 = (경로) => 바꾸기((d) => {
     const z = d.면[i]?.자리?.[자리번호];
     if (!z) return false;
     if (z.비움) { set로그('비운 자리에는 그림을 못 놓는다 · 비움을 먼저 푼다'); return false; }
-    if (typeof z.그림 === 'string') z.그림 = { 경로: z.그림 };
-    if (z.그림) { if (z.그림.경로 === 경로) return false; z.그림.경로 = 경로; return; }
-    /* 새로 놓을 때 높이를 정해 준다 — 기본값 「채움」은 앞에 문단 · 목록 · 표가 있으면
-       렌더러가 던진다. 그 자리에서 오류판으로 떨어지지 않게 미리 블록 수로 앉힌다.
-       비어 있는 자리면 채움 그대로 둔다 · 그게 가장 흔한 쓰임이다 */
-    const 앞것 = ['문단', '목록', '번호목록', '표', '단계띠', '수치'].some((k) => z[k] != null);
-    z.그림 = 앞것 ? { 경로, 높이: 6 } : { 경로 };
+    // 이미 고른 요소가 그림이면 경로만 간다
+    const el = 요소찾기(d);
+    if (el?.그림 != null) {
+      if (typeof el.그림 === 'string') el.그림 = { 경로: el.그림 };
+      if (el.그림.경로 === 경로) return false;
+      el.그림.경로 = 경로;
+      return;
+    }
+    /* 새로 놓을 때 높이를 정해 준다 — 기본값 「채움」은 같은 자리에 문단 · 목록이 있으면
+       줄 수를 못 세서 렌더러가 던진다. 그 자리에서 오류판으로 떨어지지 않게
+       미리 블록 수로 앉힌다 · 빈 자리면 채움 그대로 둔다 · 그게 가장 흔한 쓰임이다 */
+    const 내용 = 접기(z);
+    const 못셀것 = 내용.some((e) => ['문단', '목록', '번호목록', '단계띠'].some((k) => e[k] != null));
+    const 자리 = 요소번호 == null ? 내용.length : 요소번호 + 1;
+    내용.splice(자리, 0, { 그림: 못셀것 ? { 경로, 높이: 6 } : { 경로 } });
+    set요소번호(자리);
   }, { 그리기: true });
-  const 그림없애기 = () => 그림바꾸기((g, z) => { delete z.그림; });
+  const 그림없애기 = () => 요소지우기('그림');
+
+  /* 판에 떨어뜨렸을 때 · 그 자리를 먼저 고르고 그림을 끝에 놓는다.
+     자리를 고르는 것과 놓는 것을 한 번에 해야 한다 — set자리번호 는 다음 렌더에나
+     반영되므로 그림놓기() 가 옛 자리번호를 본다. 그래서 여기서 통째로 쓴다 */
+  const 판에놓기 = (자리n, 경로) => 바꾸기((d) => {
+    const z = d.면[i]?.자리?.[자리n];
+    if (!z) return false;
+    if (z.비움) { set로그('비운 자리에는 그림을 못 놓는다 · 비움을 먼저 푼다'); return false; }
+    const 내용 = Array.isArray(z.내용) ? z.내용 : (() => {
+      const v = 자리접기(z);
+      for (const k of 자리내용열쇠) delete z[k];
+      z.내용 = v;
+      return v;
+    })();
+    const 못셀것 = 내용.some((e) => ['문단', '목록', '번호목록', '단계띠'].some((k) => e[k] != null));
+    내용.push({ 그림: 못셀것 ? { 경로, 높이: 6 } : { 경로 } });
+    set자리번호(자리n);
+    set요소번호(내용.length - 1);
+    set탭('그림');
+  }, { 그리기: true });
+  useEffect(() => { 끌어놓기ref.current = 판에놓기; });
 
   // 빈 값을 주면 열쇠를 지운다 · 도형바꾸기와 같은 규칙
   const 그림값 = (열쇠, 값) => 그림바꾸기((g) => {
@@ -936,6 +1106,13 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
   const 썸폭 = 168;
 
   const 고른 = 자리번호 == null ? null : 현재?.자리?.[자리번호];
+  /* 고른 요소 · N-자유. 새 꼴이면 내용 배열의 한 칸 · 옛 꼴이면 자리 자신이다.
+     탭(표 · 단계띠 · 그림 · 요소도형)이 전부 이걸 본다 — 요소찾기() 의 읽기판이다 */
+  const 고른내용 = Array.isArray(고른?.내용) ? 고른.내용 : null;
+  const 고른요소 = 고른내용
+    ? (요소번호 == null ? null : (고른내용[요소번호] ?? null))
+    : 고른;
+  const 요소열쇠 = (el) => 요소갈래들.find((k) => el?.[k] != null) ?? null;
 
   return (
     <div className="shell">
@@ -1071,15 +1248,64 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
           </div>
         )}
 
+        {고른 && !고른.비움 && (
+          <div className="dkln">
+            {/* 내용 목록 — **자리 안이 배열이다.** 한 줄이 요소 하나고 · 누르면 고른다.
+                옛 꼴 자리는 접기 전까지 목록이 안 뜬다 · 「배열로」 를 누르거나
+                무엇이든 하나 놓으면 그때 접힌다 · N-자유 */}
+            <div className="fld">
+              <span className="fldnm">내용{고른내용 ? <em>{고른내용.length}개</em> : <em>옛 꼴</em>}</span>
+              <span className="fldv">
+                {!고른내용 && (
+                  <button className="chip" onClick={배열로} title="자리 안을 내용 배열로 접는다">
+                    배열로
+                  </button>
+                )}
+              </span>
+            </div>
+            {고른내용 && (
+              <div className="elrows">
+                {고른내용.map((el, j) => {
+                  const k = 요소열쇠(el);
+                  return (
+                    <div key={j} className={'elrow' + (요소번호 === j ? ' on' : '')}
+                         onClick={() => set요소번호(j)}>
+                      <span className="eln">{k ?? '?'}</span>
+                      <em>{맛보기(el, k)}</em>
+                      {el.도형 && <span className="eldot" title="요소 도형" />}
+                      <button className="chip mini" title="위로"
+                              onClick={(e) => { e.stopPropagation(); 요소옮기기(j, -1); }}>↑</button>
+                      <button className="chip mini" title="아래로"
+                              onClick={(e) => { e.stopPropagation(); 요소옮기기(j, 1); }}>↓</button>
+                      <button className="chip mini warn" title="뺀다"
+                              onClick={(e) => { e.stopPropagation(); 요소빼기(j); }}>−</button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <div className="fld">
+              <span className="fldnm">놓기{고른내용 && 요소번호 != null ? <em>고른 것 뒤에</em> : null}</span>
+              <span className="fldv">
+                {요소갈래들.filter((k) => k !== '그림').map((k) => (
+                  <button key={k} className="chip" onClick={() => 요소넣기(k)}>+ {k}</button>
+                ))}
+                <button className="chip" onClick={() => set탭('그림')}
+                        title="그림은 [그림] 탭에서 견본을 눌러 놓는다">+ 그림</button>
+              </span>
+            </div>
+          </div>
+        )}
+
         <div className="tabs">
-          {['도형', '표', '단계띠', '그림'].map((v) => (
+          {['자리', '요소', '표', '단계띠', '그림'].map((v) => (
             <button key={v} className={'tab' + (탭 === v ? ' on' : '')}
                     onClick={() => set탭(v)}>{v}</button>
           ))}
         </div>
 
         <div className="dkbd">
-          {탭 === '도형' && (() => {
+          {탭 === '자리' && (() => {
             const z = 고른;
             const s = z?.도형 ?? {};
             const 켬 = !!z && !z.비움;
@@ -1160,6 +1386,88 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
             );
           })()}
 
+          {탭 === '요소' && (() => {
+            /* 요소 도형 — 자리 도형과 **같은 어휘 · 같은 규칙**이다.
+               다른 것은 걸리는 범위 하나다 · 자리 사각형이 아니라 요소 한 덩이.
+               글자 요소면 렌더러가 좌우 21 을 들인다 · 세로는 안 준다 · N-자유 */
+            const el = 고른요소;
+            if (고른?.비움) return <p className="dim">비운 자리</p>;
+            if (!고른) return <p className="dim">자리를 고른다</p>;
+            if (!el) return <p className="dim">요소를 고른다 · 위 목록에서 한 줄을 누른다</p>;
+            const s = el.도형 ?? {};
+            const 이름표 = (열쇠, 표) => 표.find(([v]) => v === (s[열쇠] ?? ''))?.[1]
+              ?? (HEX6.test(s[열쇠] ?? '') ? s[열쇠] : null);
+            return (
+              <>
+                <줄 이름="요소" 곁={맛보기(el, 요소열쇠(el))}>
+                  <span className="seg">
+                    <button className="chip" onClick={() => 요소옮기기(요소번호, -1)}>↑</button>
+                    <button className="chip" onClick={() => 요소옮기기(요소번호, 1)}>↓</button>
+                  </span>
+                  <button className="chip warn" onClick={() => 요소빼기(요소번호)}>− 요소</button>
+                </줄>
+
+                <div className="popln" />
+
+                <줄 이름="배경" 곁={이름표('배경', 도형배경들)}>
+                  {도형배경들.map(([v, 이름, 색]) => (
+                    <색칸 key={v || 'n'} 색={색} 이름={이름} 지금={(s.배경 ?? '') === v}
+                          누르기={() => 요소도형바꾸기('배경', v)} />
+                  ))}
+                  {최근색.length > 0 && <span className="swsp" />}
+                  {최근색.map((색) => (
+                    <색칸 key={색} 색={색} 이름={`최근 ${색}`} 지금={s.배경 === 색}
+                          누르기={() => 요소도형바꾸기('배경', 색)} />
+                  ))}
+                  <span className="brk" />
+                  <색입력 값={s.배경} 이름="배경" 로그={set로그}
+                            놓기={(v) => { 요소도형바꾸기('배경', v); 색기억(v); }} />
+                </줄>
+                <줄 이름="투명도">
+                  <수칸 열쇠="투명도" 값={s.투명도} 기본={100} 열림={!!s.배경}
+                        로그={set로그} 놓기={(n) => 요소도형바꾸기('투명도', n)} />
+                </줄>
+
+                <div className="popln" />
+
+                <줄 이름="테두리" 곁={이름표('테두리', 도형테두리들)}>
+                  {도형테두리들.map(([v, 이름, 색]) => (
+                    <색칸 key={v || 'n'} 색={색} 이름={이름} 지금={(s.테두리 ?? '') === v}
+                          누르기={() => 요소도형바꾸기('테두리', v)} />
+                  ))}
+                  <span className="brk" />
+                  <색입력 값={s.테두리} 이름="테두리" 로그={set로그}
+                            놓기={(v) => { 요소도형바꾸기('테두리', v); 색기억(v); }} />
+                </줄>
+                <줄 이름="굵기">
+                  <수칸 열쇠="굵기" 값={s.굵기} 기본={1} 열림={!!s.테두리}
+                        로그={set로그} 놓기={(n) => 요소도형바꾸기('굵기', n)} />
+                </줄>
+                <줄 이름="모서리">
+                  <수칸 열쇠="모서리" 값={s.모서리} 기본={10}
+                        로그={set로그} 놓기={(n) => 요소도형바꾸기('모서리', n)} />
+                </줄>
+                <줄 이름="그림자">
+                  <span className="seg">
+                    {도형그림자들.map(([v, 이름]) => (
+                      <button key={v || 'n'} className={'chip' + ((s.그림자 ?? '') === v ? ' on' : '')}
+                              onClick={() => 요소도형바꾸기('그림자', v)}>{이름}</button>
+                    ))}
+                  </span>
+                </줄>
+
+                <div className="popln" />
+
+                <줄 이름="글자">
+                  <button className={'chip' + (s.글자 === '반전' ? ' on' : '')}
+                          onClick={() => 요소도형바꾸기('글자', s.글자 === '반전' ? '' : '반전')}>
+                    반전
+                  </button>
+                </줄>
+              </>
+            );
+          })()}
+
           {탭 === '표' && (() => {
             const z = 고른;
             const t = z?.표 ?? null;
@@ -1176,7 +1484,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
               ? t.높이.map((v, k) => (공백인가(v) ? `빈 ${높이갈 === '%' ? 높이비율[k] + '%' : 슬롯값(v)}`
                   : String(높이갈 === '%' ? 높이비율[k] + '%' : 슬롯값(v))))
               : [];
-            if (!켬) return <p className="dim">{z?.비움 ? '비운 자리' : '자리를 고른다'}</p>;
+            if (!켬) return <p className="dim">{고른?.비움 ? '비운 자리' : '자리를 고른다'}</p>;
             if (!t) return <button className="chip" onClick={표만들기}>+ 표</button>;
             return (
               <>
@@ -1295,10 +1603,10 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
           })()}
 
           {탭 === '단계띠' && (() => {
-            const z = 고른;
+            const z = 고른요소;
             const t = z?.단계띠 ?? null;
-            const 켬 = !!z && !z.비움;
-            if (!켬) return <p className="dim">{z?.비움 ? '비운 자리' : '자리를 고른다'}</p>;
+            const 켬 = !!z && !고른?.비움;
+            if (!켬) return <p className="dim">{고른?.비움 ? '비운 자리' : '자리를 고른다'}</p>;
             if (!t) return <button className="chip" onClick={띠만들기}>+ 단계띠</button>;
             const 색줄 = (열쇠) => (
               <>
@@ -1364,10 +1672,10 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
           })()}
 
           {탭 === '그림' && (() => {
-            const z = 고른;
+            const z = 고른요소;
             const g = 그림읽기(z);
-            const 켬 = !!z && !z.비움;
-            if (!켬) return <p className="dim">{z?.비움 ? '비운 자리' : '자리를 고른다'}</p>;
+            const 켬 = !!고른 && !고른.비움;
+            if (!켬) return <p className="dim">{고른?.비움 ? '비운 자리' : '자리를 고른다'}</p>;
             /* 그림이 없으면 목록만 낸다 — **고르는 것이 곧 놓는 것이다.**
                「+ 그림」 버튼을 따로 두면 경로 없는 그림이 한 박자 생겨 렌더러가 던지고
                그 면이 통째로 오류판이 되어 자리를 다시 못 고른다 · §7 첫째 구멍.
@@ -1380,7 +1688,9 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                 <줄 이름="그림" 곁={`누르면 놓인다 · ${그림목록.length}개`}>
                   <span className="imgs">
                     {그림목록.map((it) => (
-                      <button key={it.경로} className="imgc" title={it.경로}
+                      <button key={it.경로} className="imgc" title={`${it.경로} · 판으로 끌어다 놓을 수 있다`}
+                              draggable
+                              onDragStart={(e) => e.dataTransfer.setData('text/plain', it.경로)}
                               onClick={() => 그림놓기(it.경로)}>
                         <img src={`/api/img/${it.경로.slice('assets/'.length)}`} alt="" />
                         <em>{it.이름}</em>
@@ -1398,7 +1708,9 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                     {그림목록.map((it) => (
                       <button key={it.경로}
                               className={'imgc' + (g.경로 === it.경로 ? ' on' : '')}
-                              title={it.경로}
+                              title={`${it.경로} · 판으로 끌어다 놓을 수 있다`}
+                              draggable
+                              onDragStart={(e) => e.dataTransfer.setData('text/plain', it.경로)}
                               onClick={() => 그림놓기(it.경로)}>
                         <img src={`/api/img/${it.경로.slice('assets/'.length)}`} alt="" />
                         <em>{it.이름}</em>

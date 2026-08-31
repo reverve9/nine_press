@@ -552,7 +552,7 @@ function 표그리기(t, i, 안폭, 남은, P, 겉) {
      인라인을 쓸 때는 간격 클래스를 g0 으로 바꿔 둘이 겹치지 않게 한다. */
   return `<div class="tb ${위로 ? 'g0' : 겉.클래스}" style="height:${총높이}px` +
     (위로 ? `;margin-top:${겉.간격 + 위로}px` : '') + 겉.스타일 +
-    `">${바탕.join('')}${줄.join('')}${칸.join('')}</div>`;
+    `"${겉.표식 ?? ''}>${바탕.join('')}${줄.join('')}${칸.join('')}</div>`;
 }
 
 /* ─────────────────── §N-배경 c · 단계띠 ───────────────────
@@ -588,8 +588,8 @@ function 단계띠그리기(t, i, P, 겉) {
       `쓸 수 있는 값은 "반전" 뿐이다`);
   }
 
-  return `<div class="sp ${겉.클래스}"${겉.스타일 ? ` style="${겉.스타일.slice(1)}"` : ''}>` +
-    칸.map((c, j) => {
+  return `<div class="sp ${겉.클래스}"${겉.스타일 ? ` style="${겉.스타일.slice(1)}"` : ''}` +
+    `${겉.표식 ?? ''}>` + 칸.map((c, j) => {
     const [머리, 내용] = Array.isArray(c) ? c : [c, ''];
     const 지금 = j === t.현재;
     const 바탕 = 지금 ? (현재칠 ?? 칠) : 칠;
@@ -689,7 +689,7 @@ function 그림그리기(그림, i, 남은, 겉) {
 
   /* **인라인 margin-top 을 안 쓴다** · §N-배경 b 가 표에서 물린 함정이다.
      위 간격은 겉이 준 클래스 하나가 맡는다 · rules/page.css ㉜. */
-  return `<div class="im ${겉.클래스}" style="height:${h}px${겉.스타일}">` +
+  return `<div class="im ${겉.클래스}" style="height:${h}px${겉.스타일}"${겉.표식 ?? ''}>` +
     `<img src="${경로}" alt="${esc(g.설명 ?? '')}" style="object-fit:${맞춤이름[맞춤]}">` +
     `</div>`;
 }
@@ -910,7 +910,7 @@ function 블록(자리, r, i, 여백문서) {
 
   // 표식 없이 빈 자리 — 일부러 비운 것과 가른다. 도구 모드에서만 보인다
   if (도구 && o.length === 1) o.push(
-    `<div class="emp warn"><span>빈 자리</span><i>일부러 비울 거면 "비움" 을 준다</i></div>`);
+    `<div class="emp warn add"><span>+</span><i>도크에서 내용을 놓는다 · 일부러 비울 거면 "비움"</i></div>`);
   o.push('</div>');
   return o.join('');
 }
@@ -933,9 +933,12 @@ function 요소도형(요소, 열쇠, i, j) {
 
 function 요소그리기({ 요소, 열쇠, 경로 }, i, j, 안폭, 남은, 겉) {
   const 반전 = 요소.도형?.글자 === '반전' ? ` data-글자="반전"` : '';
+  // 요소 번호는 도구 모드에서만 붙인다 — 편집기가 요소를 고르는 근거다. 출력에는 없다
+  const 표식 = (도구 ? ` data-요소="${j}"` : '') + 반전;
+  겉.표식 = 표식;
   const 덩이 = (cls, 속) =>
     `<div class="${cls} ${겉.클래스}"${겉.스타일 ? ` style="${겉.스타일.slice(1)}"` : ''}` +
-    `${반전}${dp(경로(열쇠))}>${속}</div>`;
+    `${표식}${dp(경로(열쇠))}>${속}</div>`;
 
   switch (열쇠) {
     case '제목': return 덩이('bt', inline(요소.제목));
@@ -943,7 +946,7 @@ function 요소그리기({ 요소, 열쇠, 경로 }, i, j, 안폭, 남은, 겉) 
     case '문단': return 빔(요소.문단) ? '' : 덩이('bd', inline(요소.문단));
     case '출처': return 덩이('lb', inline(요소.출처));
 
-    case '여백': return `<div class="sx ${겉.클래스}" style="height:${요소.여백 * 42}px"></div>`;
+    case '여백': return `<div class="sx ${겉.클래스}" style="height:${요소.여백 * 42}px"${표식}></div>`;
 
     // 목록 — 항목 하나가 편집 잎사귀 하나다. data-p 는 li 에 붙는다
     case '목록': case '번호목록': {
@@ -956,7 +959,7 @@ function 요소그리기({ 요소, 열쇠, 경로 }, i, j, 안폭, 남은, 겉) 
         .join('');
       if (!항목) return '';
       return `<${태그} class="${cls} ${겉.클래스}"` +
-        `${겉.스타일 ? ` style="${겉.스타일.slice(1)}"` : ''}${반전}>${항목}</${태그}>`;
+        `${겉.스타일 ? ` style="${겉.스타일.slice(1)}"` : ''}${표식}>${항목}</${태그}>`;
     }
 
     case '표':
@@ -980,7 +983,7 @@ function 요소그리기({ 요소, 열쇠, 경로 }, i, j, 안폭, 남은, 겉) 
       }).join('');
       if (!칸) return '';
       return `<div class="nm ${겉.클래스}"` +
-        `${겉.스타일 ? ` style="${겉.스타일.slice(1)}"` : ''}${반전}>${칸}</div>`;
+        `${겉.스타일 ? ` style="${겉.스타일.slice(1)}"` : ''}${표식}>${칸}</div>`;
     }
 
     case '그림':
