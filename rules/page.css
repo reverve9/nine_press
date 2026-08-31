@@ -540,10 +540,19 @@ b{font-weight:700;color:var(--강조)}
 .ov{position:absolute;pointer-events:none}
 .ov.ln{border-radius:0}
 
-/* 도구에서 얹은 것을 고를 때만 누를 수 있게 연다 · 문안에 안 남는다 */
-.wrap.ovp .ov{pointer-events:auto;cursor:default}
-.wrap.ovp .ov:hover{outline:1px solid rgba(230,129,0,.45);outline-offset:2px}
-.ov.opick{outline:2px solid #E68100;outline-offset:2px}
+/* 도구에서 얹은 것을 고를 때만 누를 수 있게 연다 · 문안에 안 남는다.
+
+   **누를 자리를 넓힌다.** 선은 굵기가 곧 클릭 영역이라 2px 선은 화면 축척 30% 에서
+   0.6px 이 되어 못 누른다 — 드래그도 클릭도 통째로 안 먹었다 · 사용자 지적.
+   투명한 테를 `::before` 로 둘러 30px 짜리 과녁을 만든다. 보이는 것은 안 바뀐다.
+   `::before` 는 제 부모가 눌린 것으로 잡히므로 `closest('[data-얹기]')` 가 그대로 먹는다.
+
+   **얹은 것을 옅게 드러낸다.** 2px 선은 어디 있는지 눈으로 못 찾는다 ·
+   [얹기] 탭일 때만이고 문안 · 출력에는 안 나간다. */
+.wrap.ovp .ov{pointer-events:auto;cursor:move;outline:1px dashed rgba(230,129,0,.3)}
+.wrap.ovp .ov:before{content:"";position:absolute;left:-14px;top:-14px;right:-14px;bottom:-14px}
+.wrap.ovp .ov:hover{outline:1px solid rgba(230,129,0,.55);outline-offset:2px}
+.wrap.ovp .ov.opick{outline:2px solid #E68100;outline-offset:2px}
 
 /* ── 인쇄 — 297 × 210mm · 도련 없음 ──
    2339px(96dpi = 618.86mm)을 297mm 에 맞춘다 : 297 / 618.86 = .47991
