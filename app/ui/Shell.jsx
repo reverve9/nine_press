@@ -414,6 +414,27 @@ function 색칸({ 색, 이름, 지금, 누르기 }) {
   );
 }
 
+/* 고르는 자리에 낼 묶음 — 사업 하나가 묶음 하나다.
+   `_check` 열셋은 「검사 문안」 한 묶음으로 맨 아래로 민다 · listDocs 가 이미 뒤로 정렬해 둔다. */
+function 묶기(docs) {
+  const 순서 = [];
+  const 통 = new Map();
+  for (const d of docs) {
+    const 이름 = d.검사 ? '검사 문안' : d.사업;
+    if (!통.has(이름)) { 통.set(이름, []); 순서.push(이름); }
+    통.get(이름).push(d);
+  }
+  return 순서.map((이름) => [이름, 통.get(이름)]);
+}
+
+/* 지난번에 열었던 문안으로 돌아온다 — 이 브라우저에만 남는다.
+   못 읽어도(프라이빗 창 · 저장 막은 설정) 그냥 기본 시작점으로 간다. */
+const 기억열쇠 = 'nine_press.문안';
+const 기억 = {
+  읽기: () => { try { return localStorage.getItem(기억열쇠); } catch { return null; } },
+  쓰기: (v) => { try { localStorage.setItem(기억열쇠, v); } catch { /* 그냥 안 남긴다 */ } },
+};
+
 export default function Shell({ docs, first }) {
   const [slug, setSlug] = useState(first?.slug ?? '');
   const [doc, setDoc] = useState(first?.doc ?? null);
@@ -433,6 +454,7 @@ export default function Shell({ docs, first }) {
   // 배율 · null 이면 창에 맞춘다. 숫자면 그 배율로 못박는다.
   // 키노트와 견주려면 못박아야 한다 — 키노트 50% 와 여기 50% 가 같은 크기다
   const [배율, set배율] = useState(null);
+  const 묶음 = useMemo(() => 묶기(docs), [docs]);
   // 고른 박스 번호
   const [박스번호, set박스번호] = useState(null);
   /* 고른 요소 번호 · 내용 배열 안 박스다. 옛 꼴 박스에서는 안 쓴다 —
@@ -518,6 +540,14 @@ export default function Shell({ docs, first }) {
   }, []);
 
   useEffect(() => { if (slug) 불러오기(slug); }, [slug, 불러오기]);
+
+  // 마운트 때 한 번 — 지난 자리가 아직 있는 문안이면 그리로 옮긴다
+  useEffect(() => {
+    const 지난 = 기억.읽기();
+    if (지난 && 지난 !== slug && docs.some((d) => d.slug === 지난)) setSlug(지난);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => { if (slug) 기억.쓰기(slug); }, [slug]);
   useEffect(() => { 문서ref.current = doc; }, [doc]);
   useEffect(() => { 페이지ref.current = i; }, [i]);
   useEffect(() => { 시각ref.current = mtime; }, [mtime]);
@@ -1757,8 +1787,12 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
             페이지 목록 바로 위가 제자리다 — 문안을 고르면 그 아래가 통째로 바뀐다 */}
         <div className="dochd">
           <select className="pick" value={slug} onChange={(e) => setSlug(e.target.value)}>
-            {docs.map((d) => (
-              <option key={d.slug} value={d.slug}>{d.사업} / {d.이름}</option>
+            {묶음.map(([이름, 목록]) => (
+              <optgroup key={이름} label={이름}>
+                {목록.map((d) => (
+                  <option key={d.slug} value={d.slug}>{d.이름}</option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </div>

@@ -1,11 +1,12 @@
 import Shell from './ui/Shell.jsx';
-import { listDocs, loadDoc } from './lib/docs.js';
+import { listDocs, loadDoc, firstDoc } from './lib/docs.js';
 
 export const dynamic = 'force-dynamic';
 
 export default function Page() {
   const docs = listDocs();
-  const first = docs[0] ? { slug: docs[0].slug, doc: loadDoc(docs[0].slug) } : null;
+  const 첫 = firstDoc(docs);
+  const first = 첫 ? { slug: 첫.slug, doc: loadDoc(첫.slug) } : null;
 
   if (!docs.length) {
     return (

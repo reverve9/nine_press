@@ -5,7 +5,11 @@ import path from 'node:path';
 export const ROOT = process.cwd();
 const CONTENT = path.join(ROOT, 'content');
 
-/** [{ slug:'sokcho/실행계획서', 사업:'sokcho', 이름:'실행계획서' }] */
+/** [{ slug:'sokcho/실행계획서', 사업:'sokcho', 이름:'실행계획서', 검사:false }]
+ *
+ *  `_` 로 시작하는 폴더는 **사업이 아니라 검사 문안**이다(`content/_check`).
+ *  그냥 slug 로 정렬하면 `_check` 가 맨 앞에 와서 열세 개가 실제 문서 셋을 덮는다 —
+ *  고르는 자리의 첫 줄이 늘 검사 문안이었다. **검사 문안은 뒤로 민다.** */
 export function listDocs() {
   if (!fs.existsSync(CONTENT)) return [];
   const out = [];
@@ -15,10 +19,18 @@ export function listDocs() {
     for (const f of fs.readdirSync(dir)) {
       if (!f.endsWith('.json')) continue;
       const 이름 = f.slice(0, -5);
-      out.push({ slug: `${사업}/${이름}`, 사업, 이름 });
+      out.push({ slug: `${사업}/${이름}`, 사업, 이름, 검사: 사업.startsWith('_') });
     }
   }
-  return out.sort((a, b) => a.slug.localeCompare(b.slug, 'ko'));
+  return out.sort((a, b) =>
+    (a.검사 - b.검사) ||
+    a.사업.localeCompare(b.사업, 'ko') ||
+    a.이름.localeCompare(b.이름, 'ko'));
+}
+
+/** 앱을 열 때 앉을 자리 — **검사 문안이 아닌 첫 문서**다. 없으면 첫 줄. */
+export function firstDoc(docs) {
+  return docs.find((d) => !d.검사) ?? docs[0] ?? null;
 }
 
 export function loadDoc(slug) {
