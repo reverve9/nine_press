@@ -444,7 +444,30 @@ b{font-weight:700;color:var(--강조)}
    출력 HTML 에는 `.emp` 자체가 안 나가고 `.drop` 은 편집기가 붙였다 뗀다. */
 
 .emp.add span{font-size:52px;font-weight:400;line-height:52px}
+.emp.add{cursor:pointer}
+.emp.add:hover{border-color:var(--강조);background:rgba(230,129,0,.06)}
+
+/* 내용이 있는 자리의 「+」 — 오른쪽 아래 구석. 글줄 자리에 개입하면 안 되므로
+   절대 배치다 · 흐름 밖이라 격자와 무관하다. 도구 모드에서만 나온다 */
+.plus{position:absolute;right:8px;bottom:8px;z-index:5;
+  width:46px;height:46px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(45,77,110,.10);color:var(--네이비);
+  font-size:34px;font-weight:400;line-height:1;cursor:pointer;
+  opacity:0;transition:opacity .12s}
+.bx:hover > .plus,.bx.pick > .plus{opacity:1}
+.plus:hover{background:var(--네이비);color:#fff}
 .bx.drop{outline:2px solid var(--강조);outline-offset:-2px;background:rgba(230,129,0,.06)}
+
+/* 요소 비움 — **자리를 넘긴다.** 출력에는 `.sx`(빈 칸)만 나가고 이 표식은 도구에서만 뜬다.
+   높이는 렌더러가 42 배수로 못박아 인라인으로 준다 · 여기서 계산하지 않는다.
+   `.emp`(자리 통째 비움)와 같은 어휘를 쓰되 흐름 안에 앉으므로 absolute 가 아니다. */
+.sk{position:relative;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:6px;
+  border:2px dashed rgba(230,129,0,.55);border-radius:10px;
+  background:rgba(230,129,0,.05);
+  color:var(--결론);font-size:26px;font-weight:700;letter-spacing:-.005em}
+.sk i{font-style:normal;font-size:20px;font-weight:400;letter-spacing:.06em;color:var(--출처)}
 
 
    2339px(96dpi = 618.86mm)을 297mm 에 맞춘다 : 297 / 618.86 = .47991

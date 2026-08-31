@@ -45,7 +45,7 @@ const 결과 = await pg.evaluate(() => {
       bx.querySelectorAll(
         ':scope > .bt, :scope > .sm, :scope > .bd, :scope > .lb,' +
         ':scope > .ls, :scope > .ol, :scope > .tb, :scope > .sp, :scope > .nm,' +
-        ':scope > .im, :scope > .sx'
+        ':scope > .im, :scope > .sx, :scope > .sk'
       ).forEach((el) => {
         out.push({
           면: pi + 1, 자리: bi, 여백, 계층: el.className,

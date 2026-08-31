@@ -52,7 +52,8 @@ const 잰것 = await p.evaluate(() => {
       const 안top = r.top + parseFloat(cs.paddingTop);
       const 안아래 = r.bottom - parseFloat(cs.paddingBottom);
       [...bx.children].forEach((el) => {
-        if (el.classList.contains('emp')) return;   // 비움 표식은 자리를 통째로 덮는다
+        // 도구 표식은 흐름 밖이다 — 비움 표식은 자리를 통째로 덮고 · 「+」는 구석에 절대 배치다
+        if (el.classList.contains('emp') || el.classList.contains('plus')) return;
         const e = el.getBoundingClientRect();
         out.push({
           면: 면 + 1, 자리, 덩이: el.className,
