@@ -659,15 +659,37 @@ export default function Shell({ docs, first }) {
     sel.selectAllChildren(sp);
   });
 
-  const 구간벗기기 = () => 판면에서((d) => {
+  /* 민글로 — **고른 자리의 표기를 통째로 벗긴다.** 구간 토큰과 굵게를 같이 푼다.
+     둘은 층이 다르지만(`{강조|글}` 은 span · `**굵게**` 는 `<b>`) 쓰는 쪽에는
+     「씌운 것을 다 떼라」 하나다. 이름과 동작을 맞춘다 · 사용자 판정.
+
+     구간이 없어도 굵게만 풀 수 있어야 해서 **둘을 따로 센다.** */
+  const 민글로 = () => 판면에서((d, t) => {
     const sel = d.getSelection();
+    if (!sel || !sel.rangeCount) return set로그('고른 글자가 없다');
+    // 굵게 · 고른 자리에 <b> 가 걸려 있으면 푼다. execCommand 가 부분 선택도 다룬다
+    if (굵은가(d, sel)) {
+      d.execCommand('styleWithCSS', false, false);
+      d.execCommand('bold');
+    }
+    // 구간 · 고른 자리를 감싼 span 을 벗긴다
     const sp = 구간span(d, sel);
-    if (!sp) return set로그('구간 표기 안이 아니다');
-    const 부모 = sp.parentNode;
-    while (sp.firstChild) 부모.insertBefore(sp.firstChild, sp);
-    부모.removeChild(sp);
-    부모.normalize();
+    if (sp) {
+      const 부모 = sp.parentNode;
+      while (sp.firstChild) 부모.insertBefore(sp.firstChild, sp);
+      부모.removeChild(sp);
+      부모.normalize();
+    }
+    if (!sp && !t.querySelector('b')) set로그('벗길 표기가 없다');
   });
+
+  // 고른 자리가 굵은가 · queryCommandState 가 부분 선택도 판정한다
+  const 굵은가 = (d, sel) => {
+    if (d.queryCommandState?.('bold')) return true;
+    let n = sel.getRangeAt(0).commonAncestorContainer;
+    if (n.nodeType === 3) n = n.parentNode;
+    return !!n?.closest?.('b, strong');
+  };
 
   /* 고른 자리를 감싸는 구간 span 을 찾는다 · 편집 잎사귀 밖으로는 안 나간다 */
   const 구간span = (d, sel) => {
@@ -1728,9 +1750,6 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                           onClick={굵게} title="**굵게** · 굵기 700 + 강조색이 한 묶음이다">
                     굵게
                   </button>
-                  <button className="chip warn" onMouseDown={(e) => e.preventDefault()}
-                          onClick={구간벗기기} disabled={!고른글자?.토큰.length}
-                          title="고른 구간의 표기를 벗긴다">벗기기</button>
                 </줄>
 
                 {구간갈래들.map(([갈래, 목록]) => (
@@ -1747,6 +1766,14 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                     </span>
                   </줄>
                 ))}
+
+                {/* 벗길 대상 바로 아래다. 위에 두면 무엇을 벗기는지가 흐리다 ·
+                    켠 칩을 다시 눌러 하나씩 끄는 길도 그대로 있다 */}
+                <줄 이름="민글로" 곁="씌운 것을 다 뗀다">
+                  <button className="chip warn" onMouseDown={(e) => e.preventDefault()}
+                          onClick={민글로}
+                          title="고른 자리의 구간 표기와 굵게를 함께 벗긴다">민글로</button>
+                </줄>
               </>
             );
           })()}
