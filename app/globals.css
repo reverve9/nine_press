@@ -155,7 +155,7 @@ body {
   color: var(--onx);
   background: #fff; border-bottom-color: var(--on2);
 }
-.dkbd { flex: 1; overflow-y: auto; padding: 16px 14px 22px }
+.dkbd { flex: 1; overflow-y: auto; padding: 14px 14px 22px }
 .dim { font-size: 13px; color: var(--mu) }
 
 /* ── 판면 고르기 · N-판면 ──
@@ -195,14 +195,14 @@ body {
 .seg { display: inline-flex; border: 1px solid var(--ln); border-radius: 5px; overflow: hidden }
 .seg .chip {
   border: 0; border-left: 1px solid var(--ln); border-radius: 0;
-  min-width: 46px; padding: 7px 10px; text-align: center; background: #fff;
+  min-width: 44px; padding: 6px 9px; text-align: center; background: #fff;
 }
 .seg .chip:first-child { border-left: 0 }
 .seg .chip.on { background: var(--on); color: var(--onx) }
 .seg .chip:hover:not(:disabled):not(.on) { background: #f4f6f9; color: var(--onx) }
 
 .chip {
-  padding: 6px 11px; font: inherit; font-size: 13px; font-weight: 400;
+  padding: 5px 10px; font: inherit; font-size: 13px; font-weight: 400;
   border: 1px solid var(--ln); border-radius: 6px;
   background: #fff; color: var(--tx); cursor: pointer; white-space: nowrap;
 }
@@ -215,21 +215,29 @@ body {
    **굵기로 위계를 만들지 않는다** · 사용자 요구 · 키노트 인스펙터 결이다.
    볼드가 섞이면 이름표 쪽으로 눈이 끌려 판이 정신없어진다 —
    이름표는 회색 400 · 값과 칩은 진한 회색 400 · 켠 것은 판과 테로만 말한다 */
-.fld { margin-bottom: 17px }
+/* **이름표가 왼쪽에 선다** · 키노트 인스펙터 결 · 사용자 판정.
+   오른쪽 정렬 회색 이름표 | 값. 위아래로 쌓던 때보다 한 칸이 짧아진다 */
+.fld {
+  display: grid; grid-template-columns: 62px minmax(0, 1fr);
+  align-items: start; column-gap: 10px; margin-bottom: 9px;
+}
 .fld:last-child { margin-bottom: 0 }
-/* 머리만 있는 칸 — 값이 안 딸린 이름표다(판면 이름 · 층). 값 자리를 안 비운다 */
-.fld.hd { margin-bottom: 10px }
-.fld.hd .fldnm { margin-bottom: 0 }
+/* 묶음 머리 — 값이 안 딸린 이름표다(판면 · 레이어). 왼쪽에 붙고 칸을 안 나눈다 */
+.fld.hd { display: block; margin-bottom: 9px }
+.fld.hd .fldnm { justify-content: flex-start; text-align: left; padding: 0 }
 .fldnm {
-  display: flex; align-items: baseline; gap: 9px; margin-bottom: 9px;
-  font-size: 13.5px; font-weight: 400; letter-spacing: .01em; color: var(--mu);
+  display: flex; justify-content: flex-end; align-items: baseline; gap: 9px;
+  padding-top: 7px; text-align: right;
+  font-size: 13px; font-weight: 400; letter-spacing: .01em; color: var(--mu);
 }
-.fldnm em {
-  font-style: normal; font-weight: 400; letter-spacing: 0; font-size: 12.5px;
-  color: #99a4b0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+/* 곁말 — 값 뒤에 붙는다 · 이름표 칸이 좁아 거기 못 산다 */
+.fldx {
+  font-style: normal; font-weight: 400; font-size: 12.5px; color: #99a4b0;
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.fldv { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0 }
-.popln { height: 1px; margin: 18px -14px; background: var(--ln) }
+.fldv { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; min-width: 0 }
+.fldx.num { font-variant-numeric: tabular-nums; color: var(--tx) }
+.popln { height: 1px; margin: 14px -14px; background: var(--ln) }
 .brk { flex: 1 0 100%; height: 0; margin: 0 }
 .swsp { flex: 0 0 auto; width: 1px; height: 20px; margin: 0 2px; background: #dbe2e9 }
 
@@ -323,8 +331,8 @@ body {
 
 /* 칸 */
 .barin {
-  font: inherit; font-size: 12.5px; color: var(--tx);
-  border: 1px solid var(--ln); border-radius: 6px; padding: 6px 9px;
+  font: inherit; font-size: 13px; color: var(--tx);
+  border: 1px solid var(--ln); border-radius: 6px; padding: 5px 9px;
   background: #fff; min-width: 0;
 }
 .barin:focus { outline: 0; border-color: var(--on2) }
@@ -332,9 +340,9 @@ body {
   width: 94px; height: 25px; padding: 0 8px;
   font-size: 12px; font-variant-numeric: tabular-nums; text-transform: uppercase;
 }
-.numwrap { display: inline-flex; align-items: center; gap: 8px }
+.numwrap { display: inline-flex; align-items: center; gap: 7px }
 .numin {
-  width: 64px; height: 30px; padding: 0 9px; text-align: center;
+  width: 62px; height: 27px; padding: 0 9px; text-align: center;
   font-size: 13px; font-weight: 400; font-variant-numeric: tabular-nums; color: var(--onx);
 }
 .numin.w { width: 48px }

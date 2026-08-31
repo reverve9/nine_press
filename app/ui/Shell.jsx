@@ -358,11 +358,15 @@ function 수칸({ 열쇠, 값, 기본, 놓기, 로그, 열림 = true, 좁게 = f
   );
 }
 
+/* 도크 한 칸 · **이름표가 왼쪽에 선다** · 키노트 인스펙터 결이다 · 사용자 판정.
+   빈자리 후반 작업이 키노트에서 나므로 두 판이 같은 결이면 손이 안 갈아탄다.
+   이름표는 오른쪽 정렬 회색 · 값이 오른쪽 칸을 다 먹는다 · 곁말은 값 뒤에 붙는다.
+   위아래로 쌓던 때보다 한 칸이 17px 짧아져 한 화면에 드는 줄이 늘어난다. */
 function 줄({ 이름, 곁, children }) {
   return (
     <div className="fld">
-      <span className="fldnm">{이름}{곁 ? <em>{곁}</em> : null}</span>
-      <span className="fldv">{children}</span>
+      <span className="fldnm">{이름}</span>
+      <span className="fldv">{children}{곁 ? <em className="fldx">{곁}</em> : null}</span>
     </div>
   );
 }
@@ -435,11 +439,12 @@ function 도형판({ 도형: s = {}, 놓기, 최근색, 색기억, 로그, 글�
   const 이름표 = (열쇠, 표) => 표.find(([v]) => v === (s[열쇠] ?? ''))?.[1]
     ?? (HEX6.test(s[열쇠] ?? '') ? s[열쇠] : null);
   const 색줄 = (열쇠, 표) => (
-    <줄 이름={열쇠} 곁={이름표(열쇠, 표)}>
+    <줄 이름={열쇠}>
       {표.map(([v, 이름, 색]) => (
         <색칸 key={v || 'n'} 색={색} 이름={이름} 지금={(s[열쇠] ?? '') === v}
               누르기={() => 놓기(열쇠, v)} />
       ))}
+      <em className="fldx">{이름표(열쇠, 표)}</em>
       {최근색.length > 0 && <span className="swsp" />}
       {최근색.map((색) => (
         <색칸 key={색} 색={색} 이름={`최근 ${색}`} 지금={s[열쇠] === 색}
@@ -2422,7 +2427,8 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
             <>
               <div className="popln" />
 
-              <줄 이름="박스" 곁={`${박스번호 + 1} / ${현재?.박스?.length ?? 0}`}>
+              <줄 이름="박스">
+                <em className="fldx num">{박스번호 + 1} / {현재?.박스?.length ?? 0}</em>
                 <button className={'chip' + (고른.비움 ? ' on' : '')}
                         onClick={() => 박스비움(!고른.비움)}>비움</button>
                 <button className="chip warn" disabled={!고른내용?.length}
@@ -3114,7 +3120,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                       </>
                     )}
 
-                    <줄 이름="삭제">
+                    <줄 이름={k ?? ''}>
                       <button className="chip warn" onClick={() => 얹기빼기(얹기번호)}>삭제</button>
                     </줄>
                   </>
