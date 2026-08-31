@@ -84,6 +84,8 @@ const 도형배경들 = [
 ];
 const 도형테두리들 = [['', '없음', null], ['선', '선 E4E8EC', '#E4E8EC'], ['강조', '강조 2D4D6E', '#2D4D6E']];
 const 도형그림자들 = [['', '없음'], ['약', '약'], ['중', '중']];
+// 단계띠 · N-배경 c — 칠은 도형과 같은 색 어휘를 쓴다
+const 새띠 = () => ({ 현재: 0, 칸: [['1단계', '내용'], ['2단계', '내용'], ['3단계', '내용']] });
 const HEX6 = /^#[0-9a-fA-F]{6}$/;
 
 /* ── 표 칩 — N-배경 b2 ──────────────────────────────────
@@ -802,6 +804,39 @@ export default function Shell({ docs, first }) {
     }, 700);
   }
 
+  /* ── 단계띠 · N-배경 c ── */
+  const 띠바꾸기 = (fn) => 바꾸기((d) => {
+    const z = d.면[i]?.자리?.[자리번호];
+    if (!z?.단계띠) return false;
+    return fn(z.단계띠, z);
+  }, { 그리기: true });
+
+  const 띠만들기 = () => 바꾸기((d) => {
+    const z = d.면[i]?.자리?.[자리번호];
+    if (!z || z.단계띠) return false;
+    if (z.비움) { set로그('비운 자리에는 못 놓는다'); return false; }
+    z.단계띠 = 새띠();
+  }, { 그리기: true });
+  const 띠없애기 = () => 띠바꾸기((t, z) => { delete z.단계띠; });
+
+  const 띠칸넣기 = () => 띠바꾸기((t) => {
+    if (t.칸.length >= 6) { set로그('칸은 여섯까지다'); return false; }
+    t.칸.push([`${t.칸.length + 1}단계`, '내용']);
+  });
+  const 띠칸빼기 = () => 띠바꾸기((t) => {
+    if (t.칸.length <= 1) { set로그('마지막 칸은 지우지 않는다 · 단계띠를 지운다'); return false; }
+    t.칸.pop();
+    if (t.현재 != null && t.현재 >= t.칸.length) t.현재 = t.칸.length - 1;
+  });
+  const 띠현재 = (j) => 띠바꾸기((t) => {
+    if ((t.현재 ?? null) === j) return false;
+    if (j == null) delete t.현재; else t.현재 = j;
+  });
+  // 빈 값을 주면 열쇠를 지운다 · 도형바꾸기와 같은 규칙
+  const 띠값 = (열쇠, 값) => 띠바꾸기((t) => {
+    if (값 === '' || 값 == null) delete t[열쇠]; else t[열쇠] = 값;
+  });
+
   /* 판 · 썸네일 · 한 함수로 그린다 */
   const 면그리기 = useCallback((d, n) => {
     if (!d?.면?.[n]) return '';
@@ -967,7 +1002,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
         )}
 
         <div className="tabs">
-          {['도형', '표'].map((v) => (
+          {['도형', '표', '단계띠'].map((v) => (
             <button key={v} className={'tab' + (탭 === v ? ' on' : '')}
                     onClick={() => set탭(v)}>{v}</button>
           ))}
@@ -1185,6 +1220,75 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
               <줄 이름="표">
                 <button className="chip warn" onClick={표없애기}>− 표</button>
               </줄>
+              </>
+            );
+          })()}
+
+          {탭 === '단계띠' && (() => {
+            const z = 고른;
+            const t = z?.단계띠 ?? null;
+            const 켬 = !!z && !z.비움;
+            if (!켬) return <p className="dim">{z?.비움 ? '비운 자리' : '자리를 고른다'}</p>;
+            if (!t) return <button className="chip" onClick={띠만들기}>+ 단계띠</button>;
+            const 색줄 = (열쇠) => (
+              <>
+                {도형배경들.map(([v, 이름, 색]) => (
+                  <색칸 key={v || 'n'} 색={색} 이름={이름}
+                        지금={(t[열쇠] ?? '') === v}
+                        누르기={() => 띠값(열쇠, v)} />
+                ))}
+                {최근색.length > 0 && <span className="swsp" />}
+                {최근색.map((색) => (
+                  <색칸 key={색} 색={색} 이름={`최근 ${색}`}
+                        지금={t[열쇠] === 색}
+                        누르기={() => 띠값(열쇠, 색)} />
+                ))}
+                <span className="brk" />
+                <색입력 값={t[열쇠]} 이름={열쇠} 로그={set로그}
+                          놓기={(v) => { 띠값(열쇠, v); 색기억(v); }} />
+              </>
+            );
+            const 이름표 = (열쇠) => 도형배경들.find(([v]) => v === (t[열쇠] ?? ''))?.[1]
+              ?? (HEX6.test(t[열쇠] ?? '') ? t[열쇠] : null);
+            return (
+              <>
+                <줄 이름="칸" 곁={`${t.칸.length}칸`}>
+                  <span className="seg">
+                    <button className="chip" onClick={띠칸빼기}>−</button>
+                    <button className="chip" onClick={띠칸넣기}>+</button>
+                  </span>
+                </줄>
+                <줄 이름="현재">
+                  <span className="seg">
+                    <button className={'chip' + (t.현재 == null ? ' on' : '')}
+                            onClick={() => 띠현재(null)}>없음</button>
+                    {t.칸.map((_, j) => (
+                      <button key={j} className={'chip' + (t.현재 === j ? ' on' : '')}
+                              onClick={() => 띠현재(j)}>{j + 1}</button>
+                    ))}
+                  </span>
+                </줄>
+
+                <div className="popln" />
+
+                <줄 이름="칠" 곁={이름표('칠')}>{색줄('칠')}</줄>
+                <줄 이름="현재칠" 곁={이름표('현재칠')}>{색줄('현재칠')}</줄>
+                <줄 이름="모서리">
+                  <수칸 열쇠="모서리" 값={t.모서리} 기본={10}
+                        로그={set로그} 놓기={(n) => 띠값('모서리', n)} />
+                </줄>
+
+                <div className="popln" />
+
+                <줄 이름="글자">
+                  <button className={'chip' + (t.글자 === '반전' ? ' on' : '')}
+                          onClick={() => 띠값('글자', t.글자 === '반전' ? '' : '반전')}>반전</button>
+                  <button className={'chip' + (t.현재글자 === '반전' ? ' on' : '')}
+                          onClick={() => 띠값('현재글자', t.현재글자 === '반전' ? '' : '반전')}>현재만</button>
+                </줄>
+                <줄 이름="단계띠">
+                  <button className="chip warn" onClick={띠없애기}>− 단계띠</button>
+                </줄>
               </>
             );
           })()}

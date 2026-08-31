@@ -206,10 +206,10 @@ function 이름만(값, 표, 열쇠, i) {
     `쓸 수 있는 이름은 ${Object.keys(표).join(' · ')} 뿐이다`);
 }
 
-function 정수(값, 기본, 아래, 위, 열쇠, i) {
+function 정수(값, 기본, 아래, 위, 열쇠, i, 갈래 = '도형') {
   if (값 == null) return 기본;
   if (!Number.isInteger(값) || 값 < 아래 || 값 > 위) throw new Error(
-    `자리 ${i} 의 도형 "${열쇠}" 값 ${JSON.stringify(값)} 은 ${아래} ~ ${위} 사이 정수여야 한다`);
+    `자리 ${i} 의 ${갈래} "${열쇠}" 값 ${JSON.stringify(값)} 은 ${아래} ~ ${위} 사이 정수여야 한다`);
   return 값;
 }
 
@@ -558,6 +558,57 @@ function 표그리기(자리, i, 안폭, 안높이, 앞높이, 뒷높이, P) {
     `">${바탕.join('')}${줄.join('')}${칸.join('')}</div>`;
 }
 
+/* ─────────────────── §N-배경 c · 단계띠 ───────────────────
+   칸이 가로로 나뉘고 칸마다 「라벨 + 내용」이 세로로 앉는다.
+   "현재" 는 활성 칸 번호다 · 글자가 아니라 표식이라 data-p 를 안 붙인다.
+
+     "칠"      모든 칸 배경 · 도형과 같은 색 어휘
+     "현재칠"   현재 칸만 · 실물은 여기에 남색을 깐다
+     "모서리"   0 ~ 40
+     "글자" · "현재글자"   "반전" · 어두운 칠 위에서 명시로만 켠다
+
+   **세로 패딩을 안 준다** · rules/page.css §단계띠. 라벨이 이미 상하 7 을 갖고 있고
+   여기서 더 주면 그만큼 격자에서 밀려난다. 칠이 있을 때만 좌우 21 을 준다 —
+   가로는 격자와 무관하다 · 설계 §4-4. */
+
+const 띠좌우 = 21;
+
+function 단계띠그리기(자리, i, P) {
+  const t = 자리.단계띠;
+  if (typeof t !== 'object' || Array.isArray(t)) throw new Error(
+    `자리 ${i} 의 "단계띠" 는 객체여야 한다`);
+  const 칸 = t.칸 ?? [];
+  if (!Array.isArray(칸)) throw new Error(`자리 ${i} 의 단계띠 "칸" 은 배열이어야 한다`);
+  if (!칸.length) return '';
+  if (t.현재 != null && !(Number.isInteger(t.현재) && t.현재 >= 0 && t.현재 < 칸.length)) throw new Error(
+    `자리 ${i} 의 단계띠 "현재" 는 0 ~ ${칸.length - 1} 사이 칸 번호다 (받은 값 ${JSON.stringify(t.현재)})`);
+
+  const 칠 = 색(t.칠, 배경이름, '칠', i, '단계띠');
+  const 현재칠 = 색(t.현재칠, 배경이름, '현재칠', i, '단계띠');
+  const 모서리 = 정수(t.모서리, 10, 0, 40, '모서리', i, '단계띠');
+  for (const 열쇠 of ['글자', '현재글자']) {
+    if (t[열쇠] != null && t[열쇠] !== '반전') throw new Error(
+      `자리 ${i} 의 단계띠 "${열쇠}" 값 ${JSON.stringify(t[열쇠])} 을 모른다. ` +
+      `쓸 수 있는 값은 "반전" 뿐이다`);
+  }
+
+  return `<div class="sp">` + 칸.map((c, j) => {
+    const [머리, 내용] = Array.isArray(c) ? c : [c, ''];
+    const 지금 = j === t.현재;
+    const 바탕 = 지금 ? (현재칠 ?? 칠) : 칠;
+    const 뒤집 = 지금 ? (t.현재글자 ?? t.글자) : t.글자;
+    const st = 바탕
+      ? ` style="background:${바탕}` + (모서리 ? `;border-radius:${모서리}px` : '') +
+        `;padding:0 ${띠좌우}px"`
+      : '';
+    return `<div class="s${지금 ? ' on' : ''}"` +
+      (뒤집 === '반전' ? ` data-글자="반전"` : '') + st + `>` +
+      `<div class="sk"${dp([...P, '단계띠', '칸', j, 0])}>${inline(머리)}</div>` +
+      (빔(내용) ? '' : `<div class="st"${dp([...P, '단계띠', '칸', j, 1])}>${inline(내용)}</div>`) +
+      `</div>`;
+  }).join('') + `</div>`;
+}
+
 /* ─────────────────── 블록 ───────────────────
    제목 · 요약 · 문단 · 목록 · 표 · 단계띠 · 수치 · 출처. */
 
@@ -633,18 +684,7 @@ function 블록(자리, r, i, 여백문서) {
     }
     o.push(표그리기(자리, i, r.w - pad * 2, r.h - pad * 2, 앞, 뒤, P));
   }
-  // 단계띠 — 칸이 가로로 나뉘고 칸마다 「라벨 + 내용」이 세로로 앉는다.
-  // "현재" 는 활성 칸 번호다 · 글자가 아니라 표식이라 data-p 를 안 붙인다
-  if (자리.단계띠) {
-    const 칸 = 자리.단계띠.칸 ?? [];
-    if (칸.length) o.push(`<div class="sp">` + 칸.map((c, j) => {
-      const [머리, 내용] = Array.isArray(c) ? c : [c, ''];
-      return `<div class="s${j === 자리.단계띠.현재 ? ' on' : ''}">` +
-        `<div class="sk"${dp([...P, '단계띠', '칸', j, 0])}>${inline(머리)}</div>` +
-        (빔(내용) ? '' : `<div class="st"${dp([...P, '단계띠', '칸', j, 1])}>${inline(내용)}</div>`) +
-        `</div>`;
-    }).join('') + `</div>`);
-  }
+  if (자리.단계띠) o.push(단계띠그리기(자리, i, P));
   // 수치 — 값(강조 수치 52) + 단위 한 줄 84 · 그 아래 라벨 42 → 한 칸 126
   if (자리.수치) {
     if (!Array.isArray(자리.수치)) throw new Error(`자리 ${i} 의 "수치" 는 배열이어야 한다`);
