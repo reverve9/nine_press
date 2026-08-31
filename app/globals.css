@@ -183,12 +183,15 @@ body {
 .lay:hover .laypv i.bx { opacity: .68 }
 .lay.on .laypv i.bx { opacity: .9 }
 .lay.on .laypv i.cp { opacity: .6 }
-.laywarn {
-  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-  padding: 9px 10px; border: 1px solid var(--or); border-radius: 6px;
-  background: #FFF8EF; font-size: 12px; line-height: 1.5; color: var(--onx);
+/* 못 고르는 판면 — 내용이 든 박스가 빠지는 것 · 왜 막혔는지 밑에 적는다 */
+.lay:disabled { cursor: not-allowed; background: var(--on) }
+.lay.막힘 .laypv { opacity: .3 }
+.lay:disabled:hover { border-color: var(--ln) }
+.layx {
+  display: block; margin-top: 3px; font-style: normal;
+  font-size: 9.5px; line-height: 1.3; color: var(--mu);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.laywarn b { font-weight: 700 }
 
 /* ── 선택띠 · 칩 ── */
 .seg { display: inline-flex; border: 1px solid var(--ln); border-radius: 5px; overflow: hidden }

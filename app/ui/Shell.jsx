@@ -488,8 +488,7 @@ export default function Shell({ docs, first }) {
 
   // 오른쪽 도크 · 지금 연 탭
   const [탭, set탭] = useState('판면');
-  /* 판면을 갈 때 뒤 박스가 잘려 나가면 한 번 더 묻는다 · { 레이아웃, 모드, 잃는수 } */
-  const [판면확인, set판면확인] = useState(null);
+
   /* assets/ 아래 그림 목록 · 한 번만 받는다. 파일을 새로 넣으면 새로고침한다 —
      문안 파일과 같은 규칙이다(밖에서 고치면 다시 읽어야 한다 · v8 §9 ⑦) */
   const [그림목록, set그림목록] = useState([]);
@@ -1311,22 +1310,26 @@ export default function Shell({ docs, first }) {
     return [...통.entries()].sort((a, b) => a[0] - b[0]);
   }, [현재?.모드, 밴드들]);
 
-  /* 칸 수가 줄면 뒤에서부터 뺀다. **내용이 든 박스가 빠지면 한 번 더 묻는다** —
-     되돌리기가 있어도 지운 줄 모르고 넘어가는 것이 더 나쁘다. */
-  const 판면고르기 = (레이아웃, 모드, 밀어붙임 = false) => {
+  /* 내용이 든 박스가 빠지는 판면은 **아예 못 고른다** · 사용자 판정.
+     묻고 지우는 길을 두면 「그만」을 누르는 일이 대부분이라 물음이 값을 못 한다 —
+     고를 수 없게 막고 왜 막혔는지만 말한다. 비우면 그때 열린다. */
+  const 잃는수 = useCallback((레이아웃, 모드) => {
+    const p = 현재;
+    if (!p) return 0;
+    let 필요;
+    try { 필요 = 영역({ ...p, 모드, 레이아웃, 구성: undefined, 박스: [] }).length; }
+    catch { return 0; }
+    return (p.박스 ?? []).slice(필요)
+      .filter((b) => (Array.isArray(b.내용) ? b.내용.length : Object.keys(b).length) > 0).length;
+  }, [현재]);
+
+  const 판면고르기 = (레이아웃, 모드) => {
     const p = 현재;
     if (!p) return;
     let 필요;
     try { 필요 = 영역({ ...p, 모드, 레이아웃, 구성: undefined, 박스: [] }).length; }
     catch { return set로그(`레이아웃 ${레이아웃} 을 못 읽는다`); }
-    const 지금 = p.박스?.length ?? 0;
-    const 잃는것 = (p.박스 ?? []).slice(필요)
-      .filter((b) => (Array.isArray(b.내용) ? b.내용.length : Object.keys(b).length) > 0);
-    if (잃는것.length && !밀어붙임) {
-      set판면확인({ 레이아웃, 모드, 잃는수: 잃는것.length });
-      return;
-    }
-    set판면확인(null);
+    if (잃는수(레이아웃, 모드)) return;
     바꾸기((d) => {
       const q = d.페이지[i];
       const 레이아웃바뀜 = q.레이아웃 !== 레이아웃 || q.구성 != null;
@@ -1981,8 +1984,11 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
       </main>
 
       <aside className="dock">
+        {/* 아무것도 안 골랐을 때는 **비워 둔다** · 사용자 판정.
+            「박스를 고른다」는 판면 · 얹기 탭에서는 틀린 말이었다 — 그 둘은 박스를 안 고르고 쓴다.
+            띠 자체는 남긴다 · 없앴다 켜면 탭이 위아래로 밀린다 */}
         <div className="dkhd">
-          {!고른 ? <span className="dim">박스를 고른다</span> : (
+          {!고른 ? null : (
             <>
               <i>{현재?.레이아웃 ?? '구성'}</i>
               박스 <b>{박스번호 + 1}</b> / {현재?.박스?.length}
@@ -2084,24 +2090,21 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
 
               {현재?.구성 && <p className="dim">이 페이지는 「구성」으로 골격을 직접 적었다 · 아래에서 고르면 그것이 지워진다</p>}
 
-              {판면확인 && (
-                <div className="laywarn">
-                  <span><b>{판면확인.레이아웃}</b>{` 로 가면 내용이 든 박스 ${판면확인.잃는수}개가 빠진다`}</span>
-                  <span className="bfill" />
-                  <button className="chip" onClick={() => set판면확인(null)}>그만</button>
-                  <button className="chip warn"
-                          onClick={() => 판면고르기(판면확인.레이아웃, 판면확인.모드, true)}>빼고 바꾼다</button>
-                </div>
-              )}
-
               {판면갈래.map(([수, 것들]) => (
                 <div key={수} className="laygrp">
                   <span className="laynm">{수}칸</span>
                   <div className="laylist">
-                    {것들.map(({ 레이아웃, 이름, 칸, 밴드 }) => (
-                      <button key={레이아웃} title={`${레이아웃} · ${이름}`}
-                              className={'lay' + (현재?.레이아웃 === 레이아웃 && !현재?.구성 ? ' on' : '')}
-                              onClick={() => 판면고르기(레이아웃, 현재?.모드 === '연속' ? '연속' : '카피')}>
+                    {것들.map(({ 레이아웃, 이름, 칸, 밴드 }) => {
+                      const 모드 = 현재?.모드 === '연속' ? '연속' : '카피';
+                      const 잃음 = 잃는수(레이아웃, 모드);
+                      return (
+                      <button key={레이아웃} disabled={!!잃음}
+                              title={잃음
+                                ? `${레이아웃} · ${이름} — 내용이 든 박스 ${잃음}개가 빠져서 못 고른다 · 그 박스를 비우면 열린다`
+                                : `${레이아웃} · ${이름}`}
+                              className={'lay' + (현재?.레이아웃 === 레이아웃 && !현재?.구성 ? ' on' : '')
+                                + (잃음 ? ' 막힘' : '')}
+                              onClick={() => 판면고르기(레이아웃, 모드)}>
                         <span className="laypv" style={{ aspectRatio: `${W} / ${H}` }}>
                           {[...밴드.map((b) => ({ ...b, 갈래: b.갈래 })),
                             ...칸.map((r) => ({ ...r, 갈래: 'bx' }))].map((r, k) => (
@@ -2111,8 +2114,10 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                             }} />
                           ))}
                         </span>
+                        {!!잃음 && <em className="layx">박스 {잃음}개가 빠진다</em>}
                       </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               ))}
