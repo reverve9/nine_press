@@ -138,25 +138,23 @@ body {
   display: flex; flex-direction: column; min-height: 0;
   background: #fff; border-left: 1px solid var(--ln);
 }
-.dkhd {
-  flex: 0 0 auto; display: flex; align-items: center; gap: 6px;
-  height: 46px; padding: 0 14px; border-bottom: 1px solid var(--ln);
-  font-size: 13px; font-weight: 600; color: var(--onx); white-space: nowrap;
+/* 탭이 도크의 맨 위다 · N-도크재편 b. 옛 머리띠(`.dkhd`)는 걷었다 —
+   아무것도 안 골랐을 때 빈 채로 46px 를 먹고 앉아 두 탭 위에 여백만 남겼다 ·
+   사용자 지적. 「박스 N / M」 · 「비움」은 [판] 탭 안 제자리로 내려갔다 */
+.tabs {
+  flex: 0 0 auto; display: flex;
+  border-bottom: 1px solid var(--ln); background: #fbfcfd;
 }
-.dkhd i {
-  font-style: normal; font-size: 11px; font-weight: 600; letter-spacing: .07em;
-  color: var(--mu); background: var(--on); border-radius: 5px; padding: 3px 7px;
-}
-.dkhd b { color: var(--nv2); font-weight: 700 }
-.dkln { flex: 0 0 auto; padding: 11px 14px; border-bottom: 1px solid var(--ln) }
-.tabs { flex: 0 0 auto; display: flex; border-bottom: 1px solid var(--ln) }
 .tab {
-  flex: 1; padding: 11px 0; border: 0; border-bottom: 2px solid transparent;
+  flex: 1; padding: 13px 0; border: 0; border-bottom: 2px solid transparent;
   background: transparent; cursor: pointer;
-  font: inherit; font-size: 13px; font-weight: 500; color: var(--mu);
+  font: inherit; font-size: 13px; font-weight: 500; letter-spacing: .05em; color: var(--mu);
 }
 .tab:hover { color: var(--onx) }
-.tab.on { color: var(--onx); font-weight: 600; background: var(--on); border-bottom-color: var(--on2) }
+.tab.on {
+  color: var(--onx); font-weight: 700;
+  background: #fff; border-bottom-color: var(--on2);
+}
 .dkbd { flex: 1; overflow-y: auto; padding: 16px 14px 22px }
 .dim { font-size: 12.5px; color: var(--mu) }
 
@@ -216,6 +214,9 @@ body {
 /* ── 도크 한 칸 — 이름표를 값 위에 둔다 ── */
 .fld { margin-bottom: 17px }
 .fld:last-child { margin-bottom: 0 }
+/* 머리만 있는 칸 — 값이 안 딸린 이름표다(판면 이름 · 층). 값 자리를 안 비운다 */
+.fld.hd { margin-bottom: 10px }
+.fld.hd .fldnm { margin-bottom: 0 }
 .fldnm {
   display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px;
   font-size: 11.5px; font-weight: 600; letter-spacing: .06em; color: var(--mu);
@@ -345,25 +346,41 @@ body {
    위가 앞이다 — 렌더러가 얹기층('뒤') · 박스들 · 얹기층('앞') 순으로 내놓으므로
    박스와 그 안 요소는 **통째로 칸막이 한 칸**에 든다.
    데이터는 안 바뀐다 · 층('앞'|'뒤')과 배열 순서 그대로다 · UI 만 한 목록이다. */
-.lyrs { display: flex; flex-direction: column; margin: -3px 0 0 }
-.lyrs .elrows { margin: 3px 0 0; max-height: 208px }
+/* **한 덩이로 세운다.** 층은 물건 하나라 줄들이 흩어져 있으면 무엇과 무엇 사이에
+   칸막이가 있는지가 안 읽힌다 · 옅은 판 위에 줄을 얹어 한 카드로 만든다 */
+.lyrs {
+  display: flex; flex-direction: column;
+  margin: -2px 0 0; padding: 5px;
+  border: 1px solid var(--ln); border-radius: 7px; background: #fbfcfd;
+}
+.lyrs .elrow { background: #fff; border-color: #eaeff4 }
+.lyrs .elrow:hover { background: #f4f6f9; border-color: #dde4ec }
+.lyrs .elrow.on { border-color: var(--on2); background: var(--on) }
+.lyrs .elrows { margin: 0; max-height: 208px }
+.lyrs > .elrow + .elrow { margin-top: 3px }
 /* 박스 안 요소 — 칸막이에 딸린 것이라 한 단 들여 세운다 · 흐름 순서다 · 쌓임이 아니다 */
 .lyrs .elrows.lyrin {
-  margin: 3px 0 0 11px; padding-left: 9px; border-left: 2px solid var(--ln);
+  margin: 4px 0 0 10px; padding-left: 10px; border-left: 2px solid #dde4ec;
 }
-/* 박스 칸막이 — 흐름 안이 여기서 시작하고 여기서 끝난다.
-   위아래로 넘기면 층이 앞 ↔ 뒤로 바뀐다 */
+/* 박스 칸막이 — **흐름 안이 여기서 시작하고 여기서 끝난다.**
+   위는 박스 앞 층 · 아래는 박스 뒤 층이다 · 넘기면 층이 바뀐다.
+   양옆 두 줄이 「여기가 바닥」을 말한다 — 채운 띠보다 층 사이가 잘 읽힌다 */
 .lyrbx {
   display: flex; align-items: center; gap: 8px;
-  margin: 6px 0 0; padding: 6px 9px;
-  border: 1px dashed #cbd4dd; border-radius: 5px;
-  background: #f7f9fb; cursor: pointer;
-  font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--onx);
+  margin: 5px 0; padding: 7px 10px;
+  border: 1px solid #d5dde5; border-radius: 5px;
+  background: #eef2f6; cursor: pointer;
+  font-size: 11.5px; font-weight: 700; letter-spacing: .08em; color: var(--onx);
 }
+.lyrbx::before, .lyrbx::after {
+  content: ""; flex: 1 0 10px; height: 3px;
+  border-top: 1px solid #c3ced9; border-bottom: 1px solid #c3ced9;
+}
+.lyrbx::before { order: -1 }
 .lyrbx:hover { border-color: var(--on2) }
-.lyrbx.on { border-style: solid; border-color: var(--on2); background: var(--on) }
+.lyrbx.on { border-color: var(--on2); background: var(--on) }
 .lyrbx em {
-  font-style: normal; font-weight: 400; letter-spacing: 0;
-  font-size: 11.5px; color: #8c96a2;
-  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-style: normal; font-weight: 500; letter-spacing: 0;
+  font-size: 11.5px; color: #7b8794;
+  flex: 0 0 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }

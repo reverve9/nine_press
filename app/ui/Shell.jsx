@@ -2157,32 +2157,6 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
         {/* 아무것도 안 골랐을 때는 **비워 둔다** · 사용자 판정.
             「박스를 고른다」는 판면 · 얹기 탭에서는 틀린 말이었다 — 그 둘은 박스를 안 고르고 쓴다.
             띠 자체는 남긴다 · 없앴다 켜면 탭이 위아래로 밀린다 */}
-        <div className="dkhd">
-          {!고른 ? null : (
-            <>
-              <i>{현재?.레이아웃 ?? '구성'}</i>
-              박스 <b>{박스번호 + 1}</b> / {현재?.박스?.length}
-              <span className="bfill" />
-              <button className={'chip' + (고른.비움 ? ' on' : '')}
-                      onClick={() => 박스비움(!고른.비움)}>비움</button>
-            </>
-          )}
-        </div>
-        {고른?.비움 && (
-          <div className="dkln">
-            <input
-              className="barin" style={{ width: '100%' }}
-              placeholder="무엇으로 채울지"
-              key={`빔-${slug}-${i}-${박스번호}`}
-              defaultValue={typeof 고른.비움 === 'string' ? 고른.비움 : ''}
-              onBlur={(e) => {
-                const v = e.target.value.trim();
-                if ((typeof 고른.비움 === 'string' ? 고른.비움 : '') !== v) 박스비움(v || true);
-              }}
-            />
-          </div>
-        )}
-
         {/* 탭 둘 · **그릇과 내용이다** · 사용자 판정 · N-도크재편.
             넷(판면 · 박스 · 요소 · 얹기)일 때는 두 무리가 섞여 있었다 —
             판면과 박스는 「박스가 몇 개 생기나 · 그 박스가 어떻게 생겼나」고
@@ -2202,6 +2176,18 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
               둘은 한 물건의 골격과 살이라 한 탭에서 잇달아 만지는 것이 맞다 */}
           {탭 === '판' && (
             <div className="lays">
+              {/* **판면 이름은 여기서만 낸다** · 사용자 지적 · N-도크재편 b.
+                  옛 도크 머리에 「G1」 배지가 늘 떠 있었는데 · 그것은 `페이지.레이아웃`
+                  열쇠를 그대로 낸 것이라 **아무것도 안 고르고도 뜨는 값**이었고 ·
+                  내용을 만지는 동안에도 자리를 먹었다. 판면을 고르는 이 탭이 제자리다 —
+                  격자에 이름표를 안 붙이는 대신(도식이 곧 이름이다) 지금 것만 여기 적는다 */}
+              <div className="fld hd">
+                <span className="fldnm">판면
+                  <em>{현재?.구성 ? '구성 · 직접 적었다'
+                    : `${현재?.레이아웃 ?? '?'} · ${_규격.레이아웃[현재?.레이아웃]?.이름 ?? ''}`
+                      + ` · ${(현재?.박스?.length ?? 0)}칸`}</em>
+                </span>
+              </div>
               <div className="fld">
                 <span className="fldnm">카피 영역</span>
                 <span className="seg">
@@ -2249,15 +2235,44 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
             </div>
           )}
 
-          {/* 박스 꼴 — 판면 아래에 잇는다. **빈 상태 문구를 안 띄운다** · 사용자 판정 ·
-              0b8e6f5. 안 고른 채로 판면만 보는 것이 이 탭의 정상 상태다 */}
-          {탭 === '판' && 고른?.비움 && <><div className="popln" /><p className="dim">비운 박스</p></>}
-          {탭 === '판' && !!고른 && !고른.비움 && (
+          {/* 박스 · 판면 아래에 잇는다. **빈 상태 문구를 안 띄운다** · 사용자 판정 ·
+              0b8e6f5. 안 고른 채로 판면만 보는 것이 이 탭의 정상 상태다.
+
+              **「박스 N / M」 과 「비움」이 여기로 내려왔다** · 사용자 지적 · N-도크재편 b.
+              전에는 도크 맨 위 고정 띠(`.dkhd`)에 있었는데 · 안 고르면 빈 채로 46px 를
+              먹고 앉아 두 탭 위에 빈 여백만 남겼다. 박스에 걸리는 값이니
+              박스 꼴을 만지는 이 자리가 제자리다 · 층 목록 칸막이가 「어느 박스」를 또 말한다 */}
+          {탭 === '판' && !!고른 && (
             <>
               <div className="popln" />
 
-              <도형판 도형={고른.도형} 놓기={도형바꾸기} 글자
-                      최근색={최근색} 색기억={색기억} 로그={set로그} />
+              <줄 이름="박스" 곁={`${박스번호 + 1} / ${현재?.박스?.length ?? 0}`}>
+                <button className={'chip' + (고른.비움 ? ' on' : '')}
+                        onClick={() => 박스비움(!고른.비움)}
+                        title="박스를 통째로 키노트로 넘긴다 · 출력에 아무것도 안 나간다">비움</button>
+              </줄>
+              {고른.비움 && (
+                <줄 이름="무엇으로 채울지" 곁="키노트가 맡는다">
+                  <input
+                    className="barin" style={{ width: '100%' }}
+                    placeholder="단계띠 · 도표 · 사진"
+                    key={`빔-${slug}-${i}-${박스번호}`}
+                    defaultValue={typeof 고른.비움 === 'string' ? 고른.비움 : ''}
+                    onBlur={(e) => {
+                      const v = e.target.value.trim();
+                      if ((typeof 고른.비움 === 'string' ? 고른.비움 : '') !== v) 박스비움(v || true);
+                    }}
+                  />
+                </줄>
+              )}
+              {!고른.비움 && (
+                <>
+                  <div className="popln" />
+
+                  <도형판 도형={고른.도형} 놓기={도형바꾸기} 글자
+                          최근색={최근색} 색기억={색기억} 로그={set로그} />
+                </>
+              )}
             </>
           )}
 
@@ -2272,8 +2287,8 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
               박스들 · 얹기층('앞') 순으로 내놓기 때문이다 */}
           {탭 === '내용' && (
             <>
-              <div className="fld">
-                <span className="fldnm">층<em>위가 앞</em></span>
+              <div className="fld hd">
+                <span className="fldnm">층<em>위가 앞 · 박스 위는 앞 층</em></span>
               </div>
               <div className="lyrs">
                 {앞무리.map(얹기줄)}
