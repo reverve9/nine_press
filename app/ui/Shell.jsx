@@ -127,6 +127,14 @@ const 비율하한 = 5;
 const 백분율폭 = (폭) => Array.isArray(폭) && typeof 폭[0] === 'string';
 const 퍼센트수 = (v) => Number(String(v).replace('%', ''));
 const 퍼센트글 = (n) => `${n}%`;
+/* 마지막 열이 나머지를 다 받는다 · 렌더러의 표열() 과 같은 규칙이다 · N-배경 b4.
+   그래서 화면에 보이는 값도 **적힌 값이 아니라 그려지는 값**이어야 한다 —
+   손으로 합 99 를 적어 둔 문안을 열면 마지막 칸이 그 1 을 먹은 값으로 뜬다. */
+const 유효비율 = (폭) => {
+  const w = 폭.map(퍼센트수);
+  w[w.length - 1] = 100 - w.slice(0, -1).reduce((a, b) => a + b, 0);
+  return w;
+};
 const 줄무늬색 = '블록배경';
 const 새표 = () => ({ 머리: ['구분', '내용'], 행: [['칸', '칸'], ['칸', '칸']] });
 // 머리를 끄면 행 첫 줄이 칸 수를 나른다 — 렌더러의 셈과 같은 순서다
@@ -514,11 +522,10 @@ export default function Shell({ docs, first }) {
     t.행.forEach((r) => r.push(''));
     if (백분율폭(t.폭)) {
       /* % 는 합이 언제나 100 이다. 새 열 몫을 떼고 나머지를 그 비율대로 줄인다 —
-         비율은 지키고 합만 맞춘다. 반올림 나머지는 첫 열이 받는다 */
+         비율은 지키고 합만 맞춘다. **새 열이 마지막이므로 나머지를 그것이 받는다** */
       const 새몫 = Math.max(비율하한, Math.round(100 / (n + 1)));
-      const 준 = t.폭.map((v) => Math.max(1, Math.round(퍼센트수(v) * (100 - 새몫) / 100)));
-      준[0] += 100 - 새몫 - 준.reduce((a, b) => a + b, 0);
-      t.폭 = [...준.map(퍼센트글), 퍼센트글(새몫)];
+      const 준 = 유효비율(t.폭).map((v) => Math.max(1, Math.round(v * (100 - 새몫) / 100)));
+      t.폭 = [...준, 100 - 준.reduce((a, b) => a + b, 0)].map(퍼센트글);
     } else if (t.폭) t.폭.push(1);
   });
   const 표열빼기 = () => 표바꾸기((t) => {
@@ -526,9 +533,8 @@ export default function Shell({ docs, first }) {
     if (t.머리) t.머리.pop();
     t.행.forEach((r) => r.pop());
     if (백분율폭(t.폭)) {
-      const 뺀 = 퍼센트수(t.폭.pop());          // 뺀 몫은 마지막 열이 받는다 · 합 100
-      const 끝 = t.폭.length - 1;
-      t.폭[끝] = 퍼센트글(퍼센트수(t.폭[끝]) + 뺀);
+      t.폭.pop();
+      t.폭 = 유효비율(t.폭).map(퍼센트글);      // 뺀 몫은 마지막 열이 받는다 · 합 100
     } else if (t.폭) t.폭.pop();
   });
   const 표행넣기 = () => 표바꾸기((t) => {
@@ -571,7 +577,7 @@ export default function Shell({ docs, first }) {
     if (갈래 === '몫') { t.폭 = Array.from({ length: n }, () => 1); return; }
     const 몫 = Math.floor(100 / n);
     const w = Array.from({ length: n }, () => 몫);
-    w[0] += 100 - 몫 * n;                      // 나머지는 첫 열이 받는다 · 합 100
+    w[n - 1] += 100 - 몫 * n;                  // 나머지는 마지막 열이 받는다 · 합 100
     t.폭 = w.map(퍼센트글);
   });
 
@@ -588,7 +594,7 @@ export default function Shell({ docs, first }) {
      12칸 트랙의 폭바꾸기() 가 「칸 합 12」를 지키던 방식 그대로다 */
   const 표비율 = (c, v) => 표바꾸기((t) => {
     if (!백분율폭(t.폭)) return false;
-    const w = t.폭.map(퍼센트수);
+    const w = 유효비율(t.폭);
     const 차 = v - w[c];
     if (!차) return false;
     const j = c + 1 < w.length ? c + 1 : c - 1;
@@ -1411,6 +1417,8 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
             const n = 표열수(t);
             const 줄무늬 = !!t?.칠?.행?.some(Boolean);
             const 폭갈래 = !t?.폭 ? '균등' : 백분율폭(t.폭) ? '%' : '몫';
+            // 마지막 열은 나머지를 받는다 — 적힌 값이 아니라 그려지는 값을 보인다
+            const 비율 = 폭갈래 === '%' ? 유효비율(t.폭) : null;
             const 머리칠 = t?.칠?.머리 ?? '';
             return (
               <팔레트 이름="표" 열쇠="표" 차례={1}
@@ -1464,7 +1472,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                     <줄 이름="폭"
                         곁={폭갈래 === '균등' ? `${n}열 균등`
                           : 폭갈래 === '몫' ? `${t.폭.join(' : ')} · 몫 1~${표열최대}`
-                          : `${t.폭.join(' + ')} = 100`}>
+                          : `${비율.join(' + ')} = 100 · 마지막이 나머지`}>
                       <span className="seg">
                         {표폭갈래들.map(([v, 이름]) => (
                           <button key={v} className={'chip' + (폭갈래 === v ? ' on' : '')}
@@ -1482,7 +1490,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                               로그={set로그} 놓기={(v) => 표폭(c, v)} />
                       ))}
                       {폭갈래 === '%' && Array.from({ length: n }, (_, c) => (
-                        <수칸 key={c} 열쇠="비율" 값={퍼센트수(t.폭[c])} 기본={퍼센트수(t.폭[c])} 좁게
+                        <수칸 key={c} 열쇠="비율" 값={비율[c]} 기본={비율[c]} 좁게
                               로그={set로그} 놓기={(v) => 표비율(c, v)} />
                       ))}
                     </줄>
