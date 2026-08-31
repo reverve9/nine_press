@@ -548,6 +548,9 @@ export default function Shell({ docs, first }) {
   const [자, set자] = useState(false);      // 기준선 자 42px · rules/page.css .wrap.bl
   // 이름을 「블록」 으로 두면 안 된다 — 옛 12칸 트랙의 `const 블록` 과 같은 스코프에서 부딪친다
   const [외곽선, set외곽선] = useState(false);  // 박스 · 밴드 외곽선 · rules/page.css .wrap.dbg
+  /* 안내선 · N-자. **끄면 자석도 같이 끈다** — 안 보이는 선이 잡아채면 이유를 못 댄다 */
+  const [안내선켬, set안내선켬] = useState(true);
+  const [끄는선, set끄는선] = useState(null);   // { 갈래, 번호|null, 값 } · 놓기 전까지는 문안에 안 앉는다
   // 배율 · null 이면 창에 맞춘다. 숫자면 그 배율로 못박는다.
   // 키노트와 견주려면 못박아야 한다 — 키노트 50% 와 여기 50% 가 같은 크기다
   const [배율, set배율] = useState(null);
@@ -627,6 +630,11 @@ export default function Shell({ docs, first }) {
   const 얹기번호ref = useRef(null);
   const 얹기자리ref = useRef(() => {});
   const 외곽선ref = useRef(false);
+  /* 판 안 자석이 읽는다 · 판 리스너는 판이 뜰 때 한 번 달려 클로저가 낡는다 · N-자 */
+  const 안내선ref = useRef({ 가로: [], 세로: [] });
+  /* **자석 자리는 화면 px 로 잰다** · N-자. 판 px 로 10 을 박아 두면 축척 30% 에서
+     화면 3px 이 되어 사람 손이 못 맞춘다 — 축척을 나눠 언제나 같은 손맛이 되게 한다 */
+  const 축척ref = useRef(0.3);
   /* 판 안 리스너는 판이 뜰 때 한 번 달린다. 그때의 클로저를 물면 옛 박스번호를 본다 —
      그래서 놓기 동작만 ref 로 빼 둔다. 판본 · 판이 갈려도 언제나 지금 것을 부른다 */
   const 끌어놓기ref = useRef(() => {});
@@ -665,6 +673,7 @@ export default function Shell({ docs, first }) {
     [삽입처, 얹기번호]);
   useEffect(() => { 얹기자리ref.current = 얹기자리; });
   useEffect(() => { 외곽선ref.current = 외곽선; }, [외곽선]);
+  useEffect(() => { 축척ref.current = 축척; }, [축척]);
 
   /* 켜고 끌 때 iframe 문서에 바로 입힌다.
      둘 다 rules/page.css 가 이미 갖고 있다 — .wrap.bl (기준선 자) · .wrap.dbg (외곽선).
@@ -1403,6 +1412,42 @@ export default function Shell({ docs, first }) {
     setDoc(d); set더러움(true); set되돌림(스택.current.length);
     if (그리기) set판본키((n) => n + 1);
   }
+  /* ── 안내선 · N-자 ────────────────────────────────
+     **자는 손잡이다** · 사용자 판정. 포토샵 · 키노트가 그렇듯 자에서 끌어 내려야
+     안내선이 생긴다 — 자 자체를 재는 도구로 쓰자는 것이 아니다.
+
+     **자석이 아는 선이 판면이 파생시킨 것뿐이었다** · 박스 모서리 · 거터 한가운데 ·
+     42 기준선. 판면이 안 만든 자리에는 붙일 데가 없어 숫자를 손으로 쳤다.
+     안내선이 그 구멍을 메운다 — **자석 후보에 한 줄 더하는 것이 이 기능의 전부다.**
+
+     **문서 하나다** · 모든 페이지에 같이 뜬다 · 사용자 판정. 안내선을 세우는 이유가
+     대개 「여러 쪽에 걸쳐 같은 자리」라서다 — 페이지마다면 39쪽에 39번 세운다.
+
+     **렌더러를 안 건드린다** · `render()` 가 읽는 문서 열쇠는 문서명 · 기준선 ·
+     페이지 · 안여백뿐이라 모르는 열쇠는 조용히 지나간다. 그리는 자리도 판 밖
+     (`.frame`)이라 `srcdoc` 에 안 섞인다 — PDF · 산출 HTML 로 샐 자리가 없다.
+
+     `가로` 는 y 하나로 서는 가로줄 · `세로` 는 x 하나로 서는 세로줄이다 ·
+     얹기 「선」의 `가로 | 세로` 와 같은 말이다. */
+  const 안내선쓰기 = (갈래, 번호, 값) => 바꾸기((d) => {
+    const a = d.안내선 ?? (d.안내선 = {});
+    const 줄 = Array.isArray(a[갈래]) ? a[갈래] : (a[갈래] = []);
+    if (값 == null) {
+      if (번호 == null || 줄[번호] == null) return false;
+      줄.splice(번호, 1);
+    } else if (번호 == null) {
+      줄.push(값);
+    } else {
+      if (줄[번호] === 값) return false;
+      줄[번호] = 값;
+    }
+    줄.sort((x, y) => x - y);
+    // 빈 것은 문안에 안 남긴다 · 안 보이는 열쇠를 남기지 않는 규칙 그대로다
+    for (const k of ['가로', '세로']) if (Array.isArray(a[k]) && !a[k].length) delete a[k];
+    if (!Object.keys(a).length) delete d.안내선;
+    // 그리기를 안 준다 — 판 밖에 그리므로 판본을 다시 뽑을 일이 없다
+  });
+
   function 되돌리기() {
     const 이전 = 스택.current.pop();
     if (!이전) return set로그('되돌릴 것이 없다');
@@ -1575,7 +1620,18 @@ export default function Shell({ docs, first }) {
           '[data-박스].pick [data-요소]:hover{outline:1px solid rgba(230,129,0,.45);outline-offset:2px}' +
           '[data-요소].epick{outline:2px solid #E68100;outline-offset:2px}' +
           // 요소를 고르면 박스 테는 물러난다 · 강한 테는 하나만 남는다
-          '[data-박스].pick.epick{outline:2px solid rgba(230,129,0,.30);outline-offset:3px}';
+          '[data-박스].pick.epick{outline:2px solid rgba(230,129,0,.30);outline-offset:3px}' +
+          /* **박스에 넣은 것과 페이지에 얹은 것을 색으로 가른다** · 사용자 요구 · N-자.
+             둘 다 주황이라 판만 보고는 어느 층 것인지 못 읽었다 — 삽입 스위치로 둘이
+             대등해진 뒤로 더 그렇다. 박스 계열은 **주황** · 페이지 계열은 **보라**다 ·
+             색상환에서 마주 보아 헷갈릴 자리가 없다 · 「확연한 차이」가 요구였다.
+
+             `page.css` 의 `.ovp .ov` 규칙을 여기서 덮는다 — 판면 규칙은 앞 블록을
+             안 고친다(규칙 ④). 고르기 표시 색이 한자리에 모이는 이득도 있다 ·
+             안내선 청록까지 셋이 각자 딴 역할이라 겹쳐 봐도 안 헷갈린다 */
+          '.wrap.ovp .ov{outline:1px dashed rgba(122,79,214,.5)}' +
+          '.wrap.ovp .ov:hover{outline:2px solid rgba(122,79,214,.75);outline-offset:2px}' +
+          '.wrap.ovp .ov.opick{outline:3px solid #7A4FD6;outline-offset:2px}';
         d.head.appendChild(st);
         d.execCommand?.('defaultParagraphSeparator', false, 'br');
 
@@ -1673,6 +1729,9 @@ export default function Shell({ docs, first }) {
               for (let v = ((안top % 42) + 42) % 42; v < H; v += 42) out.push(v);
             }
           }
+          /* **안내선** · N-자. 여기가 이 기능의 전부다 — 판면이 파생시킨 선(박스 모서리 ·
+             거터 · 42)에 사람이 세운 선을 더한다. 끄면 빈 배열이라 자석도 같이 꺼진다 */
+          out.push(...(축 === 'x' ? 안내선ref.current.세로 : 안내선ref.current.가로));
           return out;
         };
         /* **못 붙으면 `null` 을 낸다** · 사용자 지적. 전에는 제자리(`v`)를 돌려줬는데 ·
@@ -1680,7 +1739,9 @@ export default function Shell({ docs, first }) {
            이겨** 자석이 통째로 안 먹었다. 실측 · 모서리 6px 앞에서 Shift 로 놓아도
            636 에 안 붙고 630 에 그대로 앉았다. 「안 붙었다」와 「제자리에 붙었다」를 갈라야 한다 */
         const 붙이기 = (v, 후보) => {
-          let 가까운 = null, 거리 = 11;              // 10px 안에서만 붙는다
+          /* **화면 px 로 잰다** · N-자. 판 px 로 10 을 박아 두면 축척 30% 에서 화면 3px 이
+             되어 손이 못 맞춘다 — 어느 배율에서나 같은 손맛이 되게 축척을 나눈다 */
+          let 가까운 = null, 거리 = Math.max(6, Math.round(9 / 축척ref.current));
           for (const c of 후보) {
             const t = Math.abs(c - v);
             if (t < 거리) { 거리 = t; 가까운 = c; }
@@ -1971,6 +2032,79 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
   const 요소열쇠 = (el) => 요소갈래들.find((k) => el?.[k] != null) ?? null;
   const 고른갈래 = 요소열쇠(고른요소);
 
+  /* ── 안내선 · 읽기와 끌기 · N-자 ─────────────────── */
+  const 안내선 = useMemo(() => ({
+    가로: (doc?.안내선?.가로 ?? []).filter((v) => Number.isFinite(v)),
+    세로: (doc?.안내선?.세로 ?? []).filter((v) => Number.isFinite(v)),
+  }), [doc?.안내선]);
+  useEffect(() => { 안내선ref.current = 안내선켬 ? 안내선 : { 가로: [], 세로: [] }; },
+    [안내선, 안내선켬]);
+
+  /* 안내선을 끌 때 붙는 자리 — **판 안 자석과 같은 것을 본다.**
+     다만 여기는 판 밖이라 iframe 을 안 읽고 `영역()` 으로 셈한다 · 순수 함수다.
+     가로줄은 42 격자에도 붙는다 · 세로줄은 박스 모서리와 거터 한가운데다 */
+  const 안내선자석 = (갈래) => {
+    if (!현재) return [];
+    let r;
+    try { r = 영역(현재); } catch { return []; }
+    const 값 = [];
+    for (const z of r) 값.push(갈래 === '세로' ? z.x : z.y, 갈래 === '세로' ? z.x + z.w : z.y + z.h);
+    const 낱 = [...new Set(값.map(Math.round))].sort((a, b) => a - b);
+    const out = [...낱, ...낱.slice(1).map((v, k) => Math.round((v + 낱[k]) / 2))];
+    if (갈래 === '가로' && r[0]) {
+      const pad = 현재.박스?.[0]?.안여백 ?? doc?.안여백 ?? _규격.안여백기본;
+      for (let v = ((r[0].y + pad) % 42 + 42) % 42; v < H; v += 42) out.push(v);
+    }
+    return out;
+  };
+
+  /* 자에서 끌어 내리면 생기고 · 선을 끌면 옮겨지고 · **판 밖으로 끌면 지워진다.**
+     자로 되끄는 것이 곧 판 밖이라 지우는 손짓이 따로 안 든다 · 키노트와 같다.
+     놓을 때 한 걸음으로 문안에 앉는다 — 끄는 동안은 `끄는선` 만 만진다 */
+  const 안내선끌기 = (갈래, 번호, e) => {
+    const 칸 = 틀.current?.getBoundingClientRect();
+    if (!칸) return;
+    e.preventDefault();
+    /* **포인터를 잡아 둔다.** 안 잡으면 커서가 판(iframe) 위로 들어가는 순간
+       포인터 이벤트가 그 안쪽 문서로 가 버려 **부모 문서가 끌기를 통째로 놓친다** —
+       실측 · 자에서 끌어 내리면 pointermove 0 · pointerup 0 이 되어 선이 자 밑에 얼어붙었다.
+       잡는 자리는 **안 사라지는 것**이어야 한다 · 그래서 끄는 중에도 그 선을 안 지운다 */
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    const 한계 = 갈래 === '가로' ? H : W;
+    const 후보 = 안내선자석(갈래);
+    const 붙 = Math.max(6, Math.round(8 / 축척));
+    const 재기 = (ev) => {
+      const v = Math.round((갈래 === '가로' ? ev.clientY - 칸.top : ev.clientX - 칸.left) / 축척);
+      if (!ev.shiftKey) return v;
+      let 가까운 = v, 거리 = 붙 + 1;
+      for (const c of 후보) { const t = Math.abs(c - v); if (t < 거리) { 거리 = t; 가까운 = c; } }
+      return 가까운;
+    };
+    let 값 = 재기(e);
+    set끄는선({ 갈래, 번호, 값 });
+    const 움직임 = (ev) => { 값 = 재기(ev); set끄는선({ 갈래, 번호, 값: 값 }); };
+    const 끝 = () => {
+      document.removeEventListener('pointermove', 움직임);
+      document.removeEventListener('pointerup', 끝);
+      document.removeEventListener('pointercancel', 끝);
+      set끄는선(null);
+      if (값 < 0 || 값 > 한계) { if (번호 != null) 안내선쓰기(갈래, 번호, null); return; }
+      안내선쓰기(갈래, 번호, 값);
+    };
+    document.addEventListener('pointermove', 움직임);
+    document.addEventListener('pointerup', 끝);
+    document.addEventListener('pointercancel', 끝);
+  };
+
+  /* 자 눈금 — **화면에서 54px 보다 촘촘해지지 않는 계단을 고른다.**
+     세로 자는 42 배수다(이 앱의 세로 계다) · 가로 자는 100 배수다(판면이 42 와 무관하다) */
+  const 눈금 = (계단들, 전체) => {
+    const 칸 = 계단들.find((n) => n * 축척 >= 54) ?? 계단들[계단들.length - 1];
+    const out = [];
+    for (let v = 0; v <= 전체; v += 칸) out.push(v);
+    return out;
+  };
+
   /* 층 목록 · **위가 앞이다** · N-도크재편. 배열 뒤가 위라 뒤집어 낸다 ·
      앞 무리 · 박스 칸막이 · 뒤 무리 셋이 한 목록으로 선다 */
   const 얹은것들 = 현재?.얹기 ?? [];
@@ -2011,6 +2145,11 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                 title="기준선 42 · ⌘\">기준선</button>
         <button className={'chip' + (외곽선 ? ' on' : '')} onClick={() => set외곽선((v) => !v)}
                 title="박스 외곽선">외곽선</button>
+        {/* 안내선 · N-자. **끄면 자석도 같이 끈다** — 안 보이는 선이 잡아채면 이유를 못 댄다 */}
+        <button className={'chip' + (안내선켬 ? ' on' : '')} onClick={() => set안내선켬((v) => !v)}
+                title="자에서 끌어 내려 안내선을 만든다 · 판 밖으로 끌면 지운다 · 끄면 자석도 끈다">
+          안내선{안내선.가로.length + 안내선.세로.length
+            ? ` ${안내선.가로.length + 안내선.세로.length}` : ''}</button>
         <span className="bsp" />
         <span className="seg">
           <button className={'chip' + (배율 == null ? ' on' : '')} onClick={() => set배율(null)}>맞춤</button>
@@ -2100,6 +2239,29 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
 
       <main className="view" ref={판}>
         {현재 ? (
+          /* 자는 판 밖에 선다 · N-자. **iframe 안에 그리면 `srcdoc` 에 섞여
+             PDF · 산출 HTML 로 샌다** — 놓기 판(`.drop-pane`)이 이미 판 밖에 사는 이유다.
+             좌표는 판 px 이라 축척만 곱하면 자리가 맞는다 */
+          <div className={'stage' + (안내선켬 ? '' : ' 민자')}>
+            {안내선켬 && (
+              <>
+                <span className="rlc" />
+                <div className="rlx" style={{ width: W * 축척 }}
+                     onPointerDown={(e) => 안내선끌기('가로', null, e)}
+                     title="끌어 내리면 가로 안내선이 생긴다">
+                  {눈금([100, 200, 500, 1000], W).map((v) => (
+                    <i key={v} style={{ left: v * 축척 }}>{v}</i>
+                  ))}
+                </div>
+                <div className="rly" style={{ height: H * 축척 }}
+                     onPointerDown={(e) => 안내선끌기('세로', null, e)}
+                     title="끌어 오른쪽으로 내면 세로 안내선이 생긴다">
+                  {눈금([42, 84, 210, 420, 840], H).map((v) => (
+                    <i key={v} style={{ top: v * 축척 }}><b>{v}</b></i>
+                  ))}
+                </div>
+              </>
+            )}
           <div className="frame" style={{ width: W * 축척, height: H * 축척 }}>
             <iframe
               ref={틀}
@@ -2156,6 +2318,45 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                 )}
               </div>
             )}
+
+            {/* 안내선 — **판 위에 얹는다** · 문안이 아니라 작업 보조라 판 안에 안 그린다.
+                줄 자체는 두께가 0 이고 `:before` 가 9px 과녁을 만든다 — 2px 선이
+                축척 30% 에서 화면 0.6px 이 되어 못 잡히던 것과 같은 함정이다 · N-얹기 c */}
+            {안내선켬 && (
+              <div className="gds">
+                {안내선.가로.map((v, k) => {
+                  const 끔 = 끄는선?.갈래 === '가로' && 끄는선.번호 === k;
+                  const 값 = 끔 ? 끄는선.값 : v;
+                  return (
+                    <span key={`h${k}`} className={'gd h' + (끔 ? ' now' : '')}
+                          style={{ top: 값 * 축척 }} title={`y ${값}`}
+                          onPointerDown={(e) => 안내선끌기('가로', k, e)}>
+                      {끔 && <em>y {값}</em>}
+                    </span>
+                  );
+                })}
+                {안내선.세로.map((v, k) => {
+                  const 끔 = 끄는선?.갈래 === '세로' && 끄는선.번호 === k;
+                  const 값 = 끔 ? 끄는선.값 : v;
+                  return (
+                    <span key={`v${k}`} className={'gd v' + (끔 ? ' now' : '')}
+                          style={{ left: 값 * 축척 }} title={`x ${값}`}
+                          onPointerDown={(e) => 안내선끌기('세로', k, e)}>
+                      {끔 && <em>x {값}</em>}
+                    </span>
+                  );
+                })}
+                {/* 새로 나는 선 — 자에서 끌어 내리는 중이다 · 놓아야 문안에 앉는다 */}
+                {끄는선?.번호 == null && 끄는선 && (
+                  <span className={`gd ${끄는선.갈래 === '가로' ? 'h' : 'v'} now`}
+                        style={끄는선.갈래 === '가로'
+                          ? { top: 끄는선.값 * 축척 } : { left: 끄는선.값 * 축척 }}>
+                    <em>{끄는선.갈래 === '가로' ? 'y' : 'x'} {끄는선.값}</em>
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
           </div>
         ) : (
           <p className="empty">페이지가 없다</p>

@@ -384,3 +384,49 @@ body {
   font-size: 11.5px; color: #7b8794;
   flex: 0 0 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+
+/* ── 자 · 안내선 · N-자 ──
+   **자는 손잡이다** · 사용자 판정. 포토샵 · 키노트가 그렇듯 자에서 끌어 내려야
+   안내선이 생긴다 — 자를 재는 도구로 쓰자는 것이 아니다.
+   **판 밖에 산다** · iframe 안에 그리면 srcdoc 에 섞여 PDF · 산출 HTML 로 샌다.
+   좌표는 판 px 이라 축척만 곱하면 자리가 맞는다 · 놓기 판과 같은 규칙이다. */
+.stage { position: relative; margin: auto; padding: 21px 0 0 21px }
+.stage.민자 { padding: 0 }
+.stage .frame { margin: 0 }
+.rlc, .rlx, .rly {
+  position: absolute; background: #eef1f5; color: #8c96a2;
+  user-select: none; -webkit-user-select: none;
+}
+.rlc { left: 0; top: 0; width: 21px; height: 21px; border-right: 1px solid var(--ln); border-bottom: 1px solid var(--ln) }
+.rlx { left: 21px; top: 0; height: 21px; border-bottom: 1px solid var(--ln); cursor: row-resize }
+.rly { left: 0; top: 21px; width: 21px; border-right: 1px solid var(--ln); cursor: col-resize }
+.rlx i, .rly i { position: absolute; font-style: normal; font-size: 9px; color: #97a1ac }
+.rlx i { top: 0; bottom: 0; border-left: 1px solid #c3ccd6; padding-left: 3px; line-height: 21px }
+/* 세로 자는 21px 폭에 네 자리가 안 들어간다 · 눈금줄을 긋고 숫자는 세워서 읽는다 */
+.rly i { left: 0; right: 0; height: 0; border-top: 1px solid #c3ccd6 }
+.rly i b {
+  position: absolute; left: 3px; top: 2px; transform-origin: 0 0; transform: rotate(90deg);
+  font-weight: 400; line-height: 1; white-space: nowrap;
+}
+/* 안내선 — **두께가 0 이고 `:before` 가 과녁을 만든다.**
+   1px 선은 축척 30% 에서 화면 0.3px 이라 그냥 두면 못 잡는다 · N-얹기 c 에서 배운 것이다 */
+.gds { position: absolute; inset: 0; z-index: 30; pointer-events: none }
+.gd { position: absolute; pointer-events: auto }
+.gd:before { content: ""; position: absolute }
+.gd.h { left: 0; right: 0; height: 0; border-top: 1px solid #0DA5B8; cursor: row-resize }
+.gd.v { top: 0; bottom: 0; width: 0; border-left: 1px solid #0DA5B8; cursor: col-resize }
+.gd.h:before { left: 0; right: 0; top: -5px; height: 11px }
+.gd.v:before { top: 0; bottom: 0; left: -5px; width: 11px }
+/* 손이 얹히면 진해진다 · **주황을 안 쓴다** — 주황은 판에서 고른 것의 색이다 */
+.gd:hover { border-color: #07778A; border-width: 2px }
+.gd.h:hover { margin-top: -1px }
+.gd.v:hover { margin-left: -1px }
+/* 끄는 중 — **`pointer-events` 를 끄지 않는다.** 이것이 포인터를 잡아 둔 대상이다 */
+.gd.now { border-style: dashed; border-color: #0DA5B8 }
+.gd em {
+  position: absolute; font-style: normal; font-size: 10px; line-height: 15px;
+  padding: 0 5px; border-radius: 3px; background: #0DA5B8; color: #fff;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.gd.h em { left: 4px; top: 2px }
+.gd.v em { left: 3px; top: 4px }
