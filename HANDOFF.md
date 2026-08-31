@@ -140,13 +140,14 @@ b.parser().parse(src, { sourceType: 'module', plugins: ['jsx'] });   // b.parser
 ### ③ 그림을 담은 도형 넣기
 
 **렌더러에 그림이 아직 없다.** `자리.그림` 같은 열쇠가 없고 `<img>` 를 낸 적이 없다.
-다만 배관은 절반 깔려 있다.
+다만 **배관은 이미 다 깔려 있다** — 렌더러가 `<img src="assets/…">` 를 내기만 하면
+개발 화면 · 빌드 · PDF 가 전부 따라온다.
 
 ```
 assets/캡처/            실물 이미지 · D1_구조도.svg 등
 app/api/img/[...p]      개발용으로 그대로 내려 준다
 app/ui/Shell.jsx        판본 문자열의 `src="assets/` 를 `/api/img/` 로 바꾼다
-scripts/build.js        빌드 때 base64 로 심는다(옛 12칸 시절 코드 · 확인 필요)
+scripts/build.js        `src="assets/` 를 --link 면 상대경로 · 아니면 base64 로 심는다 (63~72줄 · 지금도 산다)
 content/sokcho/실행계획서.json 2177줄  옛 체계가 쓰던 그림 경로 한 건
 ```
 
