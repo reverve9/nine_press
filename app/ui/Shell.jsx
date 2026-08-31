@@ -492,12 +492,30 @@ export default function Shell({ docs, first }) {
     w.classList.toggle('dbg', 외곽선);
   }, [자, 외곽선]);
 
-  /* 고른 박스에 테두리를 입힌다 */
+  /* 고른 박스 · 고른 요소에 테두리를 입힌다 · N-그림 d.
+     **강한 테는 언제나 하나다.** 요소를 고르면 박스 테를 지날 때 세기로 낮추고
+     요소가 진한 테를 받는다 — 둘 다 진하면 무엇을 고른 것인지 안 읽힌다.
+     `:has()` 를 안 쓴다 · 여기서 클래스로 준다 · 판이 iframe 이라 어차피 JS 가 만진다. */
+  const 테칠ref = useRef(() => {});
   useEffect(() => {
-    const d = 틀.current?.contentDocument;
-    d?.querySelectorAll('[data-박스]').forEach((el) =>
-      el.classList.toggle('pick', Number(el.getAttribute('data-박스')) === 박스번호));
-  }, [박스번호, 판본키]);
+    /* 판이 다시 뜰 때도 불러야 한다 — 판본키가 오르면 iframe 이 새로 뜨고
+       그 문서에는 클래스가 없다. 효과만으로는 로드 순서에 걸려 한 박자 빈다 ·
+       그래서 재기()(onLoad) 도 같은 함수를 부른다 */
+    테칠ref.current = (문서) => {
+      const d = 문서 ?? 틀.current?.contentDocument;
+      if (!d) return;
+      d.querySelectorAll('[data-박스]').forEach((el) => {
+        const 이박스 = Number(el.getAttribute('data-박스')) === 박스번호;
+        el.classList.toggle('pick', 이박스);
+        el.classList.toggle('epick', 이박스 && 요소번호 != null);
+      });
+      d.querySelectorAll('[data-요소]').forEach((el) => {
+        const 이박스 = Number(el.closest('[data-박스]')?.getAttribute('data-박스')) === 박스번호;
+        el.classList.toggle('epick', 이박스 && Number(el.getAttribute('data-요소')) === 요소번호);
+      });
+    };
+    테칠ref.current();
+  }, [박스번호, 요소번호, 판본키]);
 
   /* 페이지를 옮기거나 문안을 갈면 고르기를 푼다.
 
@@ -1095,10 +1113,12 @@ export default function Shell({ docs, first }) {
     return () => window.removeEventListener('keydown', on);
   });
 
-  /* 판본이 그려지면 ① 제자리 편집을 붙이고 ② 넘침을 잰다 */
+  /* 판본이 그려지면 ① 제자리 편집을 붙이고 ② 고른 테를 다시 칠하고 ③ 넘침을 잰다 */
   function 재기() {
     const el = 틀.current;
     if (!el) return;
+    // 판이 새로 떴다 — 고른 박스 · 요소의 테가 없다 · N-그림 d
+    try { 테칠ref.current(el.contentDocument); } catch { /* 아직 못 읽는다 */ }
 
     try {
       const d = el.contentDocument;
@@ -1114,7 +1134,16 @@ export default function Shell({ docs, first }) {
           '[data-박스]{cursor:default}' +
           '[data-박스]:hover{outline:2px solid rgba(230,129,0,.35);outline-offset:2px}' +
           '[data-박스].pick{outline:3px solid #E68100;outline-offset:3px}' +
-          '[data-박스].pick [data-p]:hover{background:rgba(230,129,0,.10)}';
+          '[data-박스].pick [data-p]:hover{background:rgba(230,129,0,.10)}' +
+          /* 요소 — 고르면 제 테를 받는다 · N-그림 d.
+             **그림에 특히 필요했다** · 글자는 두 번 눌러 들어가면 편집 테가 뜨는데
+             그림은 그 길이 없어 무엇을 고른 것인지 판에서 안 보였다 · 사용자 지적.
+             outline 은 흐름을 안 건드린다 — 42 격자에 닿지 않는다 */
+          '[data-요소]{cursor:default}' +
+          '[data-박스].pick [data-요소]:hover{outline:1px solid rgba(230,129,0,.45);outline-offset:2px}' +
+          '[data-요소].epick{outline:2px solid #E68100;outline-offset:2px}' +
+          // 요소를 고르면 박스 테는 물러난다 · 강한 테는 하나만 남는다
+          '[data-박스].pick.epick{outline:2px solid rgba(230,129,0,.30);outline-offset:3px}';
         d.head.appendChild(st);
         d.execCommand?.('defaultParagraphSeparator', false, 'br');
 
@@ -1638,9 +1667,12 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                 {요소갈래들.filter((k) => k !== '그림').map((k) => (
                   <button key={k} className="chip" onClick={() => 요소넣기(k)}>+ {k}</button>
                 ))}
+                {/* 「+ 그림」 은 **견본을 펴면서** [요소] 탭으로 간다 · N-그림 d.
+                    견본을 접어 둔 뒤로 이 버튼이 아무것도 안 여는 것처럼 보였다 · 사용자 지적.
+                    경로 없는 그림을 미리 만들지 않는 것은 그대로다 — 그러면 렌더러가 던진다 */}
                 <button className="chip"
-                        onClick={() => { set요소번호(null); set탭('요소'); }}
-                        title="[요소] 탭에서 견본을 눌러 놓는다 · 판의 「+」로도 놓는다">+ 그림</button>
+                        onClick={() => { set요소번호(null); set탭('요소'); set견본(true); }}
+                        title="견본을 펴고 [요소] 탭으로 간다 · 판의 「+」로도 놓는다">+ 그림</button>
               </span>
             </div>
           </div>
