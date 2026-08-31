@@ -333,3 +333,6 @@ body {
 .numin.w { width: 48px }
 .numin:disabled { background: #f7f9fb; color: #b3bdc8; cursor: default }
 .numrg { font-size: 11px; font-variant-numeric: tabular-nums; color: #b3bdc8 }
+
+/* 얹은 글 입력 · N-얹기 e — 여러 줄이라 input 이 아니라 textarea 다 */
+.txin { width: 100%; resize: vertical; min-height: 62px; line-height: 1.6; padding: 7px 9px }

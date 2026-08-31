@@ -539,6 +539,10 @@ b{font-weight:700;color:var(--강조)}
 
 .ov{position:absolute;pointer-events:none}
 .ov.ln{border-radius:0}
+/* 얹은 글 · N-얹기 e — 박스 안 본문(.bd)과 **같은 활자**다. 크기와 행간만 인라인으로 온다.
+   높이를 안 잡는다 · 글이 밀고 내려간다. 색과 굵기는 문자열 표기가 이미 낸다 */
+.ov.tx{font-weight:400;letter-spacing:-.005em;color:var(--먹);
+  word-break:keep-all;overflow-wrap:break-word}
 
 /* 도구에서 얹은 것을 고를 때만 누를 수 있게 연다 · 문안에 안 남는다.
 

@@ -178,7 +178,10 @@ function 맛보기(el, k) {
    그래서 박스 · 요소와 나란히 서는 물건이 아니라 **탭이 따로 하나 든다** · [얹기].
    좌표는 키노트 슬라이드와 같은 계다 · 2339 × 1654. */
 const 판W = 2339, 판H = 1654;
-const 얹기갈래들 = [['선', '선'], ['도형', '도형'], ['그림', '그림']];
+const 얹기갈래들 = [['선', '선'], ['도형', '도형'], ['그림', '그림'], ['글', '글']];
+/* 얹은 글 · N-얹기 e. 계단과 정렬은 렌더러 얹기글계단 · 얹기정렬과 같아야 한다 */
+const 얹기글크기들 = [21, 24, 26, 29, 39, 64];
+const 얹기정렬들 = [['왼쪽', '왼쪽'], ['가운데', '가운데'], ['오른쪽', '오른쪽']];
 const 선방향들 = [['가로', '가로'], ['세로', '세로']];
 /* 층 · 박스 뒤 · 박스 앞 · N-얹기 b · 사용자 판정.
    쌓임은 DOM 순서가 전부다 — 렌더러가 박스 앞뒤로 한 번씩 내놓는다.
@@ -188,6 +191,8 @@ const 새얹기 = {
   // 판 한가운데를 가로지르는 선 · 처음 놓을 때 눈에 바로 보이는 자리다
   선: () => ({ 선: '가로', x: 80, y: 827, 길이: 2179, 굵기: 2, 색: '선' }),
   도형: () => ({ 도형: { 배경: '블록배경', 모서리: 10 }, x: 80, y: 260, 폭: 1090, 높이: 1150 }),
+  // 카피 밴드 자리(y 271)에 놓는다 — 이 갈래를 연 쓰임이 거기다 · 높이는 안 준다
+  글: () => ({ 글: '새 글', x: 80, y: 271, 폭: 2179, 크기: 64, 층: '앞' }),
   // 그림은 경로가 있어야 살아서 여기서 안 만든다 — 견본을 고르는 것이 곧 놓는 것이다
 };
 const 얹기열쇠 = (o) => 얹기갈래들.map(([k]) => k).find((k) => o?.[k] != null) ?? null;
@@ -198,6 +203,10 @@ const 얹기맛보기 = (o) => {
     const 뒤 = k === '그림'
       ? ` · ${(typeof o.그림 === 'string' ? o.그림 : o.그림?.경로 ?? '').split('/').pop()}` : '';
     return `${o.x},${o.y} · ${o.폭} × ${o.높이}${뒤}`;
+  }
+  if (k === '글') {
+    const t = String(o.글 ?? '').replace(/\s+/g, ' ').trim();
+    return `${o.x},${o.y} · ${o.크기 ?? 24}px · ${t.length > 22 ? `${t.slice(0, 22)}…` : t || '빈 글'}`;
   }
   return '';
 };
@@ -1491,7 +1500,7 @@ export default function Shell({ docs, first }) {
            「박스와 박스 사이에 선」이 이 층을 연 이유라(사용자) 손으로 맞출 일을 없앤다.
            안 누르면 자유다 · 세로를 42 에 안 붙이는 것과 같은 결이다. */
         let 끌기 = null;
-        const 자석 = (축) => {
+        const 자석 = (축, 기준선 = false) => {
           const 값 = [];
           d.querySelectorAll('[data-박스]').forEach((b) => {
             const r = b.getBoundingClientRect();
@@ -1500,7 +1509,19 @@ export default function Shell({ docs, first }) {
           const 낱 = [...new Set(값.map(Math.round))].sort((a, b) => a - b);
           // 이웃한 모서리 사이의 한가운데 = 거터 한가운데
           const 사이 = 낱.slice(1).map((v, k) => Math.round((v + 낱[k]) / 2));
-          return [...낱, ...사이];
+          const out = [...낱, ...사이];
+          /* **얹은 글만 42 기준선에도 붙는다** · N-얹기 e. 선 · 도형은 글을 안 담아
+             기준선과 무관하지만(그래서 세로를 안 붙였다) 글은 박스 안 글과 같은 줄에
+             앉아야 한다. 박스 안 원점들이 한 나머지로 모이므로 아무 박스나 하나면 격자를 안다 */
+          if (축 === 'y' && 기준선) {
+            const b = d.querySelector('[data-박스]');
+            if (b) {
+              const 안top = Math.round(
+                b.getBoundingClientRect().top + parseFloat(d.defaultView.getComputedStyle(b).paddingTop));
+              for (let v = ((안top % 42) + 42) % 42; v < H; v += 42) out.push(v);
+            }
+          }
+          return out;
         };
         const 붙이기 = (v, 후보) => {
           let 가까운 = v, 거리 = 11;                 // 10px 안에서만 붙는다
@@ -1522,7 +1543,7 @@ export default function Shell({ docs, first }) {
             el, k, x0: e.clientX, y0: e.clientY,
             l: parseFloat(el.style.left) || 0, t: parseFloat(el.style.top) || 0,
             w: el.offsetWidth, h: el.offsetHeight,
-            자x: 자석('x'), 자y: 자석('y'),
+            자x: 자석('x'), 자y: 자석('y', el.classList.contains('tx')),
           };
           el.setPointerCapture?.(e.pointerId);
         });
@@ -2716,6 +2737,38 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                       <수칸 열쇠="얹y" 값={o.y} 기본={260} 로그={set로그}
                             놓기={(n) => 얹기값('y', n)} />
                     </줄>
+
+                    {k === '글' && (
+                      <>
+                        <줄 이름="글" 곁="**굵게** · {강조|글자} 가 그대로 먹는다">
+                          <textarea
+                            className="barin txin" rows={3}
+                            key={`얹글-${slug}-${i}-${얹기번호}`}
+                            defaultValue={o.글 ?? ''}
+                            onBlur={(e) => { if (e.target.value !== o.글) 얹기값('글', e.target.value); }} />
+                        </줄>
+                        <줄 이름="폭" 곁={`${o.폭}px · 높이는 글이 정한다`}>
+                          <수칸 열쇠="얹폭" 값={o.폭} 기본={2179} 로그={set로그}
+                                놓기={(n) => 얹기값('폭', n)} />
+                        </줄>
+                        <줄 이름="크기" 곁={`행간 ${(o.크기 ?? 24) <= 29 ? 42 : 84}`}>
+                          <span className="seg">
+                            {얹기글크기들.map((v) => (
+                              <button key={v} className={'chip' + ((o.크기 ?? 24) === v ? ' on' : '')}
+                                      onClick={() => 얹기값('크기', v)}>{v}</button>
+                            ))}
+                          </span>
+                        </줄>
+                        <줄 이름="정렬">
+                          <span className="seg">
+                            {얹기정렬들.map(([v, 이름]) => (
+                              <button key={v} className={'chip' + ((o.정렬 ?? '왼쪽') === v ? ' on' : '')}
+                                      onClick={() => 얹기값('정렬', v === '왼쪽' ? undefined : v)}>{이름}</button>
+                            ))}
+                          </span>
+                        </줄>
+                      </>
+                    )}
 
                     {k === '선' && (
                       <>
