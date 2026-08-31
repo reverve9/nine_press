@@ -77,4 +77,6 @@ fs.writeFileSync(file, html, 'utf8');
 
 const kb = (fs.statSync(file).size / 1024).toFixed(0);
 const mode = link ? '<link> 개발용' : embed ? '자기완결 · 폰트 내장' : '자기완결 · 폰트 상대경로';
-console.log(`${file}\n  ${doc.면.length}면 · ${kb}KB · ${mode}${v3 ? ' · 봉인본 v3' : ''}${grid ? ' · 기준선 자' : ''}`);
+// 봉인본(--v3)은 옛 말을 쓴다 · 「면」이다 · N-자유 e
+const 페이지수 = (doc.페이지 ?? doc.면 ?? []).length;
+console.log(`${file}\n  ${페이지수}페이지 · ${kb}KB · ${mode}${v3 ? ' · 봉인본 v3' : ''}${grid ? ' · 기준선 자' : ''}`);

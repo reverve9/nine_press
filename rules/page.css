@@ -17,8 +17,8 @@
   --헤더Y:120px;  --헤더H:65px;
   --푸터Y:1585px;  --푸터H:33px;
   --카피Y:271px;  --카피H:156px;
-  --논지H:54px;
-  --논지Y카피:470px;  --논지Y연속:271px;
+  --요지H:54px;
+  --요지Y카피:470px;  --요지Y연속:271px;
 
   --거터:43px;
   --여백:33px;          /* 블록 안쪽 여백 · 문서 기본값 */
@@ -58,7 +58,7 @@ body{
 }
 
 /* ── 판 ───────────────────────────────────────────────────
-   .sheet 는 축소한 판이 차지하는 자리다. .page 는 언제나 1:1 px 이고
+   .sheet 는 축소한 판이 차지하는 박스다. .page 는 언제나 1:1 px 이고
    transform 으로만 줄인다. 그래야 인라인 좌표가 화면에서도 그대로다. */
 
 .wrap{width:calc(var(--판W) * var(--view));margin:0 auto}
@@ -69,7 +69,7 @@ body{
 .page{position:relative;width:var(--판W);height:var(--판H);
   background:#fff;overflow:hidden;box-shadow:0 1px 3px rgba(19,27,43,.07)}
 
-/* ── 글자 계층 · 자리 안 다섯 — 키노트 세팅 §5 ────────────
+/* ── 글자 계층 · 박스 안 다섯 — 키노트 세팅 §5 ────────────
    자간 단위는 1/1000 em · 표제 −15 · 본문 −5 · 라벨 +180.
 
    행 높이를 비율이 아니라 px 로 못박는다 — 기준선 42 격자 (§4-3).
@@ -84,8 +84,8 @@ body{
    라벨·출처   20  700   28+7/7  거의 안 된다 · 그래서 패딩으로 조인다
    강조 수치    52  700   84      52px 글자는 한 칸에 안 들어간다
 
-   밴드 계층 넷(메인카피·서브디스크립션·논지·페이지타이틀)은 격자 밖이다.
-   카피 존 156 · 논지 존 54 · 헤더 65 가 고정 높이라 42 배수를 안 따진다. */
+   밴드 계층 넷(메인카피·서브디스크립션·요지·페이지타이틀)은 격자 밖이다.
+   카피 존 156 · 요지 존 54 · 헤더 65 가 고정 높이라 42 배수를 안 따진다. */
 
 .bt{font-size:29px;font-weight:700;letter-spacing:-.015em;color:var(--네이비);line-height:42px}
 .sm{font-size:26px;font-weight:400;letter-spacing:-.005em;color:var(--먹);line-height:42px}
@@ -98,14 +98,14 @@ body{
   line-height:28px;padding:7px 0}
 
 /* ── 위계 간격 · 머리 뒤에 한 칸 — N-글자 b ────────────────
-   자리 안은 덩이가 둘이다.  머리(제목 + 요약)  ·  몸(문단들)
+   박스 안은 덩이가 둘이다.  머리(제목 + 요약)  ·  몸(문단들)
    제목 29 남색과 요약 26 먹은 크기 차가 3px 뿐이라 붙여야 한 덩이로 읽힌다.
    반대로 요약과 본문 첫 줄이 같은 42 간격이면 요약이 본문의 첫 문장처럼 읽힌다.
 
    쓸 수 있는 값은 0 또는 42 뿐이다 · 21 은 문단마다 홀짝으로 엇갈린다(§9 ⑧).
    그래서 물음은 「어디에 한 칸을 쓸 것인가」였고 · 머리 끝에 쓴다.
 
-   치르는 값은 자리마다 본문 한 줄이다.
+   치르는 값은 박스마다 본문 한 줄이다.
      G1 · G3 21줄 → 20줄 (−5%)      G9 9줄 → 8줄 (−11%)
    제목 뒤에도 한 칸을 더 주면 값이 두 배인데 · 한 몸인 제목과 요약을 갈라 놓는다.
    실측 비교 넷을 찍어 고른 결과다 · 제목 뒤 42 는 오히려 나빴다. */
@@ -126,7 +126,7 @@ body{
 
 /* ── 목록 — 항목 하나가 한 줄 42 · 항목 사이는 0 ────────────
    실물 69건 · 항목 2~8개(3~6이 흔하다) · 합 399개다.
-   항목마다 42 를 더 주면 여섯 항목짜리 목록 하나가 G9 자리를 통째로 먹는다.
+   항목마다 42 를 더 주면 여섯 항목짜리 목록 하나가 G9 박스를 통째로 먹는다.
    그래서 항목 사이는 0 이고 · 가르는 일은 마커와 매달린 들여쓰기가 맡는다.
 
    매달린 들여쓰기 = 마커는 왼쪽에 절대 배치하고 글자만 30 들여쓴다.
@@ -143,7 +143,7 @@ body{
 .ls li b{color:var(--강조)}
 
 /* ── 번호목록 — 목록과 같은 규칙 · 마커만 원형 배지다 ────────
-   실물 11건 · 항목 5~8개. 한 자리로 끝나지만 배지가 두 자리도 받는다.
+   실물 11건 · 항목 5~8개. 한 박스로 끝나지만 배지가 두 자리도 받는다.
 
    배지는 절대 배치라 줄 상자에 안 낀다 — 격자와 무관하다(§5-8 과 반대 경우다).
    세로 중심이 딱 떨어진다 · 줄 상자 42 · 배지 24 → (42 − 24) / 2 = 9.
@@ -163,29 +163,29 @@ body{
 
 /* ── 표 — N-배경 b ─────────────────────────────────────────
    설계 §4-2 · **표는 배경이다.** 글자가 먼저 있고 그 밑에 선과 칠이 깔린다.
-   그래서 여기엔 좌표가 없다 — 칸 · 선 · 칠의 자리는 전부 렌더러가 인라인으로 박는다.
+   그래서 여기엔 좌표가 없다 — 칸 · 선 · 칠의 박스는 전부 렌더러가 인라인으로 박는다.
 
    칸 안 글자는 표 밖 글줄과 **같은 기준선**에 앉는다 · 행간 42 · 여백 0.
    선은 칸 **사이**에만 놓인다. 칸 테두리가 아니다 —
    테두리로 그리면 열 거터 양쪽에 선이 둘 생기고 바깥 끝에도 그어진다.
-   바깥 테두리가 필요하면 그건 자리 「도형」이 할 일이다.
+   바깥 테두리가 필요하면 그건 박스 「도형」이 할 일이다.
 
-   층 순서는 칠 → 선 → 글자다. 앞의 둘은 pointer-events 를 안 받는다 —
+   층 순서는 배경 → 선 → 글자다. 앞의 둘은 pointer-events 를 안 받는다 —
    편집기에서 칸을 누를 때 배경이 가로채면 안 된다. */
 
 .tb{position:relative}
-/* 칸 — 머리행만 라벨 계층(20 · 700 · 자간 +180)이다. 나머지는 본문 24 */
+/* 칸 — 헤더행만 라벨 계층(20 · 700 · 자간 +180)이다. 나머지는 본문 24 */
 .tb .tc{position:absolute;font-size:var(--본문);font-weight:400;letter-spacing:-.005em;
   color:var(--먹);line-height:42px;overflow:hidden}
 .tb .tc.th{font-size:20px;font-weight:700;letter-spacing:.180em;color:var(--출처);
   line-height:28px;padding:7px 0}
 .tb .tc b{color:var(--강조)}
-/* 선 · 칠 — 배경 층 */
+/* 선 · 배경 — 배경 층 */
 .tb .tl{position:absolute;background:var(--선);pointer-events:none}
-.tb .tl.hd{background:var(--강조)}        /* 머리행 아래만 진하게 */
+.tb .tl.hd{background:var(--강조)}        /* 헤더행 아래만 진하게 */
 .tb .tf{position:absolute;pointer-events:none}
 
-/* 반전 자리 안의 표 — 글자와 선을 함께 뒤집는다 */
+/* 반전 박스 안의 표 — 글자와 선을 함께 뒤집는다 */
 .bx[data-글자="반전"] .tb .tc{color:rgba(255,255,255,.88)}
 .bx[data-글자="반전"] .tb .tc.th{color:rgba(255,255,255,.72)}
 .bx[data-글자="반전"] .tb .tc b{color:#fff}
@@ -271,14 +271,14 @@ b{font-weight:700;color:var(--강조)}
 .cps{font-size:39px;font-weight:400;letter-spacing:-.005em;color:var(--부연);line-height:55px}
 .page[data-mode="연속"] .cp{display:none}
 
-/* ── 논지 — 높이 54. 모드가 Y 를 정한다 ──
+/* ── 요지 — 높이 54. 모드가 Y 를 정한다 ──
    45px × 1.2 = 54 로 밴드에 딱 맞는다. 여유가 0 이라 한 줄만 들어간다. */
 
-.tt{position:absolute;left:var(--안전X);width:var(--안전W);height:var(--논지H);
+.tt{position:absolute;left:var(--안전X);width:var(--안전W);height:var(--요지H);
   display:flex;align-items:center;
   font-size:45px;font-weight:800;letter-spacing:-.015em;color:var(--강조);line-height:54px}
-.page[data-mode="카피"] .tt{top:var(--논지Y카피)}
-.page[data-mode="연속"] .tt{top:var(--논지Y연속)}
+.page[data-mode="카피"] .tt{top:var(--요지Y카피)}
+.page[data-mode="연속"] .tt{top:var(--요지Y연속)}
 
 /* ── 푸터 밴드 — Y 1585 → 1618 · 높이 33
    쪽번호 중앙 · 문서명 우 2259. 제본 여유 Y 118 하한을 넘지 않는다 ── */
@@ -292,12 +292,12 @@ b{font-weight:700;color:var(--강조)}
 
 /* ── 블록 — 좌표는 인라인이다. 여기서 위치를 계산하지 않는다 ──
    배경 · 모서리 · 테두리 · 그림자도 인라인이다 · 렌더러의 도형() 이 낸다 · N-배경 a1.
-   여기에 기본값을 두지 않는다 — 도형이 없는 자리는 투명해야 한다. */
+   여기에 기본값을 두지 않는다 — 도형이 없는 박스는 투명해야 한다. */
 
 .bx{position:absolute;padding:var(--여백);overflow:hidden}
 
 /* ── 글자 반전 — N-배경 a1 ─────────────────────────────────
-   어두운 배경 위에서 자리 안 글자를 통째로 뒤집는다.
+   어두운 배경 위에서 박스 안 글자를 통째로 뒤집는다.
    **명시로만 켠다** · `"도형":{"글자":"반전"}`. 밝기를 계산해 자동 판정하지 않는다 —
    계산으로 정하면 문안 작성자가 결과를 예측할 수 없다.
 
@@ -323,8 +323,8 @@ b{font-weight:700;color:var(--강조)}
 
 /* ── 기준선 자 — 42px 격자 · 검사용 · 출력에 안 나간다 ──
    render(doc,{기준선:true}) 또는 doc.기준선 이면 .wrap 에 .bl 이 붙는다.
-   자리(.bx) 안쪽 여백 위에서 시작한다. 자리마다 원점을 새로 잡으므로
-   골격이 무엇이든 그 자리 안에서는 언제나 맞는 자다.
+   박스(.bx) 안쪽 여백 위에서 시작한다. 박스마다 원점을 새로 잡으므로
+   레이아웃이 무엇이든 그 박스 안에서는 언제나 맞는 자다.
    굵은 선은 5줄(210px)마다. 줄을 세기 쉬우라고 둔다. */
 
 .wrap.bl .bx:before{content:"";position:absolute;pointer-events:none;
@@ -335,12 +335,12 @@ b{font-weight:700;color:var(--강조)}
     repeating-linear-gradient(to bottom,
       rgba(200,0,120,.17) 0 1px, transparent 1px var(--기준선));}
 
-/* ── 비워 두는 자리 — 키노트 · 파워포인트에서 채운다 ──
+/* ── 비워 두는 박스 — 키노트 · 파워포인트에서 채운다 ──
    렌더러가 **도구 모드에서만** 이 조각을 낸다. 산출 HTML · PDF 에는 아예 없다.
-   그래야 그 자리가 진짜로 비어 다른 도구가 덮어쓸 수 있다.
+   그래야 그 박스가 진짜로 비어 다른 도구가 덮어쓸 수 있다.
 
    판이 2339 × 1654 로 키노트 슬라이드와 같은 좌표계다 — 여기 적힌 x · y · 폭 · 높이를
-   키노트에서 그대로 쓰면 자리가 정확히 맞는다. 표는 `scripts/비움.mjs` 가 뽑는다. */
+   키노트에서 그대로 쓰면 박스가 정확히 맞는다. 표는 `scripts/비움.mjs` 가 뽑는다. */
 
 .emp{position:absolute;left:0;top:0;right:0;bottom:0;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
@@ -350,7 +350,7 @@ b{font-weight:700;color:var(--강조)}
   color:var(--강조);font-size:26px;font-weight:700;letter-spacing:-.005em;
   text-align:center;padding:0 20px;pointer-events:none}
 .emp i{font-style:normal;font-size:20px;font-weight:400;letter-spacing:.06em;color:var(--출처)}
-/* 표식 없이 빈 자리 — 실수인지 일부러인지 가른다 */
+/* 표식 없이 빈 박스 — 실수인지 일부러인지 가른다 */
 .emp.warn{border-color:rgba(230,129,0,.55);color:var(--결론);
   background:repeating-linear-gradient(45deg,
     rgba(230,129,0,.05) 0 14px, transparent 14px 28px)}
@@ -365,7 +365,7 @@ b{font-weight:700;color:var(--강조)}
   left:80px;top:120px;width:2179px;height:1498px;outline:1px solid rgba(19,27,43,.18)}
 
 /* ── ㉛ 단계띠 배경 — N-배경 c ──────────────────────────────
-   칠 · 모서리 · 좌우 21 은 렌더러가 인라인으로 박는다. 여기엔 좌표가 없다.
+   배경 · 모서리 · 좌우 21 은 렌더러가 인라인으로 박는다. 여기엔 좌표가 없다.
    세로 패딩은 여전히 0 이다 — 배경이 칸 사각형에 딱 맞게 깔린다.
 
    반전은 명시로만 켠다(`data-글자="반전"`). 앞의 `.s.on` 색 규칙과 특정도가 같아
@@ -377,15 +377,15 @@ b{font-weight:700;color:var(--강조)}
 .sp .s[data-글자="반전"] .tbd{border-color:rgba(255,255,255,.72);color:rgba(255,255,255,.72)}
 
 /* ── ㉜ 그림 — N-그림 ────────────────────────────────────
-   **그림은 배경이 아니다.** 도형 · 표 칠 · 단계띠 칠은 글줄 밑에 깔리지만
-   그림은 제 자리를 먹는다. 그래서 세로 격자에 걸린다 —
+   **그림은 배경이 아니다.** 도형 · 표 배경 · 단계띠 칠은 글줄 밑에 깔리지만
+   그림은 제 박스를 먹는다. 그래서 세로 격자에 걸린다 —
    높이는 렌더러가 42 의 배수로 못박아 인라인으로 내려 준다. 여기서 계산하지 않는다.
 
-   `object-fit` 도 인라인이다 — 「맞춤」이 자리마다 다른 값이라 클래스로 못 가른다.
+   `object-fit` 도 인라인이다 — 「맞춤」이 박스마다 다른 값이라 클래스로 못 가른다.
    `display:block` 이 없으면 img 가 인라인 상자라 아래에 서너 px 이 붙어
-   그 자리만 격자에서 밀려난다 · 폰트 baseline 아래 여백이다.
+   그 박스만 격자에서 밀려난다 · 폰트 baseline 아래 여백이다.
 
-   가로는 자유다 · 설계 §4-4. 폭은 자리 안쪽 폭을 그대로 채우고
+   가로는 자유다 · 설계 §4-4. 폭은 박스 안쪽 폭을 그대로 채우고
    남는 쪽은 `object-fit` 이 가운데로 몬다(기본값 50% 50%). */
 
 .im{overflow:hidden}
@@ -401,10 +401,10 @@ b{font-weight:700;color:var(--강조)}
 .im + .bd,.im + .ls,.im + .ol,.im + .tb,.im + .sp,.im + .nm{margin-top:var(--문단사이)}
 .im + .lb{margin-top:0}
 
-/* 글자 반전 자리에서도 그림은 안 건드린다 — 그림은 글자가 아니다 */
+/* 글자 반전 박스에서도 그림은 안 건드린다 — 그림은 글자가 아니다 */
 
 /* ── ㉝ 위계 간격을 렌더러가 정한다 — N-자유 ────────────────
-   **자리 안이 요소 배열이 되며 조합표가 못 버틴다.** 위 「위계 간격」 블록은
+   **박스 안이 요소 배열이 되며 조합표가 못 버틴다.** 위 「위계 간격」 블록은
    `.bt + .bd` 꼴로 짝을 하나하나 적은 표다. 요소가 임의 순서로 오면 일곱 갈래에
    49줄이 되고 · 그림 · 여백이 붙을 때마다 다시 부푼다.
    더 나쁜 것은 **조합표가 인라인 margin 에 언제나 진다**는 것이다 —
@@ -426,9 +426,9 @@ b{font-weight:700;color:var(--강조)}
 /* 여백 요소 — 42 덩이만큼 비운다. 간격(0 · 42)으로 못 만드는 큰 틈을 준다 */
 .sx{width:100%}
 
-/* 요소 도형 — 자리 도형과 같은 어휘다. 글자 요소만 좌우로 들인다(인라인 padding).
+/* 요소 도형 — 박스 도형과 같은 어휘다. 글자 요소만 좌우로 들인다(인라인 padding).
    세로 패딩은 어디에도 안 준다 · 격자가 깨진다 · 단계띠에서 배운 그대로다 ㉛.
-   반전도 요소 하나에 걸린다 — 자리 전체에 걸던 규칙(㉙)의 요소판이다 */
+   반전도 요소 하나에 걸린다 — 박스 전체에 걸던 규칙(㉙)의 요소판이다 */
 
 .bx [data-글자="반전"]{color:rgba(255,255,255,.88)}
 .bx .bt[data-글자="반전"]{color:#fff}
@@ -440,14 +440,14 @@ b{font-weight:700;color:var(--강조)}
 .bx [data-글자="반전"] .tbd{border-color:rgba(255,255,255,.72);color:rgba(255,255,255,.72)}
 
 /* ── ㉞ 도구 표시 — 판에 얹히고 문안에 안 남는다 · N-자유 ──
-   빈 자리의 「+」 와 끌어다 놓을 때 켜지는 테두리. 둘 다 도구 모드 · 화면 전용이다.
+   빈 박스의 「+」 와 끌어다 놓을 때 켜지는 테두리. 둘 다 도구 모드 · 화면 전용이다.
    출력 HTML 에는 `.emp` 자체가 안 나가고 `.drop` 은 편집기가 붙였다 뗀다. */
 
 .emp.add span{font-size:52px;font-weight:400;line-height:52px}
 .emp.add{cursor:pointer}
 .emp.add:hover{border-color:var(--강조);background:rgba(230,129,0,.06)}
 
-/* 내용이 있는 자리의 「+」 — 오른쪽 아래 구석. 글줄 자리에 개입하면 안 되므로
+/* 내용이 있는 박스의 「+」 — 오른쪽 아래 구석. 글줄 박스에 개입하면 안 되므로
    절대 배치다 · 흐름 밖이라 격자와 무관하다. 도구 모드에서만 나온다 */
 .plus{position:absolute;right:8px;bottom:8px;z-index:5;
   width:46px;height:46px;border-radius:50%;
@@ -459,9 +459,9 @@ b{font-weight:700;color:var(--강조)}
 .plus:hover{background:var(--네이비);color:#fff}
 .bx.drop{outline:2px solid var(--강조);outline-offset:-2px;background:rgba(230,129,0,.06)}
 
-/* 요소 비움 — **자리를 넘긴다.** 출력에는 `.sx`(빈 칸)만 나가고 이 표식은 도구에서만 뜬다.
+/* 요소 비움 — **박스를 넘긴다.** 출력에는 `.sx`(빈 칸)만 나가고 이 표식은 도구에서만 뜬다.
    높이는 렌더러가 42 배수로 못박아 인라인으로 준다 · 여기서 계산하지 않는다.
-   `.emp`(자리 통째 비움)와 같은 어휘를 쓰되 흐름 안에 앉으므로 absolute 가 아니다. */
+   `.emp`(박스 통째 비움)와 같은 어휘를 쓰되 흐름 안에 앉으므로 absolute 가 아니다. */
 .sk{position:relative;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:6px;
   border:2px dashed rgba(230,129,0,.55);border-radius:10px;

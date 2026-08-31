@@ -4,7 +4,7 @@
 //   node scripts/roundtrip.mjs <문안.json> --v3   봉인한 12칸 트랙 렌더러
 //
 // 판면 규칙이나 inline 표기를 고칠 때마다 돌린다.
-// 하나라도 어긋나면 판면에서 그 자리에 고쳤을 때 문안이 깨진다는 뜻이다.
+// 하나라도 어긋나면 판면에서 그 박스에 고쳤을 때 문안이 깨진다는 뜻이다.
 // (playwright 브라우저가 깔려 있어야 한다: npx playwright install chromium)
 
 import fs from 'node:fs';
@@ -30,6 +30,9 @@ fs.mkdirSync(path.dirname(tmp), { recursive: true });
 fs.writeFileSync(tmp, render(doc, { css, 도구: true }), 'utf8');
 
 const 읽기 = (o, p) => p.reduce((a, k) => (a == null ? a : a[k]), o);
+/* 봉인본(--v3)은 옛 말을 쓴다 · 「면」이다. 새 렌더러만 「페이지」다 · N-자유 e.
+   봉인본은 영구 보존이라 문안도 렌더러도 안 고친다 — 여기서만 갈라 읽는다 */
+const 페이지들 = doc.페이지 ?? doc.면 ?? [];
 
 const b = await chromium.launch();
 const p = await b.newPage();
@@ -66,11 +69,11 @@ fs.rmSync(tmp, { force: true });
 
 let 틀림 = 0;
 for (const r of 결과) {
-  const want = 읽기(doc.면[r.pi], r.path);
+  const want = 읽기(페이지들[r.pi], r.path);
   if (want === r.got) continue;
   틀림++;
   if (틀림 <= 12) {
-    console.log(`✗ 면${doc.면[r.pi].번호} ${JSON.stringify(r.path)}`);
+    console.log(`✗ 페이지${페이지들[r.pi].번호} ${JSON.stringify(r.path)}`);
     console.log(`   원본: ${JSON.stringify(want)}`);
     console.log(`   복원: ${JSON.stringify(r.got)}`);
   }

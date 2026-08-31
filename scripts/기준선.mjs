@@ -3,8 +3,8 @@
 //   node scripts/기준선.mjs                      기본 content/_check/판면기준.json
 //   node scripts/기준선.mjs <문안.json>
 //
-// 자리(.bx) 안쪽 여백 위를 원점으로 잡는다. 자리마다 원점을 새로 센다.
-// 여백은 자리마다 다를 수 있다(자리.여백). 문서 기본값이 아니라 실제 값을 읽는다.
+// 박스(.bx) 안쪽 여백 위를 원점으로 잡는다. 박스마다 원점을 새로 센다.
+// 안여백은 박스마다 다를 수 있다(박스.안여백). 문서 기본값이 아니라 실제 값을 읽는다.
 // 통과 조건 둘 · 둘 다 만족해야 격자가 온전하다
 //   ① 덩이의 top 이 42 의 배수      아니면 그 덩이부터 아래가 통째로 밀린다
 //   ② 덩이의 높이가 42 의 배수       아니면 다음 덩이가 밀린다
@@ -40,7 +40,7 @@ const 결과 = await pg.evaluate(() => {
   const out = [];
   document.querySelectorAll('.page').forEach((page, pi) => {
     page.querySelectorAll('.bx').forEach((bx, bi) => {
-      // 원점은 그 자리의 실제 안쪽 여백이다. 자리마다 다를 수 있다
+      // 원점은 그 박스의 실제 안쪽 여백이다. 박스마다 다를 수 있다
       const 여백 = parseFloat(getComputedStyle(bx).paddingTop) || 0;
       bx.querySelectorAll(
         ':scope > .bt, :scope > .sm, :scope > .bd, :scope > .lb,' +
@@ -48,7 +48,7 @@ const 결과 = await pg.evaluate(() => {
         ':scope > .im, :scope > .sx, :scope > .sk'
       ).forEach((el) => {
         out.push({
-          면: pi + 1, 자리: bi, 여백, 계층: el.className,
+          페이지: pi + 1, 박스: bi, 여백, 계층: el.className,
           top: el.offsetTop - 여백, 높이: el.offsetHeight,
         });
       });
@@ -85,6 +85,6 @@ if (어긋.length) {
     console.log(`  ${k.padEnd(28)} ${v}개`);
   console.log('\n첫 어긋남 다섯');
   for (const r of 어긋.slice(0, 5))
-    console.log(`  ${r.면}면 자리${r.자리} ${r.계층.padEnd(3)} top ${String(r.top).padStart(5)} · 높이 ${r.높이} · 여백 ${r.여백}`);
+    console.log(`  ${r.페이지}페이지 박스${r.박스} ${r.계층.padEnd(3)} top ${String(r.top).padStart(5)} · 높이 ${r.높이} · 여백 ${r.여백}`);
 }
 process.exitCode = 어긋.length ? 1 : 0;
