@@ -2265,7 +2265,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                    style={{ left: (놓기판.x + 놓기판.w / 2) * 축척,
                             top: (놓기판.y + 놓기판.h / 2) * 축척 }}>
                 <div className="dp-hd">
-                  박스 <b>{놓기판.박스 + 1}</b> · 삽입
+                  박스 {놓기판.박스 + 1} · 삽입
                   <span className="bfill" />
                   <button className="chip mini" onClick={() => set놓기판(null)}>×</button>
                 </div>
