@@ -578,8 +578,8 @@ export default function Shell({ docs, first }) {
 
      **판이 누구를 받는지도 이것이 정한다** · N-얹기 d 가 [얹기] 탭에 걸어 둔 것이다.
      얹은 것이 박스 안에 들면 박스가 위를 덮어 클릭을 통째로 가져가므로
-     「판 위」일 때만 `.wrap.ovp` 를 켜서 박스를 누르기에서 뺀다 */
-  const [놓는곳, set놓는곳] = useState('박스안');
+     「페이지」일 때만 `.wrap.ovp` 를 켜서 박스를 누르기에서 뺀다 */
+  const [삽입처, set삽입처] = useState('박스');
 
   /* assets/ 아래 그림 목록 · 한 번만 받는다. 파일을 새로 넣으면 새로고침한다 —
      문안 파일과 같은 규칙이다(밖에서 고치면 다시 읽어야 한다 · v8 §9 ⑦) */
@@ -623,7 +623,7 @@ export default function Shell({ docs, first }) {
   const 시각ref = useRef(0);
   const 자ref = useRef(false);
   /* 놓는 곳 · 고른 얹기를 판에 알린다 · N-얹기. 클래스만 껐다 켜므로 판을 다시 안 그린다 */
-  const 놓는곳ref = useRef('박스안');
+  const 삽입처ref = useRef('박스');
   const 얹기번호ref = useRef(null);
   const 얹기자리ref = useRef(() => {});
   const 외곽선ref = useRef(false);
@@ -661,8 +661,8 @@ export default function Shell({ docs, first }) {
   useEffect(() => { 페이지ref.current = i; }, [i]);
   useEffect(() => { 시각ref.current = mtime; }, [mtime]);
   useEffect(() => { 자ref.current = 자; }, [자]);
-  useEffect(() => { 놓는곳ref.current = 놓는곳; 얹기번호ref.current = 얹기번호; 테칠ref.current(); },
-    [놓는곳, 얹기번호]);
+  useEffect(() => { 삽입처ref.current = 삽입처; 얹기번호ref.current = 얹기번호; 테칠ref.current(); },
+    [삽입처, 얹기번호]);
   useEffect(() => { 얹기자리ref.current = 얹기자리; });
   useEffect(() => { 외곽선ref.current = 외곽선; }, [외곽선]);
 
@@ -698,8 +698,8 @@ export default function Shell({ docs, first }) {
         const 이박스 = Number(el.closest('[data-박스]')?.getAttribute('data-박스')) === 박스번호;
         el.classList.toggle('epick', 이박스 && Number(el.getAttribute('data-요소')) === 요소번호);
       });
-      // 얹은 것 · 「판 위」일 때만 누를 수 있고 고른 것에 테가 붙는다 · N-얹기
-      d.querySelector('.wrap')?.classList.toggle('ovp', 놓는곳ref.current === '판위');
+      // 얹은 것 · 「페이지」일 때만 누를 수 있고 고른 것에 테가 붙는다 · N-얹기
+      d.querySelector('.wrap')?.classList.toggle('ovp', 삽입처ref.current === '페이지');
       d.querySelectorAll('[data-얹기]').forEach((el) =>
         el.classList.toggle('opick', Number(el.getAttribute('data-얹기')) === 얹기번호ref.current));
       /* 고른 요소의 실치수 · 판면 px 그대로다 — 페이지그리기() 가
@@ -1675,13 +1675,23 @@ export default function Shell({ docs, first }) {
           }
           return out;
         };
+        /* **못 붙으면 `null` 을 낸다** · 사용자 지적. 전에는 제자리(`v`)를 돌려줬는데 ·
+           아래에서 「덜 움직인 쪽이 가깝다」로 고르다 보니 **안 붙은 쪽이 언제나 0px 로
+           이겨** 자석이 통째로 안 먹었다. 실측 · 모서리 6px 앞에서 Shift 로 놓아도
+           636 에 안 붙고 630 에 그대로 앉았다. 「안 붙었다」와 「제자리에 붙었다」를 갈라야 한다 */
         const 붙이기 = (v, 후보) => {
-          let 가까운 = v, 거리 = 11;                 // 10px 안에서만 붙는다
+          let 가까운 = null, 거리 = 11;              // 10px 안에서만 붙는다
           for (const c of 후보) {
             const t = Math.abs(c - v);
             if (t < 거리) { 거리 = t; 가까운 = c; }
           }
           return 가까운;
+        };
+        // 시작 모서리 · 끝 모서리 둘 다 붙여 보고 **진짜로 붙은 것 중** 가까운 쪽이 이긴다
+        const 고르기 = (v, 앞, 뒤) => {
+          if (앞 == null) return 뒤 ?? v;
+          if (뒤 == null) return 앞;
+          return Math.abs(앞 - v) <= Math.abs(뒤 - v) ? 앞 : 뒤;
         };
 
         d.addEventListener('pointerdown', (e) => {
@@ -1705,11 +1715,10 @@ export default function Shell({ docs, first }) {
           let x = 끌기.l + (e.clientX - 끌기.x0);
           let y = 끌기.t + (e.clientY - 끌기.y0);
           if (e.shiftKey) {
-            // 시작 모서리와 끝 모서리 둘 다 붙여 본다 · 가까운 쪽이 이긴다
-            const x2 = 붙이기(x, 끌기.자x), x3 = 붙이기(x + 끌기.w, 끌기.자x) - 끌기.w;
-            const y2 = 붙이기(y, 끌기.자y), y3 = 붙이기(y + 끌기.h, 끌기.자y) - 끌기.h;
-            x = Math.abs(x2 - x) <= Math.abs(x3 - x) ? x2 : x3;
-            y = Math.abs(y2 - y) <= Math.abs(y3 - y) ? y2 : y3;
+            const x끝 = 붙이기(x + 끌기.w, 끌기.자x);
+            const y끝 = 붙이기(y + 끌기.h, 끌기.자y);
+            x = 고르기(x, 붙이기(x, 끌기.자x), x끝 == null ? null : x끝 - 끌기.w);
+            y = 고르기(y, 붙이기(y, 끌기.자y), y끝 == null ? null : y끝 - 끌기.h);
           }
           x = Math.max(0, Math.min(W - 끌기.w, Math.round(x)));
           y = Math.max(0, Math.min(H - 끌기.h, Math.round(y)));
@@ -1734,7 +1743,7 @@ export default function Shell({ docs, first }) {
 
         d.addEventListener('click', (e) => {
           if (e.target.isContentEditable) return;
-          /* 얹은 것 · **「판 위」일 때만 누를 수 있다** · N-얹기.
+          /* 얹은 것 · **「페이지」일 때만 누를 수 있다** · N-얹기.
              늘 열어 두면 판 위를 덮은 도형이 박스 고르기를 통째로 가로챈다 —
              `.wrap.ovp` 가 그때만 pointer-events 를 연다 · page.css ㊲ */
           const 얹 = e.target.closest?.('[data-얹기]');
@@ -1864,7 +1873,7 @@ export default function Shell({ docs, first }) {
     내용.push({ 그림: 못셀것 ? { 경로, 높이: 6 } : { 경로 } });
     set박스번호(박스n);
     set요소번호(내용.length - 1);
-    set탭('내용'); set놓는곳('박스안');
+    set탭('내용'); set삽입처('박스');
   }, { 그리기: true });
   /* 파일을 받아 `assets/올린것/` 에 쓰고 그 경로로 놓는다 · N-자유 d.
      **지금까지는 assets 에 손으로 먼저 넣어야 했다.** 이제 Finder 에서 바로 끈다.
@@ -1906,7 +1915,7 @@ export default function Shell({ docs, first }) {
     내용.push({ [열쇠]: v });
     set박스번호(박스n);
     set요소번호(내용.length - 1);
-    set탭('내용'); set놓는곳('박스안');
+    set탭('내용'); set삽입처('박스');
     set놓기판(null);
   }, { 그리기: true });
 
@@ -1971,12 +1980,12 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
     .reverse();
   const 앞무리 = 층무리('앞');
   const 뒤무리 = 층무리('뒤');
-  /* 층 목록의 한 줄 — 얹은 것 하나. 누르면 「판 위」로 넘어가며 그것을 고른다.
+  /* 층 목록의 한 줄 — 얹은 것 하나. 누르면 「페이지」로 넘어가며 그것을 고른다.
      내용 목록 줄(.elrow)과 같은 꼴이다 · 대등한 물건이라 같은 꼴로 서야 한다 */
   const 얹기줄 = ({ o, j }) => (
     <div key={`얹${j}`}
-         className={'elrow' + (놓는곳 === '판위' && 얹기번호 === j ? ' on' : '')}
-         onClick={() => { set놓는곳('판위'); set얹기번호(j); }}>
+         className={'elrow' + (삽입처 === '페이지' && 얹기번호 === j ? ' on' : '')}
+         onClick={() => { set삽입처('페이지'); set얹기번호(j); }}>
       <span className="eln">{얹기열쇠(o) ?? '?'}</span>
       <em>{얹기맛보기(o)}</em>
       <button className="chip mini" title="앞으로 · 박스를 넘기면 층이 바뀐다"
@@ -2108,7 +2117,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                    style={{ left: (놓기판.x + 놓기판.w / 2) * 축척,
                             top: (놓기판.y + 놓기판.h / 2) * 축척 }}>
                 <div className="dp-hd">
-                  박스 <b>{놓기판.박스 + 1}</b> 에 놓는다
+                  박스 <b>{놓기판.박스 + 1}</b> · 삽입
                   <span className="bfill" />
                   <button className="chip mini" onClick={() => set놓기판(null)}>닫기</button>
                 </div>
@@ -2288,7 +2297,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
           {탭 === '내용' && (
             <>
               <div className="fld hd">
-                <span className="fldnm">층<em>위가 앞 · 박스 위는 앞 층</em></span>
+                <span className="fldnm">레이어<em>위가 앞</em></span>
               </div>
               <div className="lyrs">
                 {앞무리.map(얹기줄)}
@@ -2297,8 +2306,8 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                     고르면 그 안 요소 목록이 이 자리에 펼쳐진다 · 흐름 순서다 · 쌓임이 아니다.
                     **옛 꼴 박스도 같은 목록이 뜬다** · N-그림 b. 접지 않고 가상으로 접어
                     보여 주고 · 손대는 순간 진짜로 접힌다 */}
-                <div className={'lyrbx' + (놓는곳 === '박스안' ? ' on' : '')}
-                     onClick={() => set놓는곳('박스안')}>
+                <div className={'lyrbx' + (삽입처 === '박스' ? ' on' : '')}
+                     onClick={() => set삽입처('박스')}>
                   <span>박스</span>
                   {고른 && (
                     <em>{박스번호 + 1} / {현재?.박스?.length}
@@ -2310,8 +2319,8 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                     {고른내용.map((el, j) => {
                       const k = 요소열쇠(el);
                       return (
-                        <div key={j} className={'elrow' + (놓는곳 === '박스안' && 요소번호 === j ? ' on' : '')}
-                             onClick={() => { set놓는곳('박스안'); set요소번호(j); }}>
+                        <div key={j} className={'elrow' + (삽입처 === '박스' && 요소번호 === j ? ' on' : '')}
+                             onClick={() => { set삽입처('박스'); set요소번호(j); }}>
                           <span className="eln">{k ?? '?'}</span>
                           <em>{맛보기(el, k)}</em>
                           {el.도형 && <span className="eldot" title="요소 도형" />}
@@ -2332,27 +2341,27 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
 
               <div className="popln" />
 
-              {/* 놓기 — **「박스 안 / 판 위」 스위치 하나가 놓기와 얹기의 유일한 차이다.**
+              {/* 놓기 — **「박스 / 페이지」 스위치 하나가 놓기와 얹기의 유일한 차이다.**
                   전에는 [요소] · [얹기] 두 탭에 갈라져 있어 **그림이 두 곳에 같은 이름으로**
                   섰다 · 어느 그림인지 이름만 보고는 못 갈랐다. 이제 한 자리에 서고
-                  스위치가 「박스 안이냐 판 위냐」를 말한다.
+                  스위치가 「박스냐 페이지냐」를 말한다.
 
                   **스위치는 판이 누구를 받는지도 정한다** · N-얹기 d. 얹은 것이 박스 안에
-                  들면 박스가 위를 덮어 클릭을 통째로 가져가므로 「판 위」일 때만
+                  들면 박스가 위를 덮어 클릭을 통째로 가져가므로 「페이지」일 때만
                   `.wrap.ovp` 가 박스를 누르기에서 뺀다 */}
-              <줄 이름="놓기" 곁={놓는곳 === '박스안'
-                ? (!고른 ? '고른 박스가 없어 놓을 데가 없다'
-                  : 고른.비움 ? '비운 박스에는 못 놓는다'
+              <줄 이름="삽입" 곁={삽입처 === '박스'
+                ? (!고른 ? '고른 박스가 없다'
+                  : 고른.비움 ? '비운 박스에는 못 넣는다'
                     : 요소번호 != null ? '고른 것 뒤에' : '박스 끝에')
                 : (박스번호 == null ? '박스 존 자리에' : `박스 ${박스번호 + 1} 자리에`)}>
                 <span className="seg">
-                  {[['박스안', '박스 안'], ['판위', '판 위']].map(([v, 이름]) => (
-                    <button key={v} className={'chip' + (놓는곳 === v ? ' on' : '')}
-                            onClick={() => set놓는곳(v)}>{이름}</button>
+                  {['박스', '페이지'].map((v) => (
+                    <button key={v} className={'chip' + (삽입처 === v ? ' on' : '')}
+                            onClick={() => set삽입처(v)}>{v}</button>
                   ))}
                 </span>
                 <span className="brk" />
-                {놓는곳 === '박스안' ? (
+                {삽입처 === '박스' ? (
                   <>
                     {요소갈래들.filter((k) => k !== '그림').map((k) => (
                       <button key={k} className="chip" disabled={!고른 || !!고른.비움}
@@ -2378,7 +2387,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
           {/* 요소 머리 + 글자 — **고른 것 판의 맨 위다.**
               어느 요소를 골랐는지 · 순서 · 계층 · 크기 · 굵게. 갈래별 판은 그 아래고 ·
               도형은 맨 아래다 · 갈래와 무관하게 언제나 같은 자리에 있어야 찾는다 · N-글자 c */}
-          {탭 === '내용' && 놓는곳 === '박스안' && (() => {
+          {탭 === '내용' && 삽입처 === '박스' && (() => {
             const el = 고른요소;
             // 빈 상태 문구를 안 띄운다 · 사용자 판정 · 0b8e6f5. 위 층 목록이 이미 상태를 말한다
             if (고른?.비움) return <p className="dim">비운 박스</p>;
@@ -2423,7 +2432,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
             );
           })()}
 
-          {탭 === '내용' && 놓는곳 === '박스안' && 고른갈래 === '비움' && (() => {
+          {탭 === '내용' && 삽입처 === '박스' && 고른갈래 === '비움' && (() => {
             /* 비움 — **앱이 못 하는 것을 키노트로 넘긴다** · 설계 §5-11 의 요소판이다.
                박스 「비움」은 박스를 통째로 넘기고 이건 그 높이만 넘긴다.
                좌표는 `node scripts/비움.mjs <문안>` 이 표로 뽑는다 · N-자유 c */
@@ -2448,7 +2457,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
             );
           })()}
 
-          {탭 === '내용' && 놓는곳 === '박스안' && 고른갈래 === '표' && (() => {
+          {탭 === '내용' && 삽입처 === '박스' && 고른갈래 === '표' && (() => {
             const z = 고른;
             const t = z?.표 ?? null;
             const 켬 = !!z && !z.비움;
@@ -2584,7 +2593,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
             );
           })()}
 
-          {탭 === '내용' && 놓는곳 === '박스안' && (고른갈래 === '그림' || !고른갈래) && (() => {
+          {탭 === '내용' && 삽입처 === '박스' && (고른갈래 === '그림' || !고른갈래) && (() => {
             const z = 고른요소;
             const g = 그림읽기(z);
             const 켬 = !!고른 && !고른.비움;
@@ -2700,7 +2709,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
 
               **갈래별 판 아래에 둔다** · 처음엔 맨 위에 뒀는데 그러면 그림을 골라도
               글자 판이 먼저 떠서 우측이 텍스트 판으로 보인다 · 사용자 지적 · N-글자 e */}
-          {탭 === '내용' && 놓는곳 === '박스안' && 구간갈래.has(고른갈래) && (
+          {탭 === '내용' && 삽입처 === '박스' && 구간갈래.has(고른갈래) && (
             <>
               {/* ── 고른 글자 · N-글자 d ────────────────────────
                   **여기가 요소 범위와 구간 범위가 갈리는 자리다.**
@@ -2766,7 +2775,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
             </>
           )}
 
-          {탭 === '내용' && 놓는곳 === '박스안' && !!고른요소 && !고른?.비움 && (
+          {탭 === '내용' && 삽입처 === '박스' && !!고른요소 && !고른?.비움 && (
             /* 요소 도형 — 박스 도형과 **같은 어휘 · 같은 규칙**이다.
                다른 것은 걸리는 범위 하나다 · 박스 사각형이 아니라 요소 한 덩이.
                글자 요소면 렌더러가 좌우 21 을 들인다 · 세로는 안 준다 · N-자유.
@@ -2785,7 +2794,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
               **박스가 아니라 페이지에 붙는다** · 박스를 안 골라도 쓸 수 있다.
               좌표는 판 전역 절대다 · 2339 × 1654 · 키노트 슬라이드와 같은 계다.
               놓는 칩과 목록은 위로 올라갔다 · N-도크재편 — 여기는 고른 것만 만진다 */}
-          {탭 === '내용' && 놓는곳 === '판위' && (() => {
+          {탭 === '내용' && 삽입처 === '페이지' && (() => {
             const 목록 = 현재?.얹기 ?? [];
             const o = 얹기번호 == null ? null : (목록[얹기번호] ?? null);
             const k = 얹기열쇠(o);
@@ -2810,7 +2819,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                       </span>
                     </줄>
 
-                    <줄 이름="층" 곁={(o.층 ?? '뒤') === '뒤' ? '글에 안 가린다' : '글을 덮는다'}>
+                    <줄 이름="레이어" 곁={(o.층 ?? '뒤') === '뒤' ? '글에 안 가린다' : '글을 덮는다'}>
                       <span className="seg">
                         {얹기층들.map(([v, 이름]) => (
                           <button key={v} className={'chip' + ((o.층 ?? '뒤') === v ? ' on' : '')}
