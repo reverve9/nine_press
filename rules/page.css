@@ -494,7 +494,8 @@ b{font-weight:700;color:var(--강조)}
    토큰 넷의 이름이 안 겹쳐 한 자리에 섞어 쓴다. 여기 규칙도 그 이름 그대로다.
 
    **색은 `b` 까지 끌고 간다.** `b{color:var(--강조)}` 가 굵게에 색을 묶어 두어서
-   `{결론|**38억**}` 이 강조색으로 나가 버린다. 클래스 둘로 그 하나를 이긴다.
+   `{결론|**38억**}` 이 강조색으로 나가 버린다. 구간 안의 `b` 만 물려받게 열어 그것을 이긴다.
+   규칙 하나가 이름 색과 `#RRGGBB` 를 다 받는다 — 색마다 적으면 `#` 쪽은 못 적는다.
 
    **크기 토큰만 `line-height:0` 을 함께 받는다.** 한 줄에 크기가 섞이면 브라우저가
    기준선을 맞추느라 상자들의 합집합을 잡고 그 값이 42 를 넘는다(실측 · 29px → 44).
@@ -502,12 +503,15 @@ b{font-weight:700;color:var(--강조)}
    감기는 문단에서도 42 배수다 · 기준선은 그냥 씌운 것과 같은 자리다 · 실측 대조.
    **inline-block 으로 못박지 않는다** — 42 는 지키는데 조각이 안 감겨 글이 겹친다. */
 
-.bx .i-먹,.bx .i-먹 b{color:var(--먹)}
-.bx .i-네이비,.bx .i-네이비 b{color:var(--네이비)}
-.bx .i-강조,.bx .i-강조 b{color:var(--강조)}
-.bx .i-결론,.bx .i-결론 b{color:var(--결론)}
-.bx .i-부연,.bx .i-부연 b{color:var(--부연)}
-.bx .i-출처,.bx .i-출처 b{color:var(--출처)}
+.bx .i-먹{color:var(--먹)}
+.bx .i-네이비{color:var(--네이비)}
+.bx .i-강조{color:var(--강조)}
+.bx .i-결론{color:var(--결론)}
+.bx .i-부연{color:var(--부연)}
+.bx .i-출처{color:var(--출처)}
+
+/* 구간 안의 굵게는 구간 색을 따라간다 · 이름이든 #RRGGBB 든 한 규칙이 받는다 */
+.bx [data-i] b{color:inherit}
 
 .bx .i-21{font-size:21px;line-height:0}
 .bx .i-24{font-size:24px;line-height:0}

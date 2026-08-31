@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { 빌드, PDF, 문안저장, 문안불러오기 } from '../actions.js';
 import { render } from '../../render/index.js';
-import { 구간토큰, 원문 } from '../../render/inline.js';
+import { 구간토큰, 원문, 구간칠, 색토큰인가, HEX6 } from '../../render/inline.js';
 
 // 판면 픽셀 — render/index.js 의 판 · rules/page.css 의 --판W/--판H 와 같은 값이어야 한다.
 // 2340 으로 1px 넓게 잡혀 있어 미리보기 오른쪽에 투명 띠 1px 이 남았다.
@@ -123,7 +123,10 @@ const 크기계단 = [21, 24, 26, 29];
    갈래를 아는 이유 하나 · **한 갈래에서 토큰 하나만 산다**(색 둘을 겹치지 않는다) */
 const 구간갈래들 = Object.entries(구간토큰);
 const 토큰갈래표 = new Map(구간갈래들.flatMap(([갈래, 목록]) => 목록.map((t) => [t, 갈래])));
-const 토큰갈래 = (t) => 토큰갈래표.get(t) ?? null;
+const 토큰갈래 = (t) => 토큰갈래표.get(t) ?? (HEX6.test(t) ? '색' : null);
+// 색 견본 · 이름 여섯에 실제 색을 물린다 · rules/page.css 「색 7」과 같아야 한다
+const 구간색값 = { 먹: '#1a1a1a', 네이비: '#131B2B', 강조: '#2D4D6E',
+                   결론: '#E68100', 부연: '#6b7784', 출처: '#8792a0' };
 
 /* 요소 한 줄 맛보기 — **판을 안 보고도 순서를 옮길 수 있어야 한다** ·
    app/globals.css `.elrow`. 갈래마다 한 줄로 줄인다 · 표기는 그대로 둔다.
@@ -169,7 +172,6 @@ const 맞춤들 = [['전체', '전체'], ['채우기', '채우기']];
 const 그림높이갈래들 = [['채움', '채움'], ['블록', '블록'], ['%', '%']];
 const 그림높이갈래 = (h) => (h == null || h === '채움' ? '채움'
   : Number.isInteger(h) ? '블록' : '%');
-const HEX6 = /^#[0-9a-fA-F]{6}$/;
 
 /* ── 표 칩 — N-배경 b2 ──────────────────────────────────
    렌더러의 표그리기() 가 읽는 열쇠만 여기서 만든다 · **헤더 · 행 · 폭 · 높이 · 선 · 배경**.
@@ -653,7 +655,7 @@ export default function Shell({ docs, first }) {
     const 안 = 구간span(d, sel);
     if (안 && 안.textContent === sel.toString()) return 토큰정하기(안, 토큰);
     const sp = d.createElement('span');
-    sp.className = `i-${토큰}`;
+    구간칠하기(sp, [토큰]);
     sp.appendChild(sel.getRangeAt(0).extractContents());
     sel.getRangeAt(0).insertNode(sp);
     sel.selectAllChildren(sp);
@@ -699,24 +701,35 @@ export default function Shell({ docs, first }) {
     for (; n && n !== d.body; n = n.parentNode) {
       if (n.nodeType !== 1) continue;
       if (n.matches?.('[data-p]')) return null;
-      if ([...n.classList].some((c) => c.startsWith('i-'))) return n;
+      if (n.dataset?.i) return n;
     }
     return null;
+  };
+
+  /* **표기가 `data-i` 에 산다** · 칠은 거기서 나온다 · N-글자 e.
+     이름은 클래스로 · `#RRGGBB` 는 인라인 style 로 갈린다. 되읽기는 `data-i` 만 본다 —
+     그래야 적힌 순서가 그대로 남고 · 클래스가 못 담는 `#` 도 실린다.
+     `구간칠()` 이 그 갈래를 정한다 · 렌더러와 같은 함수다 */
+  const 구간칠하기 = (sp, 토큰) => {
+    const { 클래스, 스타일 } = 구간칠(토큰);
+    sp.dataset.i = 토큰.join('·');
+    sp.className = 클래스;
+    sp.style.cssText = 스타일;
   };
 
   /* 한 갈래에서는 토큰 하나만 산다 — 색 둘을 겹치면 뒤엣것이 이기고 표기만 지저분해진다.
      같은 것을 다시 누르면 벗긴다 · 칩이 껐다 켜는 물건으로 읽힌다 */
   const 토큰정하기 = (sp, 토큰) => {
     const 갈래 = 토큰갈래(토큰);
-    const 남길것 = [...sp.classList].filter((c) => 토큰갈래(c.slice(2)) !== 갈래);
-    const 켬 = !sp.classList.contains(`i-${토큰}`);
-    sp.className = [...남길것, ...(켬 ? [`i-${토큰}`] : [])].join(' ');
-    if (!sp.className) {
-      const 부모 = sp.parentNode;
-      while (sp.firstChild) 부모.insertBefore(sp.firstChild, sp);
-      부모.removeChild(sp);
-      부모.normalize();
-    }
+    const 지금 = sp.dataset.i.split('·').filter(Boolean);
+    const 남길것 = 지금.filter((t) => 토큰갈래(t) !== 갈래);
+    const 켬 = !지금.includes(토큰);
+    const 다음 = [...남길것, ...(켬 ? [토큰] : [])];
+    if (다음.length) return 구간칠하기(sp, 다음);
+    const 부모 = sp.parentNode;
+    while (sp.firstChild) 부모.insertBefore(sp.firstChild, sp);
+    부모.removeChild(sp);
+    부모.normalize();
   };
 
   /* 요소 도형 — 박스 도형과 같은 어휘 · 같은 규칙이다. 빈 값이면 열쇠를 지운다 */
@@ -1134,7 +1147,7 @@ export default function Shell({ docs, first }) {
           set고른글자({
             글: sel.toString(),
             토큰: sp && sp.textContent === sel.toString()
-              ? [...sp.classList].filter((c) => c.startsWith('i-')).map((c) => c.slice(2)) : [],
+              ? sp.dataset.i.split('·').filter(Boolean) : [],
           });
         });
 
@@ -1752,7 +1765,31 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                   </button>
                 </줄>
 
-                {구간갈래들.map(([갈래, 목록]) => (
+                {/* 색 — **도형 배경 · 테두리와 같은 꼴이다** · N-글자 e.
+                    견본 + 최근색 + #RRGGBB 자유 입력. 전에는 여기만 이름 칩 여섯이라
+                    한 도크 안에서 색 고르는 법이 둘이었다 · 사용자 지적.
+                    이름은 이름대로 둔다 — 문안에서 `{결론|38억원}` 으로 읽힌다 */}
+                {(() => {
+                  const 색토큰 = 고른글자?.토큰.find(색토큰인가) ?? '';
+                  return (
+                    <줄 이름="색" 곁={색토큰 || null}>
+                      {구간토큰.색.map((t) => (
+                        <색칸 key={t} 색={구간색값[t]} 이름={`${t} ${구간색값[t].slice(1)}`}
+                              지금={색토큰 === t} 누르기={() => 구간씌우기(t)} />
+                      ))}
+                      {최근색.length > 0 && <span className="swsp" />}
+                      {최근색.map((색) => (
+                        <색칸 key={색} 색={색} 이름={`최근 ${색}`} 지금={색토큰 === 색}
+                              누르기={() => 구간씌우기(색)} />
+                      ))}
+                      <span className="brk" />
+                      <색입력 값={색토큰} 이름="글자 색" 로그={set로그}
+                                놓기={(v) => { 구간씌우기(v); 색기억(v); }} />
+                    </줄>
+                  );
+                })()}
+
+                {구간갈래들.filter(([갈래]) => 갈래 !== '색').map(([갈래, 목록]) => (
                   <줄 key={갈래} 이름={갈래}
                       곁={고른글자?.토큰.find((t) => 토큰갈래(t) === 갈래) ?? null}>
                     <span className="seg">
