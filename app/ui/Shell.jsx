@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { 빌드, PDF, 문안저장, 문안불러오기 } from '../actions.js';
 import { render } from '../../render/index.js';
+import { 구간토큰, 원문 } from '../../render/inline.js';
 
 // 판면 픽셀 — render/index.js 의 판 · rules/page.css 의 --판W/--판H 와 같은 값이어야 한다.
 // 2340 으로 1px 넓게 잡혀 있어 미리보기 오른쪽에 투명 띠 1px 이 남았다.
@@ -21,28 +22,6 @@ function 쓰기(o, p, v) {
   // 값을 돌려주지 않는다 — 바꾸기() 가 false 를 「취소」로 읽는다
   if (Array.isArray(부모) && 빔(v)) { 부모.splice(열쇠, 1); return; }
   부모[열쇠] = v;
-}
-
-/* ── 고친 DOM 을 원문 표기로 되돌린다 ──
-   판면에서 그 박스에 타이핑하면 결과는 HTML 이다. 그대로 저장하면 문안의 원본이
-   HTML 이 되어 버린다. `**굵게**` · {TBD} · {→05} · 줄바꿈으로 되돌린다.
-   왕복은 scripts/roundtrip.mjs 가 전수 검사한다. */
-function 원문(node) {
-  let s = '';
-  for (const n of node.childNodes) {
-    if (n.nodeType === 3) { s += n.nodeValue; continue; }
-    const 이름 = n.nodeName;
-    if (이름 === 'BR') { s += '\n'; continue; }
-    const cl = n.classList;
-    if (cl?.contains('tbd')) { s += cl.contains('co') ? '{TBD협의}' : '{TBD}'; continue; }
-    if (cl?.contains('ar')) {
-      s += '{→' + n.textContent.replace(/^\s*→\s*/, '').replace(/^p\./, '').trim() + '}';
-      continue;
-    }
-    if (이름 === 'B' || 이름 === 'STRONG') { s += '**' + 원문(n) + '**'; continue; }
-    s += 원문(n);
-  }
-  return s;   // NBSP 는 그대로 둔다
 }
 
 /* 렌더러가 던진 오류를 판 박스에 그린다 — 화면을 죽이지 않는다.
@@ -138,6 +117,13 @@ function 박스접기(z) {
 const 글자갈래들 = ['제목', '요약', '문단', '목록', '번호목록', '출처'];
 const 배열갈래 = new Set(['목록', '번호목록']);
 const 크기계단 = [21, 24, 26, 29];
+
+/* 구간 스타일 토큰 · N-글자 d — **표는 `render/inline.js` 가 정본이다.**
+   여기서 다시 적으면 둘이 갈라진다 · 뒤집어서 「토큰 → 갈래」만 만든다.
+   갈래를 아는 이유 하나 · **한 갈래에서 토큰 하나만 산다**(색 둘을 겹치지 않는다) */
+const 구간갈래들 = Object.entries(구간토큰);
+const 토큰갈래표 = new Map(구간갈래들.flatMap(([갈래, 목록]) => 목록.map((t) => [t, 갈래])));
+const 토큰갈래 = (t) => 토큰갈래표.get(t) ?? null;
 
 /* 요소 한 줄 맛보기 — **판을 안 보고도 순서를 옮길 수 있어야 한다** ·
    app/globals.css `.elrow`. 갈래마다 한 줄로 줄인다 · 표기는 그대로 둔다.
@@ -398,6 +384,11 @@ export default function Shell({ docs, first }) {
      고를 것이 하나뿐이라 흐릴 박스가 없다. { 박스, x, y } · 좌표는 판면 px 이다 */
   const [놓기판, set놓기판] = useState(null);
   useEffect(() => { set놓기판(null); }, [i, slug, 판본키]);
+  /* 판면에서 드래그해 고른 글자 · N-글자 d.
+     **도크의 범위가 이걸 보고 갈린다** — 있으면 그 구간에 걸고 · 없으면 요소에 건다.
+     { 글 · 토큰[] } · 토큰은 이미 걸린 구간 안일 때 그 span 의 것이다 */
+  const [고른글자, set고른글자] = useState(null);
+
   // 오른쪽 도크 · 지금 연 탭
   const [탭, set탭] = useState('박스');
   /* assets/ 아래 그림 목록 · 한 번만 받는다. 파일을 새로 넣으면 새로고침한다 —
@@ -631,12 +622,79 @@ export default function Shell({ docs, first }) {
      `styleWithCSS` 를 꺼야 `<b>` 가 나온다 — 켜져 있으면 `<span style=…>` 이 되고
      원문() 이 그 span 을 못 읽어 굵기가 저장에서 날아간다.
      쓰는 것은 판면 iframe 의 execCommand 다 · 저장은 언제나처럼 focusout 이 한다. */
-  const 굵게 = () => {
+  const 굵게 = () => 판면에서((d) => {
+    d.execCommand('styleWithCSS', false, false);
+    d.execCommand('bold');
+  });
+
+  /* ── 구간 스타일 · N-글자 d ──────────────────────────
+     **여기가 「요소에 건다」와 「고른 글자에 건다」가 갈리는 자리다.**
+     지금까지 도크는 범위가 요소로 고정이었다 · 문단 하나가 최소 단위였다.
+     구간은 문안의 문자열 안 표기라(`{결론|38억원}`) 몇 글자에만 걸린다 · 사용자 판정.
+
+     씌우는 법은 굵게와 같다 — **판면 DOM 에 span 을 넣고 저장은 focusout 이 한다.**
+     `원문()` 이 그 span 을 표기로 되돌리고 `roundtrip` 이 전수 검사한다.
+     새 길을 안 내는 것이 요점이다 · 굵게가 이미 그 길이었다. */
+
+  /* 판면 편집이 열려 있을 때만 듣는다. **mousedown 을 막는 것과 짝이다** —
+     막아도 focus 는 판면에 있고 · 안 막으면 누르는 순간 편집이 닫혀 고른 자리가 사라진다 */
+  const 판면에서 = (fn) => {
     const d = 틀.current?.contentDocument;
     const t = d?.querySelector('[data-p][contenteditable="true"]');
     if (!t) return set로그('판에서 글자를 두 번 눌러 연 뒤에 씌운다');
-    d.execCommand('styleWithCSS', false, false);
-    d.execCommand('bold');
+    fn(d, t);
+  };
+
+  const 구간씌우기 = (토큰) => 판면에서((d) => {
+    const sel = d.getSelection();
+    if (!sel || sel.isCollapsed) return set로그(`고른 글자가 없다 · 씌울 자리를 끌어서 고른다`);
+    /* 이미 걸린 구간 안이면 그 span 의 토큰을 갈아 끼운다 — 겹쳐 씌우면
+       `{강조|{결론|글}}` 이 되어 안쪽이 이기고 · 벗길 때 둘을 다 벗겨야 한다 */
+    const 안 = 구간span(d, sel);
+    if (안 && 안.textContent === sel.toString()) return 토큰정하기(안, 토큰);
+    const sp = d.createElement('span');
+    sp.className = `i-${토큰}`;
+    sp.appendChild(sel.getRangeAt(0).extractContents());
+    sel.getRangeAt(0).insertNode(sp);
+    sel.selectAllChildren(sp);
+  });
+
+  const 구간벗기기 = () => 판면에서((d) => {
+    const sel = d.getSelection();
+    const sp = 구간span(d, sel);
+    if (!sp) return set로그('구간 표기 안이 아니다');
+    const 부모 = sp.parentNode;
+    while (sp.firstChild) 부모.insertBefore(sp.firstChild, sp);
+    부모.removeChild(sp);
+    부모.normalize();
+  });
+
+  /* 고른 자리를 감싸는 구간 span 을 찾는다 · 편집 잎사귀 밖으로는 안 나간다 */
+  const 구간span = (d, sel) => {
+    if (!sel || !sel.rangeCount) return null;
+    let n = sel.getRangeAt(0).commonAncestorContainer;
+    if (n.nodeType === 3) n = n.parentNode;
+    for (; n && n !== d.body; n = n.parentNode) {
+      if (n.nodeType !== 1) continue;
+      if (n.matches?.('[data-p]')) return null;
+      if ([...n.classList].some((c) => c.startsWith('i-'))) return n;
+    }
+    return null;
+  };
+
+  /* 한 갈래에서는 토큰 하나만 산다 — 색 둘을 겹치면 뒤엣것이 이기고 표기만 지저분해진다.
+     같은 것을 다시 누르면 벗긴다 · 칩이 껐다 켜는 물건으로 읽힌다 */
+  const 토큰정하기 = (sp, 토큰) => {
+    const 갈래 = 토큰갈래(토큰);
+    const 남길것 = [...sp.classList].filter((c) => 토큰갈래(c.slice(2)) !== 갈래);
+    const 켬 = !sp.classList.contains(`i-${토큰}`);
+    sp.className = [...남길것, ...(켬 ? [`i-${토큰}`] : [])].join(' ');
+    if (!sp.className) {
+      const 부모 = sp.parentNode;
+      while (sp.firstChild) 부모.insertBefore(sp.firstChild, sp);
+      부모.removeChild(sp);
+      부모.normalize();
+    }
   };
 
   /* 요소 도형 — 박스 도형과 같은 어휘 · 같은 규칙이다. 빈 값이면 열쇠를 지운다 */
@@ -1036,6 +1094,26 @@ export default function Shell({ docs, first }) {
             // 제자리 편집 중에도 듣는다 — \ 는 글자 입력과 겹치지 않는다
             if (e.key === '\\') { e.preventDefault(); set자((v) => !v); }
           }
+        });
+
+        /* 고른 글자를 도크에 알린다 · N-글자 d.
+           **판정 범위가 여기서 갈린다** — 구간이 있으면 도크가 그 구간에 걸고
+           없으면 지금까지처럼 요소에 건다. 편집 잎사귀(`[data-p]`) 안일 때만 센다 —
+           박스를 고르려고 끄는 것까지 글자 선택으로 읽으면 도크가 계속 흔들린다. */
+        d.addEventListener('selectionchange', () => {
+          const sel = d.getSelection();
+          if (!sel || sel.isCollapsed || !sel.rangeCount) return set고른글자(null);
+          let n = sel.getRangeAt(0).commonAncestorContainer;
+          if (n.nodeType === 3) n = n.parentNode;
+          const 잎 = n?.closest?.('[data-p]');
+          if (!잎?.isContentEditable) return set고른글자(null);
+          // 걸려 있는 토큰 · 구간 안을 통째로 골랐을 때만 읽는다 · 칩이 그걸 켜서 보인다
+          const sp = 구간span(d, sel);
+          set고른글자({
+            글: sel.toString(),
+            토큰: sp && sp.textContent === sel.toString()
+              ? [...sp.classList].filter((c) => c.startsWith('i-')).map((c) => c.slice(2)) : [],
+          });
         });
 
         d.addEventListener('paste', (e) => {
@@ -1635,13 +1713,40 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                   </>
                 )}
 
-                {/* 굵게 — **mousedown 을 막는다.** 안 막으면 누르는 순간 판면이 focus 를
-                    잃고 focusout 이 편집을 닫아 고른 자리가 사라진다 */}
-                <줄 이름="굵게" 곁="**굵게**">
+                <div className="popln" />
+
+                {/* ── 고른 글자 · N-글자 d ────────────────────────
+                    **여기가 요소 범위와 구간 범위가 갈리는 자리다.**
+                    위의 계층 · 크기는 문단 하나를 통째로 잡는다. 이 아래는
+                    판면에서 끌어서 고른 몇 글자에만 걸린다 · 문안에 표기로 앉는다.
+
+                    칩은 다 `onMouseDown` 을 막는다. 안 막으면 누르는 순간 판면이
+                    focus 를 잃고 focusout 이 편집을 닫아 고른 자리가 사라진다. */}
+                <줄 이름="고른 글자"
+                    곁={고른글자 ? `"${고른글자.글.slice(0, 18)}"` : '판에서 끌어서 고른다'}>
                   <button className="chip" onMouseDown={(e) => e.preventDefault()}
-                          onClick={굵게}
-                          title="판에서 두 번 눌러 글자를 연 뒤 고른 자리에 씌운다">굵게</button>
+                          onClick={굵게} title="**굵게** · 굵기 700 + 강조색이 한 묶음이다">
+                    굵게
+                  </button>
+                  <button className="chip warn" onMouseDown={(e) => e.preventDefault()}
+                          onClick={구간벗기기} disabled={!고른글자?.토큰.length}
+                          title="고른 구간의 표기를 벗긴다">벗기기</button>
                 </줄>
+
+                {구간갈래들.map(([갈래, 목록]) => (
+                  <줄 key={갈래} 이름={갈래}
+                      곁={고른글자?.토큰.find((t) => 토큰갈래(t) === 갈래) ?? null}>
+                    <span className="seg">
+                      {목록.map((t) => (
+                        <button key={t}
+                                className={'chip' + (고른글자?.토큰.includes(t) ? ' on' : '')}
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => 구간씌우기(t)}
+                                title={`{${t}|고른 글자}`}>{t}</button>
+                      ))}
+                    </span>
+                  </줄>
+                ))}
               </>
             );
           })()}

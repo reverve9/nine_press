@@ -484,6 +484,44 @@ b{font-weight:700;color:var(--강조)}
 
 .bx .fz li{font-size:inherit}
 
+/* ── ㊱ 구간 스타일 — N-글자 d ────────────────────────────
+   **드래그한 몇 글자에만 걸린다.** 요소 속성(㉟ 크기)이 문단 하나를 통째로 잡는 것과
+   다른 층이다 · 값이 문안의 문자열 안에 표기로 앉는다 · `render/inline.js`.
+
+     {결론|38억원}   →   <span class="i-결론">38억원</span>
+     {강조·29|세 축} →   <span class="i-강조 i-29">세 축</span>
+
+   토큰 넷의 이름이 안 겹쳐 한 자리에 섞어 쓴다. 여기 규칙도 그 이름 그대로다.
+
+   **색은 `b` 까지 끌고 간다.** `b{color:var(--강조)}` 가 굵게에 색을 묶어 두어서
+   `{결론|**38억**}` 이 강조색으로 나가 버린다. 클래스 둘로 그 하나를 이긴다.
+
+   **크기 토큰만 `line-height:0` 을 함께 받는다.** 한 줄에 크기가 섞이면 브라우저가
+   기준선을 맞추느라 상자들의 합집합을 잡고 그 값이 42 를 넘는다(실측 · 29px → 44).
+   조각의 줄 상자 기여를 0 으로 만들면 부모의 42 스트럿만 남아 격자가 버틴다.
+   감기는 문단에서도 42 배수다 · 기준선은 그냥 씌운 것과 같은 자리다 · 실측 대조.
+   **inline-block 으로 못박지 않는다** — 42 는 지키는데 조각이 안 감겨 글이 겹친다. */
+
+.bx .i-먹,.bx .i-먹 b{color:var(--먹)}
+.bx .i-네이비,.bx .i-네이비 b{color:var(--네이비)}
+.bx .i-강조,.bx .i-강조 b{color:var(--강조)}
+.bx .i-결론,.bx .i-결론 b{color:var(--결론)}
+.bx .i-부연,.bx .i-부연 b{color:var(--부연)}
+.bx .i-출처,.bx .i-출처 b{color:var(--출처)}
+
+.bx .i-21{font-size:21px;line-height:0}
+.bx .i-24{font-size:24px;line-height:0}
+.bx .i-26{font-size:26px;line-height:0}
+.bx .i-29{font-size:29px;line-height:0}
+
+.bx .i-400{font-weight:400}
+.bx .i-700{font-weight:700}
+.bx .i-800{font-weight:800}
+
+.bx .i-좁게{letter-spacing:-.015em}
+.bx .i-보통{letter-spacing:-.005em}
+.bx .i-넓게{letter-spacing:.180em}
+
 /* ── 인쇄 — 297 × 210mm · 도련 없음 ──
    2339px(96dpi = 618.86mm)을 297mm 에 맞춘다 : 297 / 618.86 = .47991
    @media print 를 파일 끝에 둔다. 같은 특정도끼리는 나중 규칙이 이긴다. */

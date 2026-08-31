@@ -18,6 +18,11 @@ const v3 = argv.includes('--v3');      // 봉인본 · render/_v3/봉인.md
 const src = argv.find((a) => !a.startsWith('--')) ?? 'content/sokcho/실행계획서.json';
 
 const { render } = await import(v3 ? '../render/_v3/index.js' : '../render/index.js');
+/* 되읽기는 `render/inline.js` 가 정본이다 · inline() 의 역함수라 거기 산다.
+   여기서 사본을 들고 있다가 실제로 갈라졌다 — 구간 표기를 inline() 에만 넣었더니
+   이 검사가 17건 틀렸다 · N-글자 d. 브라우저 안으로는 못 가져가니 소스로 넣는다.
+   **봉인본(--v3)도 같은 것을 쓴다** — 구간 표기는 v3 이 안 내므로 그 가지가 안 열린다. */
+const { 원문 } = await import('../render/inline.js');
 const doc = JSON.parse(fs.readFileSync(path.join(root, src), 'utf8'));
 
 const css =
@@ -38,32 +43,16 @@ const b = await chromium.launch();
 const p = await b.newPage();
 await p.goto(pathToFileURL(tmp).href, { waitUntil: 'load' });
 
-const 결과 = await p.evaluate(() => {
-  // Shell.jsx 의 원문() 과 같은 규칙이어야 한다
-  function 원문(node) {
-    let s = '';
-    for (const n of node.childNodes) {
-      if (n.nodeType === 3) { s += n.nodeValue; continue; }
-      const 이름 = n.nodeName;
-      if (이름 === 'BR') { s += '\n'; continue; }
-      const cl = n.classList;
-      if (cl?.contains('tbd')) { s += cl.contains('co') ? '{TBD협의}' : '{TBD}'; continue; }
-      if (cl?.contains('ar')) {
-        s += '{→' + n.textContent.replace(/^\s*→\s*/, '').replace(/^p\./, '').trim() + '}';
-        continue;
-      }
-      if (이름 === 'B' || 이름 === 'STRONG') { s += '**' + 원문(n) + '**'; continue; }
-      s += 원문(n);
-    }
-    return s;
-  }
+const 결과 = await p.evaluate((소스) => {
+  // 이름 붙은 함수 식이라 제 이름으로 재귀한다
+  const 원문 = eval(`(${소스})`);
   const out = [];
   document.querySelectorAll('.sheet').forEach((sh, pi) => {
     sh.querySelectorAll('[data-p]').forEach((el) =>
       out.push({ pi, path: JSON.parse(el.getAttribute('data-p')), got: 원문(el) }));
   });
   return out;
-});
+}, 원문.toString());
 await b.close();
 fs.rmSync(tmp, { force: true });
 
