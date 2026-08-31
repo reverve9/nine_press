@@ -180,6 +180,10 @@ function 맛보기(el, k) {
 const 판W = 2339, 판H = 1654;
 const 얹기갈래들 = [['선', '선'], ['도형', '도형']];
 const 선방향들 = [['가로', '가로'], ['세로', '세로']];
+/* 층 · 박스 뒤 · 박스 앞 · N-얹기 b · 사용자 판정.
+   쌓임은 DOM 순서가 전부다 — 렌더러가 박스 앞뒤로 한 번씩 내놓는다.
+   기본이 「뒤」인 이유는 이 층을 연 두 쓰임(박스 사이 선 · 뒤에 까는 도형)이 다 뒤여서다 */
+const 얹기층들 = [['뒤', '박스 뒤'], ['앞', '박스 앞']];
 const 새얹기 = {
   // 판 한가운데를 가로지르는 선 · 처음 놓을 때 눈에 바로 보이는 자리다
   선: () => ({ 선: '가로', x: 80, y: 827, 길이: 2179, 굵기: 2, 색: '선' }),
@@ -485,6 +489,7 @@ export default function Shell({ docs, first }) {
   /* 탭 · 고른 얹기를 판에 알린다 · N-얹기. 클래스만 껐다 켜므로 판을 다시 안 그린다 */
   const 탭ref = useRef('박스');
   const 얹기번호ref = useRef(null);
+  const 얹기자리ref = useRef(() => {});
   const 외곽선ref = useRef(false);
   /* 판 안 리스너는 판이 뜰 때 한 번 달린다. 그때의 클로저를 물면 옛 박스번호를 본다 —
      그래서 놓기 동작만 ref 로 빼 둔다. 판본 · 판이 갈려도 언제나 지금 것을 부른다 */
@@ -514,6 +519,7 @@ export default function Shell({ docs, first }) {
   useEffect(() => { 자ref.current = 자; }, [자]);
   useEffect(() => { 탭ref.current = 탭; 얹기번호ref.current = 얹기번호; 테칠ref.current(); },
     [탭, 얹기번호]);
+  useEffect(() => { 얹기자리ref.current = 얹기자리; });
   useEffect(() => { 외곽선ref.current = 외곽선; }, [외곽선]);
 
   /* 켜고 끌 때 iframe 문서에 바로 입힌다.
@@ -693,9 +699,24 @@ export default function Shell({ docs, first }) {
     set얹기번호(n);
   }, { 그리기: true });
 
+  /* 끌어 옮긴 결과를 한 걸음으로 놓는다 · N-얹기 b.
+     x · y 를 따로 부르면 되돌리기가 두 걸음이 되어 한 번 끌면 두 번 되돌려야 한다 */
+  const 얹기자리 = (k, x, y) => 바꾸기((d) => {
+    const o = 얹기들(d)?.[k];
+    if (!o || (o.x === x && o.y === y)) return false;
+    o.x = x; o.y = y;
+    set얹기번호(k);
+  }, { 그리기: true });
+
   const 얹기값 = (열쇠, 값) => 바꾸기((d) => {
     const o = 얹기찾기(d);
     if (!o) return false;
+    // undefined 를 주면 열쇠를 지운다 — 기본값을 문안에 안 남긴다 · 도형바꾸기와 같은 규칙
+    if (값 === undefined) {
+      if (o[열쇠] === undefined) return false;
+      delete o[열쇠];
+      return;
+    }
     if (o[열쇠] === 값) return false;
     o[열쇠] = 값;
   }, { 그리기: true });
@@ -1317,6 +1338,79 @@ export default function Shell({ docs, first }) {
               ? sp.dataset.i.split('·').filter(Boolean) : [],
           });
         });
+
+        /* ── 얹은 것을 끌어 옮긴다 · N-얹기 b ──────────────────
+           **판에서 끌고 · 놓을 때 한 걸음으로 문안에 앉는다.** 끄는 동안은 인라인
+           style 만 만진다 — 값마다 문안을 고치면 판이 매 픽셀 다시 뜬다.
+
+           **좌표를 안 나눈다** · iframe 안 clientX 는 이미 판면 px 이다 ·
+           바깥 scale 은 iframe 요소에 걸려 있고 안쪽 문서는 1:1 이다 · §5 함정.
+
+           **자석** · Shift 를 누르면 박스 모서리 · 거터 한가운데에 붙는다.
+           「박스와 박스 사이에 선」이 이 층을 연 이유라(사용자) 손으로 맞출 일을 없앤다.
+           안 누르면 자유다 · 세로를 42 에 안 붙이는 것과 같은 결이다. */
+        let 끌기 = null;
+        const 자석 = (축) => {
+          const 값 = [];
+          d.querySelectorAll('[data-박스]').forEach((b) => {
+            const r = b.getBoundingClientRect();
+            값.push(축 === 'x' ? r.left : r.top, 축 === 'x' ? r.right : r.bottom);
+          });
+          const 낱 = [...new Set(값.map(Math.round))].sort((a, b) => a - b);
+          // 이웃한 모서리 사이의 한가운데 = 거터 한가운데
+          const 사이 = 낱.slice(1).map((v, k) => Math.round((v + 낱[k]) / 2));
+          return [...낱, ...사이];
+        };
+        const 붙이기 = (v, 후보) => {
+          let 가까운 = v, 거리 = 11;                 // 10px 안에서만 붙는다
+          for (const c of 후보) {
+            const t = Math.abs(c - v);
+            if (t < 거리) { 거리 = t; 가까운 = c; }
+          }
+          return 가까운;
+        };
+
+        d.addEventListener('pointerdown', (e) => {
+          if (!d.querySelector('.wrap')?.classList.contains('ovp')) return;
+          const el = e.target.closest?.('[data-얹기]');
+          if (!el) return;
+          e.preventDefault();
+          const k = Number(el.getAttribute('data-얹기'));
+          set얹기번호(k);
+          끌기 = {
+            el, k, x0: e.clientX, y0: e.clientY,
+            l: parseFloat(el.style.left) || 0, t: parseFloat(el.style.top) || 0,
+            w: el.offsetWidth, h: el.offsetHeight,
+            자x: 자석('x'), 자y: 자석('y'),
+          };
+          el.setPointerCapture?.(e.pointerId);
+        });
+
+        d.addEventListener('pointermove', (e) => {
+          if (!끌기) return;
+          let x = 끌기.l + (e.clientX - 끌기.x0);
+          let y = 끌기.t + (e.clientY - 끌기.y0);
+          if (e.shiftKey) {
+            // 시작 모서리와 끝 모서리 둘 다 붙여 본다 · 가까운 쪽이 이긴다
+            const x2 = 붙이기(x, 끌기.자x), x3 = 붙이기(x + 끌기.w, 끌기.자x) - 끌기.w;
+            const y2 = 붙이기(y, 끌기.자y), y3 = 붙이기(y + 끌기.h, 끌기.자y) - 끌기.h;
+            x = Math.abs(x2 - x) <= Math.abs(x3 - x) ? x2 : x3;
+            y = Math.abs(y2 - y) <= Math.abs(y3 - y) ? y2 : y3;
+          }
+          x = Math.max(0, Math.min(W - 끌기.w, Math.round(x)));
+          y = Math.max(0, Math.min(H - 끌기.h, Math.round(y)));
+          끌기.el.style.left = `${x}px`;
+          끌기.el.style.top = `${y}px`;
+          끌기.끝 = { x, y };
+        });
+
+        const 끌기끝 = () => {
+          if (!끌기) return;
+          const g = 끌기; 끌기 = null;
+          if (g.끝) 얹기자리ref.current(g.k, g.끝.x, g.끝.y);
+        };
+        d.addEventListener('pointerup', 끌기끝);
+        d.addEventListener('pointercancel', 끌기끝);
 
         d.addEventListener('paste', (e) => {
           if (!e.target.closest?.('[data-p]')?.isContentEditable) return;
@@ -2403,7 +2497,16 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                       </span>
                     </줄>
 
-                    <줄 이름="자리" 곁={`x ${o.x} · y ${o.y}`}>
+                    <줄 이름="층" 곁={(o.층 ?? '뒤') === '뒤' ? '글에 안 가린다' : '글을 덮는다'}>
+                      <span className="seg">
+                        {얹기층들.map(([v, 이름]) => (
+                          <button key={v} className={'chip' + ((o.층 ?? '뒤') === v ? ' on' : '')}
+                                  onClick={() => 얹기값('층', v === '뒤' ? undefined : v)}>{이름}</button>
+                        ))}
+                      </span>
+                    </줄>
+
+                    <줄 이름="자리" 곁={`x ${o.x} · y ${o.y} · 끌어서 옮긴다 · Shift 자석`}>
                       <수칸 열쇠="얹x" 값={o.x} 기본={80} 로그={set로그}
                             놓기={(n) => 얹기값('x', n)} />
                       <수칸 열쇠="얹y" 값={o.y} 기본={260} 로그={set로그}
