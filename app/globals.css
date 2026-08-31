@@ -20,7 +20,8 @@
   /* 패널 바닥 · 키노트 결 · 사용자 판정. **패널은 회색 · 칸은 흰색**이다 —
      흰 판에 흰 칸을 얹으면 어디가 만질 수 있는 자리인지 테두리 하나로만 갈린다.
      판(--bg)이 제일 어둡고 · 패널이 그다음 · 만지는 칸이 흰색이다 */
-  --pn: #eceff3;
+  --pn: #ececec;      /* 패널 바닥 · 키노트 인스펙터의 중성 회색 */
+  --pln: #d2d2d2;     /* 패널 안 테두리 · 구분선 · 흰 칸이 회색 판에서 뜨려면 이 정도가 든다 */
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0 }
@@ -96,7 +97,7 @@ body {
 /* ── 면 미리보기 — 키노트 네비게이터 ── */
 .pages {
   display: flex; flex-direction: column; min-height: 0;
-  background: var(--pn); border-right: 1px solid var(--ln);
+  background: var(--pn); border-right: 1px solid var(--pln);
 }
 /* 좌우 14 — 문안 고르기 · 썸네일 · 아래 버튼 셋이 같은 세로선에 선다 */
 .pgs { flex: 1; overflow-y: auto; padding: 11px 14px 9px }
@@ -141,14 +142,14 @@ body {
 /* ── 속성 도크 ── */
 .dock {
   display: flex; flex-direction: column; min-height: 0;
-  background: var(--pn); border-left: 1px solid var(--ln);
+  background: var(--pn); border-left: 1px solid var(--pln);
 }
 /* 탭이 도크의 맨 위다 · N-도크재편 b. 옛 머리띠(`.dkhd`)는 걷었다 —
    아무것도 안 골랐을 때 빈 채로 46px 를 먹고 앉아 두 탭 위에 여백만 남겼다 ·
    사용자 지적. 「박스 N / M」 · 「비움」은 [판] 탭 안 제자리로 내려갔다 */
 .tabs {
   flex: 0 0 auto; display: flex;
-  border-bottom: 1px solid var(--ln); background: transparent;
+  border-bottom: 1px solid var(--pln); background: transparent;
 }
 .tab {
   flex: 1; padding: 13px 0; border: 0; border-bottom: 2px solid transparent;
@@ -196,7 +197,7 @@ body {
 /* ── 선택띠 · 칩 ── */
 .seg {
   display: inline-flex; padding: 2px; gap: 2px;
-  border: 1px solid #dbe2e9; border-radius: 7px; background: #e7ebf0;
+  border: 1px solid var(--pln); border-radius: 6px; background: #e0e0e0;
 }
 .seg .chip {
   border: 0; border-radius: 5px;
@@ -207,7 +208,7 @@ body {
 
 .chip {
   padding: 5px 10px; font: inherit; font-size: 13px; font-weight: 400;
-  border: 1px solid var(--ln); border-radius: 6px;
+  border: 1px solid var(--pln); border-radius: 5px;
   background: #fff; color: var(--onx); cursor: pointer; white-space: nowrap;
 }
 .chip:hover:not(:disabled) { border-color: var(--on2); background: #f7f9fb; color: var(--onx) }
@@ -242,7 +243,7 @@ body {
 }
 .fldv { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; min-width: 0 }
 .fldx.num { font-variant-numeric: tabular-nums; color: var(--tx) }
-.popln { height: 1px; margin: 14px -14px; background: var(--ln) }
+.popln { height: 1px; margin: 14px 0; background: var(--pln) }
 .brk { flex: 1 0 100%; height: 0; margin: 0 }
 .swsp { flex: 0 0 auto; width: 1px; height: 20px; margin: 0 2px; background: #dbe2e9 }
 
@@ -337,7 +338,7 @@ body {
 /* 칸 */
 .barin {
   font: inherit; font-size: 13px; color: var(--onx);
-  border: 1px solid var(--ln); border-radius: 6px; padding: 5px 9px;
+  border: 1px solid var(--pln); border-radius: 5px; padding: 5px 9px;
   background: #fff; min-width: 0;
 }
 .barin:focus { outline: 0; border-color: var(--on2) }
@@ -345,14 +346,30 @@ body {
   width: 94px; height: 25px; padding: 0 8px;
   font-size: 12px; font-variant-numeric: tabular-nums; text-transform: uppercase;
 }
-.numwrap { display: inline-flex; align-items: center; gap: 7px }
+.numwrap { display: inline-flex; align-items: stretch; height: 27px }
 .numin {
-  width: 62px; height: 27px; padding: 0 9px; text-align: center;
+  width: 62px; padding: 0 8px; text-align: right;
+  border-radius: 5px 0 0 5px; border-right: 0;
   font-size: 13px; font-weight: 400; font-variant-numeric: tabular-nums; color: var(--onx);
 }
-.numin.w { width: 48px }
-.numin:disabled { background: #f7f9fb; color: #b3bdc8; cursor: default }
-.numrg { font-size: 11px; font-variant-numeric: tabular-nums; color: #b3bdc8 }
+.numin.w { width: 46px }
+.numin:disabled { background: #f4f4f4; color: #b0b0b0; cursor: default }
+/* 스테퍼 — 칸에 붙는다 · 삼각형은 CSS 로 그린다 · 글꼴 화살표는 판마다 크기가 다르다 */
+.stp {
+  display: flex; flex-direction: column; width: 18px; flex: 0 0 auto;
+  border: 1px solid var(--pln); border-radius: 0 5px 5px 0; overflow: hidden; background: #fff;
+}
+.stp button {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  border: 0; padding: 0; background: #fff; cursor: pointer;
+}
+.stp button + button { border-top: 1px solid #e8e8e8 }
+.stp button:hover:not(:disabled) { background: #e9e9e9 }
+.stp button:disabled { background: #f4f4f4; cursor: default }
+.stp button:before { content: ""; border-left: 3px solid transparent; border-right: 3px solid transparent }
+.stp .up:before { border-bottom: 4px solid #6b6b6b }
+.stp .dn:before { border-top: 4px solid #6b6b6b }
+.stp button:disabled:before { border-bottom-color: #c0c0c0; border-top-color: #c0c0c0 }
 
 /* 얹은 글 입력 · N-얹기 e — 여러 줄이라 input 이 아니라 textarea 다 */
 .txin { width: 100%; resize: vertical; min-height: 62px; line-height: 1.6; padding: 7px 9px }
@@ -367,7 +384,7 @@ body {
 .lyrs {
   display: flex; flex-direction: column;
   margin: -2px 0 0; padding: 5px;
-  border: 1px solid var(--ln); border-radius: 7px; background: #fff;
+  border: 1px solid var(--pln); border-radius: 6px; background: #fff;
 }
 .lyrs .elrow { background: #fff; border-color: #eaeff4 }
 .lyrs .elrow:hover { background: #f4f6f9; border-color: #dde4ec }
@@ -455,3 +472,40 @@ body {
 }
 /* 파일 칸을 겸하는 칩 — label 이라 disabled 가 안 먹는다 · 꼴로만 막는다 */
 .chip.막힘 { opacity: .35; pointer-events: none }
+
+/* ── 팝업 메뉴 · 묶음 접기 · 키노트 캡처 대조 ──
+   **긴 목록은 칩 줄이 아니라 메뉴다.** 칩 다섯이 넘으면 줄이 두세 번 접혀
+   무엇이 켜졌는지가 안 읽힌다 — 키노트는 둘~넷을 선택띠로 · 그 위는 팝업으로 낸다. */
+.pop { position: relative; display: inline-flex; min-width: 0 }
+.pop.w { flex: 1 1 100% }
+.pop select {
+  appearance: none; -webkit-appearance: none;
+  width: 100%; height: 27px; padding: 0 26px 0 9px;
+  font: inherit; font-size: 13px; color: var(--onx);
+  border: 1px solid var(--pln); border-radius: 5px; background: #fff; cursor: pointer;
+}
+.pop select:focus { outline: 0; border-color: #9aa0a6 }
+.pop:after {
+  content: ""; position: absolute; right: 9px; top: 50%; margin-top: -2px;
+  border-left: 3.5px solid transparent; border-right: 3.5px solid transparent;
+  border-top: 4px solid #6b6b6b; pointer-events: none;
+}
+/* 묶음 머리 — 삼각형 하나와 이름 · 누르면 접힌다 */
+.grp {
+  display: flex; align-items: center; gap: 7px;
+  width: 100%; margin: 0 0 9px; padding: 0;
+  border: 0; background: transparent; cursor: pointer;
+  font: inherit; font-size: 13px; color: var(--onx); text-align: left;
+}
+.grp i {
+  flex: 0 0 auto; width: 0; height: 0;
+  border-left: 4px solid transparent; border-right: 4px solid transparent;
+  border-top: 5px solid #6b6b6b; transition: transform .12s;
+}
+.grp.off i { transform: rotate(-90deg) }
+.grp:hover i { border-top-color: #333 }
+.grpb { margin-bottom: 4px }
+.grp em {
+  font-style: normal; font-size: 12.5px; color: #8e8e8e;
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}

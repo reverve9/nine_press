@@ -321,9 +321,10 @@ const 수범위 = { 모서리: [0, 40], 투명도: [0, 100], 굵기: [1, 6],
                  칸수: [1, 20], 빈칸수: [0, 20], 빈비율: [0, 100 - 비율하한],
                  블록: [1, 30], 그림비율: [1, 100] };
 
-/* 위 · 아래 화살표로 올리고 내린다 · ⇧ 를 누르면 열 걸음이다. 어도비 수치 칸 그대로다.
-   「좁게」 는 칸이 여럿 늘어설 때다 — 표 열 폭은 열 수만큼 칸이 서므로
-   칸마다 범위를 되풀이해 적으면 줄이 두 번 접힌다. 범위는 이름표 곁말이 나른다. */
+/* 수치 칸 · **스테퍼가 붙는다** · 키노트 캡처 그대로다 · 사용자 판정.
+   범위 글자(`0~2339`)는 걷었다 — 키노트는 범위를 안 적는다 · title 로만 남긴다.
+   키보드 ↑↓ 는 그대로 살고 · ⇧ 를 누르면 열 걸음이다.
+   「좁게」 는 칸이 여럿 늘어설 때다 — 표 열 폭은 열 수만큼 칸이 선다. */
 function 수칸({ 열쇠, 값, 기본, 놓기, 로그, 열림 = true, 좁게 = false }) {
   const [아래, 위] = 수범위[열쇠];
   const 지금 = 값 ?? 기본;
@@ -340,24 +341,29 @@ function 수칸({ 열쇠, 값, 기본, 놓기, 로그, 열림 = true, 좁게 = f
     if (n !== 지금) 놓기(n);
   };
 
+  const 걷기 = (걸음) => {
+    const n = Math.min(위, Math.max(아래, 지금 + 걸음));
+    if (n !== 지금) 놓기(n);
+  };
   return (
     <span className="numwrap">
       <input
         className={'barin numin' + (좁게 ? ' w' : '')} type="text" inputMode="numeric"
         value={글} disabled={!열림}
-        title={`${아래} ~ ${위} 사이 정수 · ↑↓ 로 한 걸음 · ⇧↑↓ 로 열 걸음`}
+        title={`${아래} ~ ${위}`}
         onChange={(e) => set글(e.target.value)}
         onBlur={(e) => 맞추기(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === 'Enter') { 맞추기(e.currentTarget.value); return; }
           if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
           e.preventDefault();
-          const 걸음 = (e.shiftKey ? 10 : 1) * (e.key === 'ArrowUp' ? 1 : -1);
-          const n = Math.min(위, Math.max(아래, 지금 + 걸음));
-          if (n !== 지금) 놓기(n);
+          걷기((e.shiftKey ? 10 : 1) * (e.key === 'ArrowUp' ? 1 : -1));
         }}
       />
-      {!좁게 && <span className="numrg">{아래}~{위}</span>}
+      <span className="stp">
+        <button type="button" className="up" disabled={!열림} onClick={() => 걷기(1)} />
+        <button type="button" className="dn" disabled={!열림} onClick={() => 걷기(-1)} />
+      </span>
     </span>
   );
 }
@@ -366,6 +372,34 @@ function 수칸({ 열쇠, 값, 기본, 놓기, 로그, 열림 = true, 좁게 = f
    빈자리 후반 작업이 키노트에서 나므로 두 판이 같은 결이면 손이 안 갈아탄다.
    이름표는 오른쪽 정렬 회색 · 값이 오른쪽 칸을 다 먹는다 · 곁말은 값 뒤에 붙는다.
    위아래로 쌓던 때보다 한 칸이 17px 짧아져 한 화면에 드는 줄이 늘어난다. */
+/* 팝업 메뉴 · **긴 목록은 칩 줄이 아니라 메뉴다** · 키노트 캡처 그대로다 · 사용자 판정.
+   칩 다섯이 넘어가면 줄이 두세 번 접혀 무엇이 켜졌는지가 안 읽힌다 —
+   키노트는 둘 ~ 넷을 선택띠로 · 그 위는 팝업으로 낸다. */
+function 메뉴({ 값, 것들, 놓기, 넓게 = false }) {
+  return (
+    <span className={'pop' + (넓게 ? ' w' : '')}>
+      <select value={값 ?? ''} onChange={(e) => 놓기(e.target.value)}>
+        {것들.map(([v, 이름]) => <option key={v} value={v}>{이름}</option>)}
+      </select>
+    </span>
+  );
+}
+
+/* 묶음 · **접었다 편다** · 키노트 캡처 그대로다(「⌄ 간격」).
+   판이 길어지면 지금 만지는 묶음만 펴 두고 나머지를 접는다. 접은 상태는 이 브라우저에만 남는다 */
+function 접칸({ 이름, 곁, 열쇠, 접힘, 접기, children }) {
+  const 닫힘 = !!접힘[열쇠];
+  return (
+    <>
+      <button type="button" className={'grp' + (닫힘 ? ' off' : '')}
+              onClick={() => 접기(열쇠)}>
+        <i /> {이름}{곁 ? <em>{곁}</em> : null}
+      </button>
+      {!닫힘 && <div className="grpb">{children}</div>}
+    </>
+  );
+}
+
 function 줄({ 이름, 곁, children }) {
   return (
     <div className="fld">
@@ -542,6 +576,20 @@ export default function Shell({ docs, first }) {
   const [외곽선, set외곽선] = useState(false);  // 박스 · 밴드 외곽선 · rules/page.css .wrap.dbg
   /* 안내선 · N-자. **끄면 자석도 같이 끈다** — 안 보이는 선이 잡아채면 이유를 못 댄다 */
   const [안내선켬, set안내선켬] = useState(true);
+  /* 접은 묶음 · 키노트처럼 접었다 편다. 이 브라우저에만 남는다 —
+     무엇을 접어 두는지는 사람마다 다르고 문안이 알 물건이 아니다 */
+  const [접힘, set접힘] = useState({});
+  useEffect(() => {
+    try {
+      const v = JSON.parse(localStorage.getItem('나인_접힘') ?? '{}');
+      if (v && typeof v === 'object') set접힘(v);
+    } catch { /* 저장소가 막힌 브라우저면 다 펴 둔다 */ }
+  }, []);
+  const 묶음접기 = useCallback((열쇠) => set접힘((a) => {
+    const n = { ...a, [열쇠]: !a[열쇠] };
+    try { localStorage.setItem('나인_접힘', JSON.stringify(n)); } catch { /* 무시 */ }
+    return n;
+  }), []);
   const [끄는선, set끄는선] = useState(null);   // { 갈래, 번호|null, 값 } · 놓기 전까지는 문안에 안 앉는다
   // 배율 · null 이면 창에 맞춘다. 숫자면 그 배율로 못박는다.
   // 키노트와 견주려면 못박아야 한다 — 키노트 50% 와 여기 50% 가 같은 크기다
@@ -2460,19 +2508,16 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
               **그릇 무리다.** 판면이 박스를 몇 개 낼지를 정하고 · 박스가 그 꼴을 정한다.
               둘은 한 물건의 골격과 살이라 한 탭에서 잇달아 만지는 것이 맞다 */}
           {탭 === '판' && (
+            <접칸 이름="판면" 열쇠="판면" 접힘={접힘} 접기={묶음접기}
+                  곁={현재?.구성 ? '구성'
+                    : `${현재?.레이아웃 ?? '?'} · ${_규격.레이아웃[현재?.레이아웃]?.이름 ?? ''}`
+                      + ` · ${(현재?.박스?.length ?? 0)}칸`}>
             <div className="lays">
               {/* **판면 이름은 여기서만 낸다** · 사용자 지적 · N-도크재편 b.
                   옛 도크 머리에 「G1」 배지가 늘 떠 있었는데 · 그것은 `페이지.레이아웃`
                   열쇠를 그대로 낸 것이라 **아무것도 안 고르고도 뜨는 값**이었고 ·
                   내용을 만지는 동안에도 자리를 먹었다. 판면을 고르는 이 탭이 제자리다 —
                   격자에 이름표를 안 붙이는 대신(도식이 곧 이름이다) 지금 것만 여기 적는다 */}
-              <div className="fld hd">
-                <span className="fldnm">판면
-                  <em>{현재?.구성 ? '구성 · 직접 적었다'
-                    : `${현재?.레이아웃 ?? '?'} · ${_규격.레이아웃[현재?.레이아웃]?.이름 ?? ''}`
-                      + ` · ${(현재?.박스?.length ?? 0)}칸`}</em>
-                </span>
-              </div>
               {/* **판면이냐 자유냐** · N-자유배치 · 사용자 판정.
                   「자유」로 넘기면 지금 판면의 자리를 박스에 찍는다 — 그 뒤엔 레이아웃을
                   안 본다. 되돌리면 열쇠 넷을 지우고 다시 판면이 놓는다.
@@ -2490,12 +2535,14 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
               </div>
               <div className="fld">
                 <span className="fldnm">모드</span>
-                <span className="seg">
-                  {['카피', '연속'].map((m) => (
-                    <button key={m}
-                            className={'chip' + ((현재?.모드 === '연속' ? '연속' : '카피') === m ? ' on' : '')}
-                            onClick={() => 판면고르기(현재?.레이아웃 ?? 'G2', m)}>{m}</button>
-                  ))}
+                <span className="fldv">
+                  <span className="seg">
+                    {['카피', '연속'].map((m) => (
+                      <button key={m}
+                              className={'chip' + ((현재?.모드 === '연속' ? '연속' : '카피') === m ? ' on' : '')}
+                              onClick={() => 판면고르기(현재?.레이아웃 ?? 'G2', m)}>{m}</button>
+                    ))}
+                  </span>
                 </span>
               </div>
 
@@ -2529,6 +2576,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                 </div>
               ))}
             </div>
+            </접칸>
           )}
 
           {/* 박스 · 판면 아래에 잇는다. **빈 상태 문구를 안 띄운다** · 사용자 판정 ·
@@ -2542,6 +2590,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
             <>
               <div className="popln" />
 
+              <접칸 이름="박스" 열쇠="박스" 접힘={접힘} 접기={묶음접기}>
               <줄 이름="박스">
                 <em className="fldx num">{박스번호 + 1} / {현재?.박스?.length ?? 0}</em>
                 <button className={'chip' + (고른.비움 ? ' on' : '')}
@@ -2579,12 +2628,15 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                   />
                 </줄>
               )}
+              </접칸>
               {!고른.비움 && (
                 <>
                   <div className="popln" />
 
-                  <도형판 도형={고른.도형} 놓기={도형바꾸기} 글자
-                          최근색={최근색} 색기억={색기억} 로그={set로그} />
+                  <접칸 이름="도형" 열쇠="박스도형" 접힘={접힘} 접기={묶음접기}>
+                    <도형판 도형={고른.도형} 놓기={도형바꾸기} 글자
+                            최근색={최근색} 색기억={색기억} 로그={set로그} />
+                  </접칸>
                 </>
               )}
             </>
@@ -2664,10 +2716,10 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                 <span className="brk" />
                 {삽입처 === '박스' ? (
                   <>
-                    {요소갈래들.filter((k) => k !== '그림').map((k) => (
-                      <button key={k} className="chip" disabled={!고른 || !!고른.비움}
-                              onClick={() => 요소넣기(k)}>+ {k}</button>
-                    ))}
+                    {/* 갈래 열하나가 칩이면 줄이 세 번 접힌다 · 키노트는 팝업으로 낸다 */}
+                    <메뉴 값="" 놓기={(v) => { if (v) 요소넣기(v); }}
+                          것들={[['', '＋ 넣기'], ...요소갈래들.filter((k) => k !== '그림')
+                            .map((k) => [k, k])]} />
                     {/* 그림은 파일을 고르는 것이 곧 놓는 것이다 · 사용자 판정.
                         경로 없는 그림을 미리 만들지 않는다 — 렌더러가 던진다 */}
                     <label className={'chip' + (!고른 || 고른.비움 ? ' 막힘' : '')}>
@@ -2730,12 +2782,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                     <div className="popln" />
 
                     <줄 이름="갈래">
-                      <span className="seg">
-                        {글자갈래들.map((v) => (
-                          <button key={v} className={'chip' + (k === v ? ' on' : '')}
-                                  onClick={() => 계층바꾸기(v)}>{v}</button>
-                        ))}
-                      </span>
+                      <메뉴 값={k} 놓기={계층바꾸기} 것들={글자갈래들.map((v) => [v, v])} />
                     </줄>
                     <줄 이름="크기" 곁={el.크기 ? `${el.크기}px` : null}>
                       <span className="seg">
@@ -3009,12 +3056,12 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
 
                   칩은 다 `onMouseDown` 을 막는다. 안 막으면 누르는 순간 판면이
                   focus 를 잃고 focusout 이 편집을 닫아 고른 자리가 사라진다. */}
-              <줄 이름="고른 글자"
-                  곁={고른글자 ? `"${고른글자.글.slice(0, 18)}"` : null}>
+              <접칸 이름="고른 글자" 열쇠="구간" 접힘={접힘} 접기={묶음접기}>
+              <줄 이름="글자" 곁={고른글자 ? `"${고른글자.글.slice(0, 18)}"` : null}>
                 <button className="chip" onMouseDown={(e) => e.preventDefault()}
-                        onClick={굵게}>
-                  굵게
-                </button>
+                        onClick={굵게}>굵게</button>
+                <button className="chip warn" onMouseDown={(e) => e.preventDefault()}
+                        onClick={민글로}>민글</button>
               </줄>
 
               {/* 색 — **도형 배경 · 테두리와 같은 꼴이다** · N-글자 e.
@@ -3056,13 +3103,7 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                 </줄>
               ))}
 
-              {/* 벗길 대상 바로 아래다. 위에 두면 무엇을 벗기는지가 흐리다 ·
-                  켠 칩을 다시 눌러 하나씩 끄는 길도 그대로 있다 */}
-              <줄 이름="민글">
-                <button className="chip warn" onMouseDown={(e) => e.preventDefault()}
-                        onClick={민글로}
->민글</button>
-              </줄>
+              </접칸>
             </>
           )}
 
@@ -3076,8 +3117,10 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
             <>
               <div className="popln" />
 
-              <도형판 도형={고른요소.도형} 놓기={요소도형바꾸기} 글자
-                      최근색={최근색} 색기억={색기억} 로그={set로그} />
+              <접칸 이름="도형" 열쇠="요소도형" 접힘={접힘} 접기={묶음접기}>
+                <도형판 도형={고른요소.도형} 놓기={요소도형바꾸기} 글자
+                        최근색={최근색} 색기억={색기억} 로그={set로그} />
+              </접칸>
             </>
           )}
 
