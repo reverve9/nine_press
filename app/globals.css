@@ -167,26 +167,22 @@ body {
   display: block; margin: 0 0 6px;
   font-size: 10.5px; font-weight: 700; letter-spacing: .09em; color: var(--mu);
 }
-.laylist { display: grid; grid-template-columns: 1fr 1fr; gap: 8px }
+.laylist { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px }
 .lay {
   border: 1px solid var(--ln); border-radius: 6px; background: #fff;
-  padding: 5px 5px 4px; cursor: pointer; font: inherit; text-align: center;
+  padding: 4px; cursor: pointer; font: inherit; line-height: 0;
 }
 .lay:hover { border-color: var(--on2) }
 .lay.on { border-color: var(--or); box-shadow: 0 0 0 2px rgba(230, 129, 0, .3) }
-.laypv { position: relative; display: block; width: 100%; background: #F1F3F6; border-radius: 2px }
-.laypv i { position: absolute; background: var(--nv2); opacity: .5; border-radius: 1px }
-.lay:hover .laypv i { opacity: .68 }
-.lay.on .laypv i { opacity: .9 }
-.layid {
-  display: block; margin-top: 4px;
-  font-size: 11px; font-weight: 700; color: var(--mu); letter-spacing: .04em;
-}
-.lay.on .layid { color: var(--onx) }
-.layttl {
-  display: block; font-style: normal; font-size: 10px; color: var(--mu);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
+.laypv { position: relative; display: block; width: 100%; background: #fff; border-radius: 2px }
+/* 이름표를 안 붙인다 — 도식이 곧 이름이다 · 사용자 판정. 이름은 title 로 남는다 */
+.laypv i { position: absolute; border-radius: 1px }
+.laypv i.bx { background: var(--nv2); opacity: .5 }        /* 박스 */
+.laypv i.bn { background: var(--mu); opacity: .3 }         /* 헤더 · 요지 · 푸터 */
+.laypv i.cp { background: var(--or); opacity: .42 }        /* 카피 밴드 — 있고 없고가 한눈에 */
+.lay:hover .laypv i.bx { opacity: .68 }
+.lay.on .laypv i.bx { opacity: .9 }
+.lay.on .laypv i.cp { opacity: .6 }
 .laywarn {
   display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
   padding: 9px 10px; border: 1px solid var(--or); border-radius: 6px;

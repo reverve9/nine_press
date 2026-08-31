@@ -1268,17 +1268,34 @@ export default function Shell({ docs, first }) {
 
      **미리보기는 그리는 게 아니라 재는 것이다** — `영역()` 을 그대로 불러 좌표를 %로 옮긴다.
      도식을 손으로 그리면 레이아웃이 바뀔 때 조용히 거짓말을 한다. */
+  /* 밴드 — 헤더 · 카피 · 요지 · 푸터. **미리보기가 카피 영역을 보여야 한다** ·
+     사용자 판정. 「모드」라는 말은 속을 안 드러낸다 — 실제로 갈리는 것은
+     **위에 카피 밴드가 서느냐**이고 · 그것 때문에 박스 존이 199 내려앉는다. */
+  const 밴드들 = useCallback((모드) => {
+    const { 프레임, 헤더, 푸터, 요지Y, 존, G: 거터, 프레임상단 } = _규격;
+    const 요지높이 = 존[모드] - 거터 - 요지Y[모드];
+    const 것 = [
+      { 갈래: 'bn', y: 헤더.y, h: 헤더.h },
+      { 갈래: 'bn', y: 요지Y[모드], h: 요지높이 },
+      { 갈래: 'bn', y: 푸터.y, h: 푸터.h },
+    ];
+    if (모드 === '카피') 것.splice(1, 0,
+      { 갈래: 'cp', y: 프레임상단, h: 요지Y.카피 - 거터 - 프레임상단 });
+    return 것.map((b) => ({ ...b, x: 프레임.x, w: 프레임.w }));
+  }, []);
+
   const 판면갈래 = useMemo(() => {
     const 모드 = 현재?.모드 === '연속' ? '연속' : '카피';
+    const 밴드 = 밴드들(모드);
     const 통 = new Map();
     for (const G of Object.keys(_규격.레이아웃)) {
       let r;
       try { r = 영역({ 번호: '01', 모드, 레이아웃: G, 박스: [] }); } catch { continue; }
       if (!통.has(r.length)) 통.set(r.length, []);
-      통.get(r.length).push({ 레이아웃: G, 이름: _규격.레이아웃[G].이름, 칸: r });
+      통.get(r.length).push({ 레이아웃: G, 이름: _규격.레이아웃[G].이름, 칸: r, 밴드 });
     }
     return [...통.entries()].sort((a, b) => a[0] - b[0]);
-  }, [현재?.모드]);
+  }, [현재?.모드, 밴드들]);
 
   /* 칸 수가 줄면 뒤에서부터 뺀다. **내용이 든 박스가 빠지면 한 번 더 묻는다** —
      되돌리기가 있어도 지운 줄 모르고 넘어가는 것이 더 나쁘다. */
@@ -2029,12 +2046,12 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
           {탭 === '판면' && (
             <div className="lays">
               <div className="fld">
-                <span className="fldnm">모드</span>
+                <span className="fldnm">카피 영역</span>
                 <span className="seg">
-                  {['카피', '연속'].map((m) => (
+                  {[['카피', '있다'], ['연속', '없다']].map(([m, 글]) => (
                     <button key={m}
                             className={'chip' + ((현재?.모드 === '연속' ? '연속' : '카피') === m ? ' on' : '')}
-                            onClick={() => 판면고르기(현재?.레이아웃 ?? 'G2', m)}>{m}</button>
+                            onClick={() => 판면고르기(현재?.레이아웃 ?? 'G2', m)}>{글}</button>
                   ))}
                 </span>
               </div>
@@ -2055,20 +2072,19 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                 <div key={수} className="laygrp">
                   <span className="laynm">{수}칸</span>
                   <div className="laylist">
-                    {것들.map(({ 레이아웃, 이름, 칸 }) => (
+                    {것들.map(({ 레이아웃, 이름, 칸, 밴드 }) => (
                       <button key={레이아웃} title={`${레이아웃} · ${이름}`}
                               className={'lay' + (현재?.레이아웃 === 레이아웃 && !현재?.구성 ? ' on' : '')}
                               onClick={() => 판면고르기(레이아웃, 현재?.모드 === '연속' ? '연속' : '카피')}>
                         <span className="laypv" style={{ aspectRatio: `${W} / ${H}` }}>
-                          {칸.map((r, k) => (
-                            <i key={k} style={{
+                          {[...밴드.map((b) => ({ ...b, 갈래: b.갈래 })),
+                            ...칸.map((r) => ({ ...r, 갈래: 'bx' }))].map((r, k) => (
+                            <i key={k} className={r.갈래} style={{
                               left: `${r.x / W * 100}%`, top: `${r.y / H * 100}%`,
                               width: `${r.w / W * 100}%`, height: `${r.h / H * 100}%`,
                             }} />
                           ))}
                         </span>
-                        <span className="layid">{레이아웃}</span>
-                        <em className="layttl">{이름}</em>
                       </button>
                     ))}
                   </div>
