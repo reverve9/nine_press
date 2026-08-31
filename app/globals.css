@@ -16,6 +16,11 @@
   --on: #e7ebf0;
   --on2: #c3ccd6;
   --onx: #2b3644;
+
+  /* 패널 바닥 · 키노트 결 · 사용자 판정. **패널은 회색 · 칸은 흰색**이다 —
+     흰 판에 흰 칸을 얹으면 어디가 만질 수 있는 자리인지 테두리 하나로만 갈린다.
+     판(--bg)이 제일 어둡고 · 패널이 그다음 · 만지는 칸이 흰색이다 */
+  --pn: #f2f4f7;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0 }
@@ -40,7 +45,7 @@ body {
   grid-column: 1 / -1;
   display: flex; align-items: center; gap: 8px;
   padding: 0 14px;
-  background: #fff; border-bottom: 1px solid var(--ln);
+  background: #fbfcfd; border-bottom: 1px solid var(--ln);
   overflow: hidden;
 }
 .brand {
@@ -91,7 +96,7 @@ body {
 /* ── 면 미리보기 — 키노트 네비게이터 ── */
 .pages {
   display: flex; flex-direction: column; min-height: 0;
-  background: #fff; border-right: 1px solid var(--ln);
+  background: var(--pn); border-right: 1px solid var(--ln);
 }
 /* 좌우 14 — 문안 고르기 · 썸네일 · 아래 버튼 셋이 같은 세로선에 선다 */
 .pgs { flex: 1; overflow-y: auto; padding: 11px 14px 9px }
@@ -136,14 +141,14 @@ body {
 /* ── 속성 도크 ── */
 .dock {
   display: flex; flex-direction: column; min-height: 0;
-  background: #fff; border-left: 1px solid var(--ln);
+  background: var(--pn); border-left: 1px solid var(--ln);
 }
 /* 탭이 도크의 맨 위다 · N-도크재편 b. 옛 머리띠(`.dkhd`)는 걷었다 —
    아무것도 안 골랐을 때 빈 채로 46px 를 먹고 앉아 두 탭 위에 여백만 남겼다 ·
    사용자 지적. 「박스 N / M」 · 「비움」은 [판] 탭 안 제자리로 내려갔다 */
 .tabs {
   flex: 0 0 auto; display: flex;
-  border-bottom: 1px solid var(--ln); background: #fbfcfd;
+  border-bottom: 1px solid var(--ln); background: transparent;
 }
 .tab {
   flex: 1; padding: 13px 0; border: 0; border-bottom: 2px solid transparent;
@@ -151,10 +156,7 @@ body {
   font: inherit; font-size: 14px; font-weight: 400; letter-spacing: .04em; color: var(--mu);
 }
 .tab:hover { color: var(--onx) }
-.tab.on {
-  color: var(--onx);
-  background: #fff; border-bottom-color: var(--on2);
-}
+.tab.on { color: var(--onx); border-bottom-color: #8a97a6 }
 .dkbd { flex: 1; overflow-y: auto; padding: 14px 14px 22px }
 .dim { font-size: 13px; color: var(--mu) }
 
@@ -192,14 +194,16 @@ body {
 }
 
 /* ── 선택띠 · 칩 ── */
-.seg { display: inline-flex; border: 1px solid var(--ln); border-radius: 5px; overflow: hidden }
-.seg .chip {
-  border: 0; border-left: 1px solid var(--ln); border-radius: 0;
-  min-width: 44px; padding: 6px 9px; text-align: center; background: #fff;
+.seg {
+  display: inline-flex; padding: 2px; gap: 2px;
+  border: 1px solid #dbe2e9; border-radius: 7px; background: #e7ebf0;
 }
-.seg .chip:first-child { border-left: 0 }
-.seg .chip.on { background: var(--on); color: var(--onx) }
-.seg .chip:hover:not(:disabled):not(.on) { background: #f4f6f9; color: var(--onx) }
+.seg .chip {
+  border: 0; border-radius: 5px;
+  min-width: 42px; padding: 5px 9px; text-align: center; background: transparent;
+}
+.seg .chip.on { background: #fff; color: var(--onx); box-shadow: 0 1px 2px rgba(25, 41, 73, .14) }
+.seg .chip:hover:not(:disabled):not(.on) { background: rgba(255, 255, 255, .55); color: var(--onx) }
 
 .chip {
   padding: 5px 10px; font: inherit; font-size: 13px; font-weight: 400;
@@ -207,7 +211,7 @@ body {
   background: #fff; color: var(--tx); cursor: pointer; white-space: nowrap;
 }
 .chip:hover:not(:disabled) { border-color: var(--on2); background: #f7f9fb; color: var(--onx) }
-.chip.on { background: var(--on); border-color: var(--on2); color: var(--onx) }
+.chip.on { background: #dee5ec; border-color: #b9c5d1; color: var(--onx) }
 .chip.warn:hover:not(:disabled) { border-color: var(--or); color: var(--or) }
 .chip:disabled { opacity: .35; cursor: default }
 
@@ -362,7 +366,7 @@ body {
 .lyrs {
   display: flex; flex-direction: column;
   margin: -2px 0 0; padding: 5px;
-  border: 1px solid var(--ln); border-radius: 7px; background: #fbfcfd;
+  border: 1px solid var(--ln); border-radius: 7px; background: #fff;
 }
 .lyrs .elrow { background: #fff; border-color: #eaeff4 }
 .lyrs .elrow:hover { background: #f4f6f9; border-color: #dde4ec }
@@ -380,7 +384,7 @@ body {
   display: flex; align-items: center; gap: 8px;
   margin: 5px 0; padding: 7px 10px;
   border: 1px solid #d5dde5; border-radius: 5px;
-  background: #eef2f6; cursor: pointer;
+  background: #e9eef3; cursor: pointer;
   font-size: 12.5px; font-weight: 400; letter-spacing: .04em; color: var(--onx);
 }
 .lyrbx::before, .lyrbx::after {
