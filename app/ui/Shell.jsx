@@ -85,6 +85,9 @@ const 요소갈래들 = ['제목', '요약', '문단', '목록', '번호목록',
    박스 「비움」은 박스를 통째로 넘기고 요소 「비움」은 그 높이만 넘긴다. 이름만 같은 남이다.
    여백은 이제 안 겹친다 — 박스는 「안여백」 · 요소는 「빈칸」이다 · N-자유 e */
 const 박스내용열쇠 = 요소갈래들.filter((k) => k !== '비움');
+/* 박스가 제 자리를 들 때 쓰는 열쇠 넷 · **얹기와 같은 어휘다** · N-자유배치.
+   렌더러 `놓인자리()` 와 같아야 한다 · 넷을 다 주거나 하나도 안 준다 */
+const 자리열쇠 = ['x', 'y', '폭', '높이'];
 // 요소를 새로 놓을 때 들어가는 값. 그림은 경로가 있어야 살아서 여기서 안 만든다
 const 새요소값 = {
   제목: () => '제목', 요약: () => '요약', 문단: () => '문단',
@@ -313,6 +316,7 @@ const 수범위 = { 모서리: [0, 40], 투명도: [0, 100], 굵기: [1, 6],
                     한 객체에 같은 열쇠를 두 번 적으면 뒤엣것이 조용히 이긴다 */
                  얹x: [0, 판W], 얹y: [0, 판H], 얹가로: [1, 판W], 얹세로: [1, 판H],
                  얹폭: [1, 판W], 얹높이: [1, 판H], 얹굵기: [1, 20],
+                 박스x: [0, 판W], 박스y: [0, 판H], 박스폭: [1, 판W], 박스높이: [1, 판H],
                  폭: [1, 표열최대], 비율: [비율하한, 100 - 비율하한],
                  칸수: [1, 20], 빈칸수: [0, 20], 빈비율: [0, 100 - 비율하한],
                  블록: [1, 30], 그림비율: [1, 100] };
@@ -606,6 +610,10 @@ export default function Shell({ docs, first }) {
   const 외곽선ref = useRef(false);
   /* 판 안 자석이 읽는다 · 판 리스너는 판이 뜰 때 한 번 달려 클로저가 낡는다 · N-자 */
   const 안내선ref = useRef({ 가로: [], 세로: [] });
+  /* 놓인 박스를 판에서 끈다 · N-자유배치. 판 리스너는 판이 뜰 때 한 번 달려
+     클로저가 낡으므로 지금 상태와 지금 쓰기를 ref 로 넘긴다 */
+  const 자유ref = useRef(false);
+  const 박스자리ref = useRef(() => {});
   /* **자석 자리는 화면 px 로 잰다** · N-자. 판 px 로 10 을 박아 두면 축척 30% 에서
      화면 3px 이 되어 사람 손이 못 맞춘다 — 축척을 나눠 언제나 같은 손맛이 되게 한다 */
   const 축척ref = useRef(0.3);
@@ -648,6 +656,7 @@ export default function Shell({ docs, first }) {
   useEffect(() => { 얹기자리ref.current = 얹기자리; });
   useEffect(() => { 외곽선ref.current = 외곽선; }, [외곽선]);
   useEffect(() => { 축척ref.current = 축척; }, [축척]);
+  useEffect(() => { 박스자리ref.current = 박스자리; });
 
   /* 켜고 끌 때 iframe 문서에 바로 입힌다.
      둘 다 rules/page.css 가 이미 갖고 있다 — .wrap.bl (기준선 자) · .wrap.dbg (외곽선).
@@ -683,6 +692,8 @@ export default function Shell({ docs, first }) {
       });
       // 얹은 것 · 「페이지」일 때만 누를 수 있고 고른 것에 테가 붙는다 · N-얹기
       d.querySelector('.wrap')?.classList.toggle('ovp', 삽입처ref.current === '페이지');
+      // 놓인 박스는 끌 수 있다 · N-자유배치
+      d.querySelector('.wrap')?.classList.toggle('free', 자유ref.current);
       d.querySelectorAll('[data-얹기]').forEach((el) =>
         el.classList.toggle('opick', Number(el.getAttribute('data-얹기')) === 얹기번호ref.current));
       /* 고른 요소의 실치수 · 판면 px 그대로다 — 페이지그리기() 가
@@ -887,6 +898,14 @@ export default function Shell({ docs, first }) {
       return;
     }
     return false;            // 맨 앞 · 맨 뒤에서 더 갈 데가 없다
+  }, { 그리기: true });
+
+  /* 끌어 옮긴 박스를 한 걸음으로 놓는다 · N-자유배치 · 얹기자리 와 같은 규칙이다 */
+  const 박스자리 = (k, x, y) => 바꾸기((d) => {
+    const z = d.페이지[i]?.박스?.[k];
+    if (!z || z.x == null || (z.x === x && z.y === y)) return false;
+    z.x = x; z.y = y;
+    set박스번호(k);
   }, { 그리기: true });
 
   /* 끌어 옮긴 결과를 한 걸음으로 놓는다 · N-얹기 b.
@@ -1518,9 +1537,61 @@ export default function Shell({ docs, first }) {
       while (박스.length < 필요) 박스.push({ 내용: [] });
       박스.length = 필요;
       q.박스 = 박스;
+      /* **자리를 든 페이지면 그 견본으로 다시 찍는다** · N-자유배치.
+         자리가 있으면 렌더러가 레이아웃을 안 보므로 · 안 찍으면 판면을 골라도
+         판이 하나도 안 바뀐다 — 누르고도 아무 일이 없는 버튼이 된다 */
+      if (박스.some((z) => z.x != null)) 자리찍기(q);
     }, { 그리기: true });
     set박스번호(null); set요소번호(null);
   };
+
+  /* ── 자유 배치 · N-자유배치 ─────────────────────────
+     **박스가 제 자리를 든다.** 키노트가 그렇다 — 슬라이드에는 자유롭게 놓인 개체만
+     있고 글 상자 **안**만 흐른다. 흐름 · 42 격자 · 넘침은 그대로 산다 ·
+     바뀌는 것은 사각형이 어디서 오느냐 하나뿐이다.
+
+     레이아웃 열둘은 **견본**으로 남는다 — 고르면 그 자리를 찍어 주고 그 뒤엔 자유다. */
+  const 자리찍기 = (q) => {
+    const 뺀것 = { ...q, 박스: (q.박스 ?? []).map((z) => {
+      const t = { ...z }; for (const k of 자리열쇠) delete t[k]; return t;
+    }) };
+    let r;
+    try { r = 영역(뺀것); } catch { return false; }
+    if (r.length !== (q.박스 ?? []).length) return false;
+    q.박스 = q.박스.map((z, k) => {
+      const t = { ...z }; for (const m of 자리열쇠) delete t[m];
+      return { x: r[k].x, y: r[k].y, 폭: r[k].w, 높이: r[k].h, ...t };
+    });
+    return true;
+  };
+
+  const 자유배치 = (켬) => 바꾸기((d) => {
+    const q = d.페이지[i];
+    if (!q?.박스?.length) return false;
+    if (켬) {
+      if (q.박스.some((z) => z.x != null)) return false;
+      if (!자리찍기(q)) { set로그('지금 판면을 못 읽어 자리를 못 찍는다'); return false; }
+      return;
+    }
+    if (q.박스.every((z) => z.x == null)) return false;
+    const 푼것 = q.박스.map((z) => {
+      const t = { ...z }; for (const k of 자리열쇠) delete t[k]; return t;
+    });
+    // 판면으로 돌아가려면 박스 수가 그 판면이 내는 수와 같아야 한다
+    let r;
+    try { r = 영역({ ...q, 박스: 푼것 }); } catch { r = null; }
+    if (!r || r.length !== 푼것.length) {
+      set로그(`판면 ${q.레이아웃 ?? '구성'} 은 박스 ${r?.length ?? '?'} 개를 내는데 지금 ${푼것.length} 개다`);
+      return false;
+    }
+    q.박스 = 푼것;
+  }, { 그리기: true });
+
+  const 자리값 = (열쇠, v) => 바꾸기((d) => {
+    const z = d.페이지[i]?.박스?.[박스번호];
+    if (!z || z[열쇠] === v) return false;
+    z[열쇠] = v;
+  }, { 그리기: true });
 
   /* ── 페이지 ── */
   const 번호매기기 = (d) => d.페이지.forEach((p, k) => { p.번호 = String(k + 1).padStart(2, '0'); });
@@ -1605,6 +1676,9 @@ export default function Shell({ docs, first }) {
              그림은 그 길이 없어 무엇을 고른 것인지 판에서 안 보였다 · 사용자 지적.
              outline 은 흐름을 안 건드린다 — 42 격자에 닿지 않는다 */
           '[data-요소]{cursor:default}' +
+          // 놓인 박스는 끌 수 있다 · N-자유배치
+          '.wrap.free .bx{cursor:move}' +
+          '.wrap.free .bx:hover{outline:1px solid rgba(230,129,0,.35);outline-offset:2px}' +
           '[data-박스].pick [data-요소]:hover{outline:1px solid rgba(230,129,0,.45);outline-offset:2px}' +
           '[data-요소].epick{outline:2px solid #E68100;outline-offset:2px}' +
           // 요소를 고르면 박스 테는 물러난다 · 강한 테는 하나만 남는다
@@ -1744,7 +1818,27 @@ export default function Shell({ docs, first }) {
         };
 
         d.addEventListener('pointerdown', (e) => {
-          if (!d.querySelector('.wrap')?.classList.contains('ovp')) return;
+          const 켬 = d.querySelector('.wrap')?.classList;
+          /* 놓인 박스를 끈다 · N-자유배치.
+             **글자로 들어간 뒤에는 안 끈다** — 그때 끄는 것은 글자 고르기다.
+             한 번 눌러 고르고 · 두 번 눌러 글자로 들어가는 길은 그대로 산다 ·
+             안 움직이고 떼면 click 이 그대로 나가 고르기가 된다 */
+          if (켬?.contains('free') && !e.target.isContentEditable) {
+            const b = e.target.closest?.('[data-박스]');
+            if (b) {
+              e.preventDefault();
+              const k = Number(b.getAttribute('data-박스'));
+              끌기 = {
+                el: b, k, 박스: true, x0: e.clientX, y0: e.clientY,
+                l: parseFloat(b.style.left) || 0, t: parseFloat(b.style.top) || 0,
+                w: b.offsetWidth, h: b.offsetHeight,
+                자x: 자석('x'), 자y: 자석('y', true),
+              };
+              b.setPointerCapture?.(e.pointerId);
+              return;
+            }
+          }
+          if (!켬?.contains('ovp')) return;
           const el = e.target.closest?.('[data-얹기]');
           if (!el) return;
           e.preventDefault();
@@ -1779,7 +1873,8 @@ export default function Shell({ docs, first }) {
         const 끌기끝 = () => {
           if (!끌기) return;
           const g = 끌기; 끌기 = null;
-          if (g.끝) 얹기자리ref.current(g.k, g.끝.x, g.끝.y);
+          if (!g.끝) return;
+          (g.박스 ? 박스자리ref.current : 얹기자리ref.current)(g.k, g.끝.x, g.끝.y);
         };
         d.addEventListener('pointerup', 끌기끝);
         d.addEventListener('pointercancel', 끌기끝);
@@ -2026,6 +2121,11 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
   const 고른요소 = 요소번호 == null ? null : (고른내용?.[요소번호] ?? null);
   const 요소열쇠 = (el) => 요소갈래들.find((k) => el?.[k] != null) ?? null;
   const 고른갈래 = 요소열쇠(고른요소);
+  // 이 페이지의 박스가 제 자리를 들었나 · N-자유배치
+  const 놓임 = !!현재?.박스?.length && 현재.박스.every((z) => z?.x != null);
+  // 놓인 박스는 「박스」 쪽을 볼 때만 판에서 끌린다 · 「페이지」 는 얹은 것 차례다
+  useEffect(() => { 자유ref.current = 놓임 && 삽입처 === '박스'; 테칠ref.current(); },
+    [놓임, 삽입처]);
 
   /* ── 안내선 · 읽기와 끌기 · N-자 ─────────────────── */
   const 안내선 = useMemo(() => ({
@@ -2373,6 +2473,21 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                       + ` · ${(현재?.박스?.length ?? 0)}칸`}</em>
                 </span>
               </div>
+              {/* **판면이냐 자유냐** · N-자유배치 · 사용자 판정.
+                  「자유」로 넘기면 지금 판면의 자리를 박스에 찍는다 — 그 뒤엔 레이아웃을
+                  안 본다. 되돌리면 열쇠 넷을 지우고 다시 판면이 놓는다.
+                  판면 견본은 자유일 때도 산다 · 고르면 그 자리로 다시 찍는다 */}
+              <div className="fld">
+                <span className="fldnm">배치</span>
+                <span className="fldv">
+                  <span className="seg">
+                    <button className={'chip' + (놓임 ? '' : ' on')}
+                            onClick={() => 자유배치(false)}>판면</button>
+                    <button className={'chip' + (놓임 ? ' on' : '')}
+                            onClick={() => 자유배치(true)}>자유</button>
+                  </span>
+                </span>
+              </div>
               <div className="fld">
                 <span className="fldnm">모드</span>
                 <span className="seg">
@@ -2434,6 +2549,22 @@ body{padding:0;margin:0;background:transparent;overflow:hidden}
                 <button className="chip warn" disabled={!고른내용?.length}
                         onClick={내용지움}>내용 삭제</button>
               </줄>
+              {놓임 && (
+                <>
+                  <줄 이름="자리">
+                    <수칸 열쇠="박스x" 값={고른.x} 기본={80} 로그={set로그}
+                          놓기={(n) => 자리값('x', n)} />
+                    <수칸 열쇠="박스y" 값={고른.y} 기본={368} 로그={set로그}
+                          놓기={(n) => 자리값('y', n)} />
+                  </줄>
+                  <줄 이름="크기">
+                    <수칸 열쇠="박스폭" 값={고른.폭} 기본={1068} 로그={set로그}
+                          놓기={(n) => 자리값('폭', n)} />
+                    <수칸 열쇠="박스높이" 값={고른.높이} 기본={1174} 로그={set로그}
+                          놓기={(n) => 자리값('높이', n)} />
+                  </줄>
+                </>
+              )}
               {고른.비움 && (
                 <줄 이름="채울 것">
                   <input
